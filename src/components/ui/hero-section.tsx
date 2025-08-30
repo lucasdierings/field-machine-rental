@@ -1,9 +1,18 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, MapPin, Calendar } from "lucide-react";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Search, MapPin, Calendar as CalendarIcon, Clock } from "lucide-react";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import { useState } from "react";
+import { cn } from "@/lib/utils";
 import heroImage from "@/assets/hero-farming.jpg";
 
 export const HeroSection = () => {
+  const [startDate, setStartDate] = useState<Date>();
+  const [endDate, setEndDate] = useState<Date>();
+
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
       {/* Background Image with Overlay */}
@@ -30,8 +39,8 @@ export const HeroSection = () => {
           </div>
 
           {/* Search Card */}
-          <div className="bg-card/95 backdrop-blur-sm rounded-2xl p-8 shadow-hero max-w-3xl mx-auto">
-            <div className="grid md:grid-cols-3 gap-4 mb-6">
+          <div className="bg-card/95 backdrop-blur-sm rounded-2xl p-8 shadow-hero max-w-4xl mx-auto">
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
               <div className="space-y-2">
                 <label className="text-sm font-medium text-foreground flex items-center gap-2">
                   <MapPin className="h-4 w-4" />
@@ -45,13 +54,46 @@ export const HeroSection = () => {
               
               <div className="space-y-2">
                 <label className="text-sm font-medium text-foreground flex items-center gap-2">
-                  <Calendar className="h-4 w-4" />
-                  Data de uso
+                  <CalendarIcon className="h-4 w-4" />
+                  Data Início
                 </label>
-                <Input 
-                  type="date"
-                  className="h-12"
-                />
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "h-12 w-full justify-start text-left font-normal",
+                        !startDate && "text-muted-foreground"
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {startDate ? format(startDate, "dd/MM/yyyy", { locale: ptBR }) : "Selecionar data"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={startDate}
+                      onSelect={setStartDate}
+                      disabled={(date) => date < new Date()}
+                      initialFocus
+                      className="p-3 pointer-events-auto"
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-foreground flex items-center gap-2">
+                  <Clock className="h-4 w-4" />
+                  Horário
+                </label>
+                <select className="w-full h-12 px-3 rounded-md border border-input bg-background text-foreground">
+                  <option>06:00 - 12:00</option>
+                  <option>12:00 - 18:00</option>
+                  <option>18:00 - 24:00</option>
+                  <option>Período integral</option>
+                </select>
               </div>
 
               <div className="space-y-2">
@@ -64,6 +106,40 @@ export const HeroSection = () => {
                   <option>Pulverizadores</option>
                   <option>Colheitadeiras</option>
                   <option>Caminhões</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-4 mb-6">
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-foreground">
+                  Cultura
+                </label>
+                <select className="w-full h-12 px-3 rounded-md border border-input bg-background text-foreground">
+                  <option>Selecionar cultura</option>
+                  <option>Soja</option>
+                  <option>Milho</option>
+                  <option>Algodão</option>
+                  <option>Cana-de-açúcar</option>
+                  <option>Arroz</option>
+                  <option>Feijão</option>
+                  <option>Trigo</option>
+                  <option>Café</option>
+                </select>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-foreground">
+                  Operação
+                </label>
+                <select className="w-full h-12 px-3 rounded-md border border-input bg-background text-foreground">
+                  <option>Tipo de operação</option>
+                  <option>Plantio</option>
+                  <option>Pulverização</option>
+                  <option>Colheita</option>
+                  <option>Preparo do solo</option>
+                  <option>Adubação</option>
+                  <option>Transporte</option>
                 </select>
               </div>
             </div>

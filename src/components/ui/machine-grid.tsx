@@ -15,7 +15,10 @@ const mockMachines: Machine[] = [
     pricePerDay: 850,
     image: "https://images.unsplash.com/photo-1625246333195-78d9c38ad449?w=400&h=300&fit=crop",
     availability: "Disponível",
-    owner: "Fazenda Santa Rita"
+    owner: "Fazenda Santa Rita",
+    servicesCompleted: 127,
+    chargeType: "hora",
+    comments: ["Excelente máquina, sempre pontual nos serviços", "Muito profissional"]
   },
   {
     id: "2", 
@@ -27,10 +30,13 @@ const mockMachines: Machine[] = [
     location: "Primavera do Leste, MT",
     rating: 4.9,
     reviews: 31,
-    pricePerDay: 1200,
+    pricePerDay: 180,
     image: "https://images.unsplash.com/photo-1574263867128-a3d5c1b1debc?w=400&h=300&fit=crop",
     availability: "Disponível",
-    owner: "AgroTech Equipamentos"
+    owner: "AgroTech Equipamentos",
+    servicesCompleted: 89,
+    chargeType: "hectare",
+    comments: ["Aplicação perfeita, recomendo", "Equipamento top de linha"]
   },
   {
     id: "3",
@@ -42,10 +48,13 @@ const mockMachines: Machine[] = [
     location: "Rio Verde, GO",
     rating: 4.7,
     reviews: 18,
-    pricePerDay: 2100,
+    pricePerDay: 320,
     image: "https://images.unsplash.com/photo-1581578949510-fa7315c4c350?w=400&h=300&fit=crop",
     availability: "Disponível",
-    owner: "Grupo Agro Cerrado"
+    owner: "Grupo Agro Cerrado",
+    servicesCompleted: 45,
+    chargeType: "hectare",
+    comments: ["Colheita rápida e eficiente"]
   },
   {
     id: "4",
@@ -60,7 +69,10 @@ const mockMachines: Machine[] = [
     pricePerDay: 750,
     image: "https://images.unsplash.com/photo-1605548146838-9f863b57b5ad?w=400&h=300&fit=crop",
     availability: "Ocupado até 15/12",
-    owner: "Transportes Agro Sul"
+    owner: "Transportes Agro Sul",
+    servicesCompleted: 203,
+    chargeType: "hora",
+    comments: ["Motorista experiente, entrega no prazo", "Caminhão em excelente estado"]
   },
   {
     id: "5",
@@ -75,7 +87,10 @@ const mockMachines: Machine[] = [
     pricePerDay: 620,
     image: "https://images.unsplash.com/photo-1625246333195-78d9c38ad449?w=400&h=300&fit=crop",
     availability: "Disponível",
-    owner: "Fazenda Boa Vista"
+    owner: "Fazenda Boa Vista",
+    servicesCompleted: 156,
+    chargeType: "hora",
+    comments: ["Serviço de qualidade, pontual"]
   },
   {
     id: "6",
@@ -87,10 +102,13 @@ const mockMachines: Machine[] = [
     location: "Sapezal, MT",
     rating: 4.9,
     reviews: 15,
-    pricePerDay: 1100,
+    pricePerDay: 165,
     image: "https://images.unsplash.com/photo-1574263867128-a3d5c1b1debc?w=400&h=300&fit=crop",
     availability: "Disponível", 
-    owner: "Soja Tech Ltda"
+    owner: "Soja Tech Ltda",
+    servicesCompleted: 73,
+    chargeType: "hectare",
+    comments: ["Aplicação uniforme, resultado excelente"]
   }
 ];
 
