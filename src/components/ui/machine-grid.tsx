@@ -14,7 +14,7 @@ const mockMachines: Machine[] = [
     location: "Sorriso, MT",
     rating: 4.8,
     reviews: 24,
-    pricePerDay: 850,
+    rate: 850,
     image: "https://images.unsplash.com/photo-1625246333195-78d9c38ad449?w=400&h=300&fit=crop",
     availability: "Disponível",
     owner: "Fazenda Santa Rita",
@@ -35,7 +35,7 @@ const mockMachines: Machine[] = [
     location: "Primavera do Leste, MT",
     rating: 4.9,
     reviews: 31,
-    pricePerDay: 180,
+    rate: 180,
     image: "https://images.unsplash.com/photo-1574263867128-a3d5c1b1debc?w=400&h=300&fit=crop",
     availability: "Disponível",
     owner: "AgroTech Equipamentos",
@@ -56,7 +56,7 @@ const mockMachines: Machine[] = [
     location: "Rio Verde, GO",
     rating: 4.7,
     reviews: 18,
-    pricePerDay: 320,
+    rate: 320,
     image: "https://images.unsplash.com/photo-1581578949510-fa7315c4c350?w=400&h=300&fit=crop",
     availability: "Disponível",
     owner: "Grupo Agro Cerrado",
@@ -77,7 +77,7 @@ const mockMachines: Machine[] = [
     location: "Cuiabá, MT",
     rating: 4.6,
     reviews: 42,
-    pricePerDay: 750,
+    rate: 750,
     image: "https://images.unsplash.com/photo-1605548146838-9f863b57b5ad?w=400&h=300&fit=crop",
     availability: "Ocupado até 15/12",
     owner: "Transportes Agro Sul",
@@ -98,7 +98,7 @@ const mockMachines: Machine[] = [
     location: "Campo Grande, MS",
     rating: 4.8,
     reviews: 27,
-    pricePerDay: 620,
+    rate: 620,
     image: "https://images.unsplash.com/photo-1625246333195-78d9c38ad449?w=400&h=300&fit=crop",
     availability: "Disponível",
     owner: "Fazenda Boa Vista",
@@ -119,7 +119,7 @@ const mockMachines: Machine[] = [
     location: "Sapezal, MT",
     rating: 4.9,
     reviews: 15,
-    pricePerDay: 165,
+    rate: 165,
     image: "https://images.unsplash.com/photo-1574263867128-a3d5c1b1debc?w=400&h=300&fit=crop",
     availability: "Disponível", 
     owner: "Soja Tech Ltda",
@@ -157,7 +157,7 @@ export const MachineGrid = ({ searchFilters }: MachineGridProps) => {
       // Filtro de preço
       if (searchFilters.priceRange) {
         const [minPrice, maxPrice] = searchFilters.priceRange;
-        if (machine.pricePerDay < minPrice || machine.pricePerDay > maxPrice) {
+        if (machine.rate < minPrice || machine.rate > maxPrice) {
           return false;
         }
       }

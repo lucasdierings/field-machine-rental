@@ -5,7 +5,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Search, MapPin, Calendar as CalendarIcon, Clock, Filter, ChevronDown, ChevronUp } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import heroImage from "@/assets/hero-farming.jpg";
 import { AdvancedFilters, type FilterValues } from "@/components/ui/advanced-filters";
@@ -23,6 +23,23 @@ export const HeroSection = ({ onSearch }: HeroSectionProps) => {
   const [culture, setCulture] = useState("Selecionar cultura");
   const [operation, setOperation] = useState("Tipo de operação");
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
+
+  // Load saved filters from localStorage on component mount
+  useEffect(() => {
+    const savedFilters = localStorage.getItem('fieldmachine-saved-filters');
+    if (savedFilters) {
+      try {
+        const parsed = JSON.parse(savedFilters);
+        setFilters(parsed);
+        if (parsed.location) setLocation(parsed.location);
+        if (parsed.category) setCategory(parsed.category);
+        if (parsed.culture) setCulture(parsed.culture);
+        if (parsed.operation) setOperation(parsed.operation);
+      } catch (error) {
+        console.error('Error loading saved filters:', error);
+      }
+    }
+  }, []);
   
   const [filters, setFilters] = useState<FilterValues>({
     priceRange: [100, 2000],

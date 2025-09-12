@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Menu, User, Heart, Bell } from "lucide-react";
+import { Link } from "react-router-dom";
 
 export const Header = () => {
   return (
@@ -8,46 +9,54 @@ export const Header = () => {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <div className="flex items-center space-x-4">
-            <div className="font-bold text-2xl">
+            <Link to="/" className="font-bold text-2xl">
               Field<span className="text-primary">Machine</span>
-            </div>
+            </Link>
           </div>
 
           {/* Navigation - Desktop */}
           <nav className="hidden md:flex items-center space-x-8">
-            <a href="#" className="text-foreground hover:text-primary transition-colors">
+            <Link to="/buscar" className="text-foreground hover:text-primary transition-colors">
               Buscar
-            </a>
-            <a href="#" className="text-foreground hover:text-primary transition-colors">
+            </Link>
+            <Link to="/categorias" className="text-foreground hover:text-primary transition-colors">
               Categorias
-            </a>
-            <a href="#" className="text-foreground hover:text-primary transition-colors">
+            </Link>
+            <Link to="/como-funciona" className="text-foreground hover:text-primary transition-colors">
               Como Funciona
-            </a>
-            <a href="#" className="text-foreground hover:text-primary transition-colors">
+            </Link>
+            <Link to="/alugar-minha-maquina" className="text-foreground hover:text-primary transition-colors">
               Alugar Minha Máquina
-            </a>
+            </Link>
           </nav>
 
           {/* User Actions */}
           <div className="flex items-center space-x-3">
-            <Button variant="ghost" size="sm" className="hidden md:flex">
-              <Heart className="h-4 w-4 mr-2" />
-              Favoritos
+            <Button variant="ghost" size="sm" className="hidden md:flex" asChild>
+              <Link to="/favoritos">
+                <Heart className="h-4 w-4 mr-2" />
+                Favoritos
+              </Link>
             </Button>
             
-            <Button variant="ghost" size="sm" className="hidden md:flex">
-              <Bell className="h-4 w-4 mr-2" />
-              Alertas
+            <Button variant="ghost" size="sm" className="hidden md:flex" asChild>
+              <Link to="/alertas">
+                <Bell className="h-4 w-4 mr-2" />
+                Alertas
+              </Link>
             </Button>
 
-            <Button variant="outline" size="sm">
-              <User className="h-4 w-4 mr-2" />
-              Entrar
+            <Button variant="outline" size="sm" asChild>
+              <Link to="/entrar">
+                <User className="h-4 w-4 mr-2" />
+                Entrar
+              </Link>
             </Button>
 
-            <Button size="sm" className="bg-gradient-primary">
-              Cadastrar
+            <Button size="sm" className="bg-gradient-primary" asChild>
+              <Link to="/cadastro">
+                Cadastrar
+              </Link>
             </Button>
 
             {/* Mobile Menu */}

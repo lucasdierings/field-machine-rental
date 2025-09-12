@@ -2,6 +2,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { MapPin, Calendar, Fuel, Settings, Star, CheckCircle, Clock, BarChart3, Verified } from "lucide-react";
+import { Link } from "react-router-dom";
 
 export interface Machine {
   id: string;
@@ -13,7 +14,7 @@ export interface Machine {
   location: string;
   rating: number;
   reviews: number;
-  pricePerDay: number;
+  rate: number; // Changed from pricePerDay to rate
   image: string;
   availability: string;
   owner: string;
@@ -30,8 +31,8 @@ interface MachineCardProps {
 }
 
 export const MachineCard = ({ machine }: MachineCardProps) => {
-  const platformFee = machine.pricePerDay * 0.02;
-  const totalPrice = machine.pricePerDay + platformFee;
+  const platformFee = machine.rate * 0.02;
+  const totalPrice = machine.rate + platformFee;
 
   return (
     <Card className="group overflow-hidden hover:shadow-card transition-all duration-300 bg-gradient-card border-0">
@@ -110,7 +111,7 @@ export const MachineCard = ({ machine }: MachineCardProps) => {
           <div className="space-y-2 p-3 bg-muted/30 rounded-lg">
             <div className="flex justify-between text-sm">
               <span>Valor por {machine.chargeType}:</span>
-              <span>R$ {machine.pricePerDay.toLocaleString('pt-BR')}</span>
+              <span>R$ {machine.rate.toLocaleString('pt-BR')}</span>
             </div>
             <div className="flex justify-between text-sm text-muted-foreground">
               <span>Taxa da plataforma (2%):</span>
@@ -143,15 +144,21 @@ export const MachineCard = ({ machine }: MachineCardProps) => {
               variant="outline" 
               size="sm"
               className="flex-1"
+              asChild
             >
-              Ver Detalhes
+              <Link to={`/equipamento/${machine.id}`}>
+                Ver Detalhes
+              </Link>
             </Button>
             <Button 
               size="sm"
               className="flex-1 bg-gradient-primary hover:shadow-hero transition-all duration-300"
+              asChild
             >
-              <Calendar className="mr-2 h-4 w-4" />
-              Reservar
+              <Link to={`/reservar/${machine.id}`}>
+                <Calendar className="mr-2 h-4 w-4" />
+                Reservar
+              </Link>
             </Button>
           </div>
         </div>
