@@ -292,13 +292,13 @@ export const HeroSection = ({ onSearch }: HeroSectionProps) => {
               <p className="text-sm opacity-80">Milhares de máquinas disponíveis na sua região</p>
             </div>
             
-            <div className="text-center space-y-2">
-              <div className="w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Calendar className="h-8 w-8 text-primary-glow" />
+              <div className="text-center space-y-2">
+                <div className="w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <CalendarIcon className="h-8 w-8 text-primary-glow" />
+                </div>
+                <h3 className="text-lg font-semibold">Reserve Instantaneamente</h3>
+                <p className="text-sm opacity-80">Processo simples e seguro de locação</p>
               </div>
-              <h3 className="text-lg font-semibold">Reserve Instantaneamente</h3>
-              <p className="text-sm opacity-80">Processo simples e seguro de locação</p>
-            </div>
             
             <div className="text-center space-y-2">
               <div className="w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-4">
