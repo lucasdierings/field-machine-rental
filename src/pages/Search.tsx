@@ -17,14 +17,12 @@ const Search = () => {
     time?: string;
     category?: string;
     culture?: string;
-    operation?: string;
   }>();
   
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   const [location, setLocation] = useState("");
   const [category, setCategory] = useState("Todas as categorias");
   const [culture, setCulture] = useState("Selecionar cultura");
-  const [operation, setOperation] = useState("Selecionar operação");
 
   const defaultFilters: FilterValues = {
     priceRange: [100, 2000],
@@ -46,8 +44,7 @@ const Search = () => {
       ...filters,
       location,
       category,
-      culture,
-      operation
+      culture
     });
   };
 
@@ -70,7 +67,7 @@ const Search = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <Input
                     placeholder="Localização"
                     value={location}
@@ -100,19 +97,6 @@ const Search = () => {
                       <SelectItem value="Milho">Milho</SelectItem>
                       <SelectItem value="Algodão">Algodão</SelectItem>
                       <SelectItem value="Cana-de-açúcar">Cana-de-açúcar</SelectItem>
-                    </SelectContent>
-                  </Select>
-
-                  <Select value={operation} onValueChange={setOperation}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Selecionar operação">Selecionar operação</SelectItem>
-                      <SelectItem value="Plantio">Plantio</SelectItem>
-                      <SelectItem value="Pulverização">Pulverização</SelectItem>
-                      <SelectItem value="Colheita">Colheita</SelectItem>
-                      <SelectItem value="Preparo do solo">Preparo do solo</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>

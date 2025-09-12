@@ -11,7 +11,7 @@ import heroImage from "@/assets/hero-farming.jpg";
 import { AdvancedFilters, type FilterValues } from "@/components/ui/advanced-filters";
 
 interface HeroSectionProps {
-  onSearch?: (filters: FilterValues & { location: string; startDate?: Date; endDate?: Date; time: string; category: string; culture: string; operation: string }) => void;
+  onSearch?: (filters: FilterValues & { location: string; startDate?: Date; endDate?: Date; time: string; category: string; culture: string }) => void;
 }
 
 export const HeroSection = ({ onSearch }: HeroSectionProps) => {
@@ -21,7 +21,6 @@ export const HeroSection = ({ onSearch }: HeroSectionProps) => {
   const [time, setTime] = useState("Período integral");
   const [category, setCategory] = useState("Todas as categorias");
   const [culture, setCulture] = useState("Selecionar cultura");
-  const [operation, setOperation] = useState("Tipo de operação");
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
 
   // Load saved filters from localStorage on component mount
@@ -34,7 +33,6 @@ export const HeroSection = ({ onSearch }: HeroSectionProps) => {
         if (parsed.location) setLocation(parsed.location);
         if (parsed.category) setCategory(parsed.category);
         if (parsed.culture) setCulture(parsed.culture);
-        if (parsed.operation) setOperation(parsed.operation);
       } catch (error) {
         console.error('Error loading saved filters:', error);
       }
@@ -63,8 +61,7 @@ export const HeroSection = ({ onSearch }: HeroSectionProps) => {
         endDate,
         time,
         category,
-        culture,
-        operation
+        culture
       });
     }
   };
@@ -83,8 +80,7 @@ export const HeroSection = ({ onSearch }: HeroSectionProps) => {
       location,
       time,
       category,
-      culture,
-      operation
+      culture
     };
     localStorage.setItem('fieldmachine-favorite-filters', JSON.stringify(savedFilters));
     // Aqui você pode adicionar uma notificação de sucesso
@@ -200,12 +196,12 @@ export const HeroSection = ({ onSearch }: HeroSectionProps) => {
               </div>
             </div>
 
-            <div className="grid md:grid-cols-2 gap-4 mb-6">
+            <div className="grid md:grid-cols-1 gap-4 mb-6">
               <div className="space-y-2">
                 <label className="text-sm font-medium text-foreground">
                   Cultura
                 </label>
-                <select 
+                <select
                   className="w-full h-12 px-3 rounded-md border border-input bg-background text-foreground"
                   value={culture}
                   onChange={(e) => {
@@ -222,25 +218,6 @@ export const HeroSection = ({ onSearch }: HeroSectionProps) => {
                   <option>Feijão</option>
                   <option>Trigo</option>
                   <option>Café</option>
-                </select>
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-foreground">
-                  Operação
-                </label>
-                <select 
-                  className="w-full h-12 px-3 rounded-md border border-input bg-background text-foreground"
-                  value={operation}
-                  onChange={(e) => setOperation(e.target.value)}
-                >
-                  <option>Tipo de operação</option>
-                  <option>Plantio</option>
-                  <option>Pulverização</option>
-                  <option>Colheita</option>
-                  <option>Preparo do solo</option>
-                  <option>Adubação</option>
-                  <option>Transporte</option>
                 </select>
               </div>
             </div>

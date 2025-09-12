@@ -14,7 +14,6 @@ const Index = () => {
     time?: string;
     category?: string;
     culture?: string;
-    operation?: string;
   }>();
 
   const handleSearch = (filters: FilterValues & {
@@ -24,7 +23,6 @@ const Index = () => {
     time: string;
     category: string;
     culture: string;
-    operation: string;
   }) => {
     setSearchFilters(filters);
   };

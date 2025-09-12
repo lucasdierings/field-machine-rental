@@ -140,7 +140,6 @@ interface MachineGridProps {
     time?: string;
     category?: string;
     culture?: string;
-    operation?: string;
   };
 }
 
