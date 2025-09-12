@@ -2,16 +2,76 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Search, MapPin, Calendar as CalendarIcon, Clock } from "lucide-react";
+import { Search, MapPin, Calendar as CalendarIcon, Clock, Filter, ChevronDown, ChevronUp } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import heroImage from "@/assets/hero-farming.jpg";
+import { AdvancedFilters, type FilterValues } from "@/components/ui/advanced-filters";
 
-export const HeroSection = () => {
+interface HeroSectionProps {
+  onSearch?: (filters: FilterValues & { location: string; startDate?: Date; endDate?: Date; time: string; category: string; culture: string; operation: string }) => void;
+}
+
+export const HeroSection = ({ onSearch }: HeroSectionProps) => {
   const [startDate, setStartDate] = useState<Date>();
   const [endDate, setEndDate] = useState<Date>();
+  const [location, setLocation] = useState("");
+  const [time, setTime] = useState("Período integral");
+  const [category, setCategory] = useState("Todas as categorias");
+  const [culture, setCulture] = useState("Selecionar cultura");
+  const [operation, setOperation] = useState("Tipo de operação");
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
+  
+  const [filters, setFilters] = useState<FilterValues>({
+    priceRange: [100, 2000],
+    distanceRadius: "50km",
+    powerRange: "Todas",
+    availability: "Qualquer",
+    yearRange: [2015, 2024],
+    minRating: 0,
+    minServices: 0,
+    verifiedOnly: false,
+    category: "Todas as categorias",
+    culture: "Selecionar cultura"
+  });
+
+  const handleSearch = () => {
+    if (onSearch) {
+      onSearch({
+        ...filters,
+        location,
+        startDate,
+        endDate,
+        time,
+        category,
+        culture,
+        operation
+      });
+    }
+  };
+
+  const handleFiltersChange = (newFilters: FilterValues) => {
+    setFilters(newFilters);
+    // Sincronizar com os selects principais
+    setCulture(newFilters.culture);
+    setCategory(newFilters.category);
+  };
+
+  const handleSaveFilters = () => {
+    // Implementar salvamento dos filtros favoritos
+    const savedFilters = {
+      ...filters,
+      location,
+      time,
+      category,
+      culture,
+      operation
+    };
+    localStorage.setItem('fieldmachine-favorite-filters', JSON.stringify(savedFilters));
+    // Aqui você pode adicionar uma notificação de sucesso
+  };
 
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
@@ -49,6 +109,8 @@ export const HeroSection = () => {
                 <Input 
                   placeholder="Cidade, Estado"
                   className="h-12"
+                  value={location}
+                  onChange={(e) => setLocation(e.target.value)}
                 />
               </div>
               
@@ -88,7 +150,11 @@ export const HeroSection = () => {
                   <Clock className="h-4 w-4" />
                   Horário
                 </label>
-                <select className="w-full h-12 px-3 rounded-md border border-input bg-background text-foreground">
+                <select 
+                  className="w-full h-12 px-3 rounded-md border border-input bg-background text-foreground"
+                  value={time}
+                  onChange={(e) => setTime(e.target.value)}
+                >
                   <option>06:00 - 12:00</option>
                   <option>12:00 - 18:00</option>
                   <option>18:00 - 24:00</option>
@@ -100,7 +166,14 @@ export const HeroSection = () => {
                 <label className="text-sm font-medium text-foreground">
                   Categoria
                 </label>
-                <select className="w-full h-12 px-3 rounded-md border border-input bg-background text-foreground">
+                <select 
+                  className="w-full h-12 px-3 rounded-md border border-input bg-background text-foreground"
+                  value={category}
+                  onChange={(e) => {
+                    setCategory(e.target.value);
+                    setFilters(prev => ({ ...prev, category: e.target.value }));
+                  }}
+                >
                   <option>Todas as categorias</option>
                   <option>Tratores</option>
                   <option>Pulverizadores</option>
@@ -115,7 +188,14 @@ export const HeroSection = () => {
                 <label className="text-sm font-medium text-foreground">
                   Cultura
                 </label>
-                <select className="w-full h-12 px-3 rounded-md border border-input bg-background text-foreground">
+                <select 
+                  className="w-full h-12 px-3 rounded-md border border-input bg-background text-foreground"
+                  value={culture}
+                  onChange={(e) => {
+                    setCulture(e.target.value);
+                    setFilters(prev => ({ ...prev, culture: e.target.value }));
+                  }}
+                >
                   <option>Selecionar cultura</option>
                   <option>Soja</option>
                   <option>Milho</option>
@@ -132,7 +212,11 @@ export const HeroSection = () => {
                 <label className="text-sm font-medium text-foreground">
                   Operação
                 </label>
-                <select className="w-full h-12 px-3 rounded-md border border-input bg-background text-foreground">
+                <select 
+                  className="w-full h-12 px-3 rounded-md border border-input bg-background text-foreground"
+                  value={operation}
+                  onChange={(e) => setOperation(e.target.value)}
+                >
                   <option>Tipo de operação</option>
                   <option>Plantio</option>
                   <option>Pulverização</option>
@@ -144,14 +228,42 @@ export const HeroSection = () => {
               </div>
             </div>
 
-            <Button 
-              size="lg" 
-              className="w-full h-14 text-lg font-semibold bg-gradient-primary hover:shadow-hero transition-all duration-300"
-            >
-              <Search className="mr-2 h-5 w-5" />
-              Buscar Equipamentos
-            </Button>
+            <div className="space-y-4">
+              <div className="flex gap-3">
+                <Button 
+                  size="lg" 
+                  className="flex-1 h-14 text-lg font-semibold bg-gradient-primary hover:shadow-hero transition-all duration-300"
+                  onClick={handleSearch}
+                >
+                  <Search className="mr-2 h-5 w-5" />
+                  Buscar Equipamentos
+                </Button>
+                
+                <Button
+                  variant="outline"
+                  size="lg"
+                  className="h-14 px-6 border-white/20 text-foreground hover:bg-white/10"
+                  onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
+                >
+                  <Filter className="mr-2 h-5 w-5" />
+                  Filtros
+                  {showAdvancedFilters ? 
+                    <ChevronUp className="ml-2 h-4 w-4" /> : 
+                    <ChevronDown className="ml-2 h-4 w-4" />
+                  }
+                </Button>
+              </div>
+            </div>
           </div>
+
+          {/* Advanced Filters */}
+          <AdvancedFilters
+            filters={filters}
+            onFiltersChange={handleFiltersChange}
+            onSaveFilters={handleSaveFilters}
+            isExpanded={showAdvancedFilters}
+            onToggle={() => setShowAdvancedFilters(!showAdvancedFilters)}
+          />
 
           {/* Features */}
           <div className="grid md:grid-cols-3 gap-6 mt-12">

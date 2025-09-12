@@ -1,4 +1,6 @@
 import { MachineCard, type Machine } from "@/components/ui/machine-card";
+import { useState, useEffect } from "react";
+import { type FilterValues } from "@/components/ui/advanced-filters";
 
 // Mock data - em uma aplicação real viria de uma API
 const mockMachines: Machine[] = [
@@ -18,7 +20,10 @@ const mockMachines: Machine[] = [
     owner: "Fazenda Santa Rita",
     servicesCompleted: 127,
     chargeType: "hora",
-    comments: ["Excelente máquina, sempre pontual nos serviços", "Muito profissional"]
+    comments: ["Excelente máquina, sempre pontual nos serviços", "Muito profissional"],
+    verified: true,
+    workWidth: 12,
+    tankCapacity: 3000
   },
   {
     id: "2", 
@@ -36,7 +41,10 @@ const mockMachines: Machine[] = [
     owner: "AgroTech Equipamentos",
     servicesCompleted: 89,
     chargeType: "hectare",
-    comments: ["Aplicação perfeita, recomendo", "Equipamento top de linha"]
+    comments: ["Aplicação perfeita, recomendo", "Equipamento top de linha"],
+    verified: true,
+    workWidth: 18,
+    tankCapacity: 3500
   },
   {
     id: "3",
@@ -54,7 +62,10 @@ const mockMachines: Machine[] = [
     owner: "Grupo Agro Cerrado",
     servicesCompleted: 45,
     chargeType: "hectare",
-    comments: ["Colheita rápida e eficiente"]
+    comments: ["Colheita rápida e eficiente"],
+    verified: true,
+    workWidth: 9,
+    tankCapacity: 8000
   },
   {
     id: "4",
@@ -72,7 +83,10 @@ const mockMachines: Machine[] = [
     owner: "Transportes Agro Sul",
     servicesCompleted: 203,
     chargeType: "hora",
-    comments: ["Motorista experiente, entrega no prazo", "Caminhão em excelente estado"]
+    comments: ["Motorista experiente, entrega no prazo", "Caminhão em excelente estado"],
+    verified: false,
+    workWidth: 0,
+    tankCapacity: 0
   },
   {
     id: "5",
@@ -90,7 +104,10 @@ const mockMachines: Machine[] = [
     owner: "Fazenda Boa Vista",
     servicesCompleted: 156,
     chargeType: "hora",
-    comments: ["Serviço de qualidade, pontual"]
+    comments: ["Serviço de qualidade, pontual"],
+    verified: true,
+    workWidth: 8,
+    tankCapacity: 2500
   },
   {
     id: "6",
@@ -108,11 +125,112 @@ const mockMachines: Machine[] = [
     owner: "Soja Tech Ltda",
     servicesCompleted: 73,
     chargeType: "hectare",
-    comments: ["Aplicação uniforme, resultado excelente"]
+    comments: ["Aplicação uniforme, resultado excelente"],
+    verified: true,
+    workWidth: 24,
+    tankCapacity: 4000
   }
 ];
 
-export const MachineGrid = () => {
+interface MachineGridProps {
+  searchFilters?: FilterValues & {
+    location?: string;
+    startDate?: Date;
+    endDate?: Date;
+    time?: string;
+    category?: string;
+    culture?: string;
+    operation?: string;
+  };
+}
+
+export const MachineGrid = ({ searchFilters }: MachineGridProps) => {
+  const [filteredMachines, setFilteredMachines] = useState<Machine[]>(mockMachines);
+
+  useEffect(() => {
+    if (!searchFilters) {
+      setFilteredMachines(mockMachines);
+      return;
+    }
+
+    let filtered = mockMachines.filter((machine) => {
+      // Filtro de preço
+      if (searchFilters.priceRange) {
+        const [minPrice, maxPrice] = searchFilters.priceRange;
+        if (machine.pricePerDay < minPrice || machine.pricePerDay > maxPrice) {
+          return false;
+        }
+      }
+
+      // Filtro de categoria
+      if (searchFilters.category && searchFilters.category !== "Todas as categorias") {
+        if (machine.category !== searchFilters.category) {
+          return false;
+        }
+      }
+
+      // Filtro de potência
+      if (searchFilters.powerRange && searchFilters.powerRange !== "Todas") {
+        const machinePower = parseInt(machine.power.replace(/\D/g, ''));
+        switch (searchFilters.powerRange) {
+          case "100-200":
+            if (machinePower < 100 || machinePower > 200) return false;
+            break;
+          case "200-300":
+            if (machinePower < 200 || machinePower > 300) return false;
+            break;
+          case "300-400":
+            if (machinePower < 300 || machinePower > 400) return false;
+            break;
+          case "400+":
+            if (machinePower < 400) return false;
+            break;
+        }
+      }
+
+      // Filtro de ano
+      if (searchFilters.yearRange) {
+        const [minYear, maxYear] = searchFilters.yearRange;
+        if (machine.year < minYear || machine.year > maxYear) {
+          return false;
+        }
+      }
+
+      // Filtro de avaliação
+      if (searchFilters.minRating && machine.rating < searchFilters.minRating) {
+        return false;
+      }
+
+      // Filtro de serviços mínimos
+      if (searchFilters.minServices && machine.servicesCompleted < searchFilters.minServices) {
+        return false;
+      }
+
+      // Filtro de verificados
+      if (searchFilters.verifiedOnly && !machine.verified) {
+        return false;
+      }
+
+      // Filtros específicos por cultura
+      if (searchFilters.workWidth && machine.workWidth) {
+        const [minWidth, maxWidth] = searchFilters.workWidth;
+        if (machine.workWidth < minWidth || machine.workWidth > maxWidth) {
+          return false;
+        }
+      }
+
+      if (searchFilters.tankCapacity && machine.tankCapacity) {
+        const [minCapacity, maxCapacity] = searchFilters.tankCapacity;
+        if (machine.tankCapacity < minCapacity || machine.tankCapacity > maxCapacity) {
+          return false;
+        }
+      }
+
+      return true;
+    });
+
+    setFilteredMachines(filtered);
+  }, [searchFilters]);
   return (
     <section className="py-16">
       <div className="container mx-auto px-4">
@@ -126,10 +244,21 @@ export const MachineGrid = () => {
         </div>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {mockMachines.map((machine) => (
+          {filteredMachines.map((machine) => (
             <MachineCard key={machine.id} machine={machine} />
           ))}
         </div>
+
+        {filteredMachines.length === 0 && (
+          <div className="text-center py-12">
+            <div className="text-muted-foreground text-lg mb-2">
+              Nenhuma máquina encontrada
+            </div>
+            <p className="text-sm text-muted-foreground">
+              Tente ajustar seus filtros para encontrar mais opções
+            </p>
+          </div>
+        )}
 
         <div className="text-center mt-12">
           <button className="px-8 py-3 bg-primary text-primary-foreground rounded-lg font-semibold hover:bg-primary/90 transition-colors">

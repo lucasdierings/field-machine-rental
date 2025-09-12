@@ -1,7 +1,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Calendar, Fuel, Settings, Star, CheckCircle, Clock, BarChart3 } from "lucide-react";
+import { MapPin, Calendar, Fuel, Settings, Star, CheckCircle, Clock, BarChart3, Verified } from "lucide-react";
 
 export interface Machine {
   id: string;
@@ -20,6 +20,9 @@ export interface Machine {
   servicesCompleted: number;
   chargeType: "hora" | "hectare";
   comments?: string[];
+  verified: boolean;
+  workWidth?: number;
+  tankCapacity?: number;
 }
 
 interface MachineCardProps {
@@ -122,7 +125,16 @@ export const MachineCard = ({ machine }: MachineCardProps) => {
           {/* Owner (Hidden until hiring) */}
           <div className="flex items-center gap-2 text-sm">
             <Settings className="h-4 w-4 text-muted-foreground" />
-            <span className="text-muted-foreground">Prestador verificado • Nome liberado após contratação</span>
+            <span className="text-muted-foreground">
+              {machine.verified ? (
+                <>
+                  <Verified className="inline h-4 w-4 text-primary mr-1" />
+                  Prestador verificado
+                </>
+              ) : (
+                "Prestador não verificado"
+              )} • Nome liberado após contratação
+            </span>
           </div>
 
           {/* Actions */}
