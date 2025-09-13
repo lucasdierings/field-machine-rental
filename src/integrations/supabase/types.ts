@@ -14,130 +14,165 @@ export type Database = {
   }
   public: {
     Tables: {
-      audit_log: {
+      analytics: {
         Row: {
-          action: string
-          actor_id: string | null
-          at: string
-          diff: Json | null
-          id: number
-          row_id: string | null
-          table_name: string
+          created_at: string | null
+          event_type: string
+          id: string
+          ip_address: string | null
+          metadata: Json | null
+          page_url: string | null
+          search_query: string | null
+          session_id: string | null
+          user_agent: string | null
+          user_id: string | null
         }
         Insert: {
-          action: string
-          actor_id?: string | null
-          at?: string
-          diff?: Json | null
-          id?: number
-          row_id?: string | null
-          table_name: string
+          created_at?: string | null
+          event_type: string
+          id?: string
+          ip_address?: string | null
+          metadata?: Json | null
+          page_url?: string | null
+          search_query?: string | null
+          session_id?: string | null
+          user_agent?: string | null
+          user_id?: string | null
         }
         Update: {
-          action?: string
-          actor_id?: string | null
-          at?: string
-          diff?: Json | null
-          id?: number
-          row_id?: string | null
-          table_name?: string
+          created_at?: string | null
+          event_type?: string
+          id?: string
+          ip_address?: string | null
+          metadata?: Json | null
+          page_url?: string | null
+          search_query?: string | null
+          session_id?: string | null
+          user_agent?: string | null
+          user_id?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "audit_log_actor_id_fkey"
-            columns: ["actor_id"]
+            foreignKeyName: "analytics_user_id_fkey"
+            columns: ["user_id"]
             isOneToOne: false
-            referencedRelation: "profiles"
+            referencedRelation: "users"
             referencedColumns: ["id"]
           },
         ]
       }
-      availability: {
+      blog_posts: {
         Row: {
-          end_at: string
-          id: number
-          is_recurring: boolean | null
-          machine_id: string
-          notes: string | null
-          start_at: string
+          author_id: string | null
+          category: string | null
+          content: string
+          created_at: string | null
+          excerpt: string | null
+          featured_image: string | null
+          id: string
+          meta_description: string | null
+          meta_title: string | null
+          published_at: string | null
+          slug: string
+          status: string | null
+          tags: string[] | null
+          title: string
+          views: number | null
         }
         Insert: {
-          end_at: string
-          id?: number
-          is_recurring?: boolean | null
-          machine_id: string
-          notes?: string | null
-          start_at: string
+          author_id?: string | null
+          category?: string | null
+          content: string
+          created_at?: string | null
+          excerpt?: string | null
+          featured_image?: string | null
+          id?: string
+          meta_description?: string | null
+          meta_title?: string | null
+          published_at?: string | null
+          slug: string
+          status?: string | null
+          tags?: string[] | null
+          title: string
+          views?: number | null
         }
         Update: {
-          end_at?: string
-          id?: number
-          is_recurring?: boolean | null
-          machine_id?: string
-          notes?: string | null
-          start_at?: string
+          author_id?: string | null
+          category?: string | null
+          content?: string
+          created_at?: string | null
+          excerpt?: string | null
+          featured_image?: string | null
+          id?: string
+          meta_description?: string | null
+          meta_title?: string | null
+          published_at?: string | null
+          slug?: string
+          status?: string | null
+          tags?: string[] | null
+          title?: string
+          views?: number | null
         }
         Relationships: [
           {
-            foreignKeyName: "availability_machine_id_fkey"
-            columns: ["machine_id"]
+            foreignKeyName: "blog_posts_author_id_fkey"
+            columns: ["author_id"]
             isOneToOne: false
-            referencedRelation: "machines"
+            referencedRelation: "users"
             referencedColumns: ["id"]
           },
         ]
       }
       bookings: {
         Row: {
-          created_at: string
-          customer_id: string
-          end_at: string
+          created_at: string | null
+          end_date: string
           id: string
-          machine_id: string
-          owner_id: string
-          price_cents: number
-          qty: number
-          start_at: string
-          status: Database["public"]["Enums"]["booking_status"]
-          total_cents: number
-          unit: Database["public"]["Enums"]["pricing_unit"]
+          machine_id: string | null
+          negotiation_history: Json | null
+          owner_id: string | null
+          payment_status: string | null
+          platform_fee: number | null
+          price_type: string | null
+          quantity: number | null
+          renter_id: string | null
+          start_date: string
+          status: string | null
+          total_price: number | null
         }
         Insert: {
-          created_at?: string
-          customer_id: string
-          end_at: string
+          created_at?: string | null
+          end_date: string
           id?: string
-          machine_id: string
-          owner_id: string
-          price_cents: number
-          qty?: number
-          start_at: string
-          status?: Database["public"]["Enums"]["booking_status"]
-          total_cents: number
-          unit: Database["public"]["Enums"]["pricing_unit"]
+          machine_id?: string | null
+          negotiation_history?: Json | null
+          owner_id?: string | null
+          payment_status?: string | null
+          platform_fee?: number | null
+          price_type?: string | null
+          quantity?: number | null
+          renter_id?: string | null
+          start_date: string
+          status?: string | null
+          total_price?: number | null
         }
         Update: {
-          created_at?: string
-          customer_id?: string
-          end_at?: string
+          created_at?: string | null
+          end_date?: string
           id?: string
-          machine_id?: string
-          owner_id?: string
-          price_cents?: number
-          qty?: number
-          start_at?: string
-          status?: Database["public"]["Enums"]["booking_status"]
-          total_cents?: number
-          unit?: Database["public"]["Enums"]["pricing_unit"]
+          machine_id?: string | null
+          negotiation_history?: Json | null
+          owner_id?: string | null
+          payment_status?: string | null
+          platform_fee?: number | null
+          price_type?: string | null
+          quantity?: number | null
+          renter_id?: string | null
+          start_date?: string
+          status?: string | null
+          total_price?: number | null
         }
         Relationships: [
-          {
-            foreignKeyName: "bookings_customer_id_fkey"
-            columns: ["customer_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "bookings_machine_id_fkey"
             columns: ["machine_id"]
@@ -149,170 +184,14 @@ export type Database = {
             foreignKeyName: "bookings_owner_id_fkey"
             columns: ["owner_id"]
             isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      documents: {
-        Row: {
-          id: number
-          kind: string
-          machine_id: string | null
-          owner_id: string | null
-          uploaded_at: string
-          url: string
-        }
-        Insert: {
-          id?: number
-          kind: string
-          machine_id?: string | null
-          owner_id?: string | null
-          uploaded_at?: string
-          url: string
-        }
-        Update: {
-          id?: number
-          kind?: string
-          machine_id?: string | null
-          owner_id?: string | null
-          uploaded_at?: string
-          url?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "documents_machine_id_fkey"
-            columns: ["machine_id"]
-            isOneToOne: false
-            referencedRelation: "machines"
+            referencedRelation: "users"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "documents_owner_id_fkey"
-            columns: ["owner_id"]
+            foreignKeyName: "bookings_renter_id_fkey"
+            columns: ["renter_id"]
             isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      favorites: {
-        Row: {
-          created_at: string
-          customer_id: string
-          machine_id: string
-        }
-        Insert: {
-          created_at?: string
-          customer_id: string
-          machine_id: string
-        }
-        Update: {
-          created_at?: string
-          customer_id?: string
-          machine_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "favorites_customer_id_fkey"
-            columns: ["customer_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "favorites_machine_id_fkey"
-            columns: ["machine_id"]
-            isOneToOne: false
-            referencedRelation: "machines"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      locations: {
-        Row: {
-          city: string
-          country: string | null
-          id: number
-          lat: number | null
-          lng: number | null
-          state: string
-        }
-        Insert: {
-          city: string
-          country?: string | null
-          id?: number
-          lat?: number | null
-          lng?: number | null
-          state: string
-        }
-        Update: {
-          city?: string
-          country?: string | null
-          id?: number
-          lat?: number | null
-          lng?: number | null
-          state?: string
-        }
-        Relationships: []
-      }
-      machine_photos: {
-        Row: {
-          id: number
-          is_cover: boolean | null
-          machine_id: string
-          position: number | null
-          url: string
-        }
-        Insert: {
-          id?: number
-          is_cover?: boolean | null
-          machine_id: string
-          position?: number | null
-          url: string
-        }
-        Update: {
-          id?: number
-          is_cover?: boolean | null
-          machine_id?: string
-          position?: number | null
-          url?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "machine_photos_machine_id_fkey"
-            columns: ["machine_id"]
-            isOneToOne: false
-            referencedRelation: "machines"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      machine_specs: {
-        Row: {
-          id: number
-          key: string
-          machine_id: string
-          value: string
-        }
-        Insert: {
-          id?: number
-          key: string
-          machine_id: string
-          value: string
-        }
-        Update: {
-          id?: number
-          key?: string
-          machine_id?: string
-          value?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "machine_specs_machine_id_fkey"
-            columns: ["machine_id"]
-            isOneToOne: false
-            referencedRelation: "machines"
+            referencedRelation: "users"
             referencedColumns: ["id"]
           },
         ]
@@ -321,377 +200,184 @@ export type Database = {
         Row: {
           brand: string | null
           category: string
-          created_at: string
-          description: string | null
+          created_at: string | null
           id: string
-          location_id: number | null
+          images: string[] | null
+          insurance_status: boolean | null
+          location: Json | null
+          maintenance_date: string | null
           model: string | null
-          owner_id: string
-          status: Database["public"]["Enums"]["machine_status"]
-          title: string
-          updated_at: string
+          name: string
+          owner_id: string | null
+          price_day: number | null
+          price_hectare: number | null
+          price_hour: number | null
+          radius_km: number | null
+          specifications: Json | null
+          status: string | null
+          total_hours_worked: number | null
           year: number | null
         }
         Insert: {
           brand?: string | null
           category: string
-          created_at?: string
-          description?: string | null
+          created_at?: string | null
           id?: string
-          location_id?: number | null
+          images?: string[] | null
+          insurance_status?: boolean | null
+          location?: Json | null
+          maintenance_date?: string | null
           model?: string | null
-          owner_id: string
-          status?: Database["public"]["Enums"]["machine_status"]
-          title: string
-          updated_at?: string
+          name: string
+          owner_id?: string | null
+          price_day?: number | null
+          price_hectare?: number | null
+          price_hour?: number | null
+          radius_km?: number | null
+          specifications?: Json | null
+          status?: string | null
+          total_hours_worked?: number | null
           year?: number | null
         }
         Update: {
           brand?: string | null
           category?: string
-          created_at?: string
-          description?: string | null
+          created_at?: string | null
           id?: string
-          location_id?: number | null
+          images?: string[] | null
+          insurance_status?: boolean | null
+          location?: Json | null
+          maintenance_date?: string | null
           model?: string | null
-          owner_id?: string
-          status?: Database["public"]["Enums"]["machine_status"]
-          title?: string
-          updated_at?: string
+          name?: string
+          owner_id?: string | null
+          price_day?: number | null
+          price_hectare?: number | null
+          price_hour?: number | null
+          radius_km?: number | null
+          specifications?: Json | null
+          status?: string | null
+          total_hours_worked?: number | null
           year?: number | null
         }
         Relationships: [
           {
-            foreignKeyName: "machines_location_id_fkey"
-            columns: ["location_id"]
-            isOneToOne: false
-            referencedRelation: "locations"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "machines_owner_id_fkey"
             columns: ["owner_id"]
             isOneToOne: false
-            referencedRelation: "profiles"
+            referencedRelation: "users"
             referencedColumns: ["id"]
           },
         ]
-      }
-      maintenance_logs: {
-        Row: {
-          id: number
-          machine_id: string
-          notes: string | null
-          odometer: number | null
-          performed_at: string
-        }
-        Insert: {
-          id?: number
-          machine_id: string
-          notes?: string | null
-          odometer?: number | null
-          performed_at: string
-        }
-        Update: {
-          id?: number
-          machine_id?: string
-          notes?: string | null
-          odometer?: number | null
-          performed_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "maintenance_logs_machine_id_fkey"
-            columns: ["machine_id"]
-            isOneToOne: false
-            referencedRelation: "machines"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      messages: {
-        Row: {
-          body: string
-          booking_id: string | null
-          id: number
-          machine_id: string | null
-          recipient_id: string
-          sender_id: string
-          sent_at: string
-        }
-        Insert: {
-          body: string
-          booking_id?: string | null
-          id?: number
-          machine_id?: string | null
-          recipient_id: string
-          sender_id: string
-          sent_at?: string
-        }
-        Update: {
-          body?: string
-          booking_id?: string | null
-          id?: number
-          machine_id?: string | null
-          recipient_id?: string
-          sender_id?: string
-          sent_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "messages_booking_id_fkey"
-            columns: ["booking_id"]
-            isOneToOne: false
-            referencedRelation: "bookings"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "messages_machine_id_fkey"
-            columns: ["machine_id"]
-            isOneToOne: false
-            referencedRelation: "machines"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "messages_recipient_id_fkey"
-            columns: ["recipient_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "messages_sender_id_fkey"
-            columns: ["sender_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      payment_intents: {
-        Row: {
-          amount_cents: number
-          booking_id: string
-          created_at: string
-          currency: string
-          id: string
-          provider: string
-          provider_ref: string | null
-          status: string
-          updated_at: string
-        }
-        Insert: {
-          amount_cents: number
-          booking_id: string
-          created_at?: string
-          currency?: string
-          id?: string
-          provider: string
-          provider_ref?: string | null
-          status?: string
-          updated_at?: string
-        }
-        Update: {
-          amount_cents?: number
-          booking_id?: string
-          created_at?: string
-          currency?: string
-          id?: string
-          provider?: string
-          provider_ref?: string | null
-          status?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "payment_intents_booking_id_fkey"
-            columns: ["booking_id"]
-            isOneToOne: false
-            referencedRelation: "bookings"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      payout_accounts: {
-        Row: {
-          account_number: string | null
-          account_type: string | null
-          bank_code: string | null
-          owner_id: string
-          pix_key: string | null
-          updated_at: string
-        }
-        Insert: {
-          account_number?: string | null
-          account_type?: string | null
-          bank_code?: string | null
-          owner_id: string
-          pix_key?: string | null
-          updated_at?: string
-        }
-        Update: {
-          account_number?: string | null
-          account_type?: string | null
-          bank_code?: string | null
-          owner_id?: string
-          pix_key?: string | null
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "payout_accounts_owner_id_fkey"
-            columns: ["owner_id"]
-            isOneToOne: true
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      pricing_rules: {
-        Row: {
-          end_date: string | null
-          id: number
-          machine_id: string
-          min_qty: number | null
-          price_cents: number
-          start_date: string | null
-          unit: Database["public"]["Enums"]["pricing_unit"]
-        }
-        Insert: {
-          end_date?: string | null
-          id?: number
-          machine_id: string
-          min_qty?: number | null
-          price_cents: number
-          start_date?: string | null
-          unit: Database["public"]["Enums"]["pricing_unit"]
-        }
-        Update: {
-          end_date?: string | null
-          id?: number
-          machine_id?: string
-          min_qty?: number | null
-          price_cents?: number
-          start_date?: string | null
-          unit?: Database["public"]["Enums"]["pricing_unit"]
-        }
-        Relationships: [
-          {
-            foreignKeyName: "pricing_rules_machine_id_fkey"
-            columns: ["machine_id"]
-            isOneToOne: false
-            referencedRelation: "machines"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      profiles: {
-        Row: {
-          avatar_url: string | null
-          created_at: string
-          full_name: string | null
-          id: string
-          phone: string | null
-          role: Database["public"]["Enums"]["user_role"]
-        }
-        Insert: {
-          avatar_url?: string | null
-          created_at?: string
-          full_name?: string | null
-          id: string
-          phone?: string | null
-          role?: Database["public"]["Enums"]["user_role"]
-        }
-        Update: {
-          avatar_url?: string | null
-          created_at?: string
-          full_name?: string | null
-          id?: string
-          phone?: string | null
-          role?: Database["public"]["Enums"]["user_role"]
-        }
-        Relationships: []
       }
       reviews: {
         Row: {
           booking_id: string | null
           comment: string | null
-          created_at: string
-          id: number
-          machine_id: string
+          communication_rating: number | null
+          created_at: string | null
+          equipment_rating: number | null
+          id: string
+          punctuality_rating: number | null
           rating: number | null
-          reviewer_id: string
+          reviewed_id: string | null
+          reviewer_id: string | null
         }
         Insert: {
           booking_id?: string | null
           comment?: string | null
-          created_at?: string
-          id?: number
-          machine_id: string
+          communication_rating?: number | null
+          created_at?: string | null
+          equipment_rating?: number | null
+          id?: string
+          punctuality_rating?: number | null
           rating?: number | null
-          reviewer_id: string
+          reviewed_id?: string | null
+          reviewer_id?: string | null
         }
         Update: {
           booking_id?: string | null
           comment?: string | null
-          created_at?: string
-          id?: number
-          machine_id?: string
+          communication_rating?: number | null
+          created_at?: string | null
+          equipment_rating?: number | null
+          id?: string
+          punctuality_rating?: number | null
           rating?: number | null
-          reviewer_id?: string
+          reviewed_id?: string | null
+          reviewer_id?: string | null
         }
         Relationships: [
           {
             foreignKeyName: "reviews_booking_id_fkey"
             columns: ["booking_id"]
-            isOneToOne: true
+            isOneToOne: false
             referencedRelation: "bookings"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "reviews_machine_id_fkey"
-            columns: ["machine_id"]
+            foreignKeyName: "reviews_reviewed_id_fkey"
+            columns: ["reviewed_id"]
             isOneToOne: false
-            referencedRelation: "machines"
+            referencedRelation: "users"
             referencedColumns: ["id"]
           },
           {
             foreignKeyName: "reviews_reviewer_id_fkey"
             columns: ["reviewer_id"]
             isOneToOne: false
-            referencedRelation: "profiles"
+            referencedRelation: "users"
             referencedColumns: ["id"]
           },
         ]
       }
-      service_areas: {
+      users: {
         Row: {
-          city: string
-          id: number
-          owner_id: string
-          state: string
+          address: Json | null
+          cpf_cnpj: string | null
+          created_at: string | null
+          email: string
+          full_name: string
+          id: string
+          phone: string | null
+          profile_image: string | null
+          rating: number | null
+          total_transactions: number | null
+          updated_at: string | null
+          user_type: string | null
+          verified: boolean | null
         }
         Insert: {
-          city: string
-          id?: number
-          owner_id: string
-          state: string
+          address?: Json | null
+          cpf_cnpj?: string | null
+          created_at?: string | null
+          email: string
+          full_name: string
+          id?: string
+          phone?: string | null
+          profile_image?: string | null
+          rating?: number | null
+          total_transactions?: number | null
+          updated_at?: string | null
+          user_type?: string | null
+          verified?: boolean | null
         }
         Update: {
-          city?: string
-          id?: number
-          owner_id?: string
-          state?: string
+          address?: Json | null
+          cpf_cnpj?: string | null
+          created_at?: string | null
+          email?: string
+          full_name?: string
+          id?: string
+          phone?: string | null
+          profile_image?: string | null
+          rating?: number | null
+          total_transactions?: number | null
+          updated_at?: string | null
+          user_type?: string | null
+          verified?: boolean | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "service_areas_owner_id_fkey"
-            columns: ["owner_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
     }
     Views: {
@@ -701,15 +387,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      booking_status:
-        | "pending"
-        | "confirmed"
-        | "in_service"
-        | "completed"
-        | "canceled"
-      machine_status: "draft" | "active" | "paused" | "unlisted"
-      pricing_unit: "hour" | "hectare" | "day" | "km"
-      user_role: "owner" | "customer" | "admin"
+      [_ in never]: never
     }
     CompositeTypes: {
       [_ in never]: never
@@ -836,17 +514,6 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {
-      booking_status: [
-        "pending",
-        "confirmed",
-        "in_service",
-        "completed",
-        "canceled",
-      ],
-      machine_status: ["draft", "active", "paused", "unlisted"],
-      pricing_unit: ["hour", "hectare", "day", "km"],
-      user_role: ["owner", "customer", "admin"],
-    },
+    Enums: {},
   },
 } as const
