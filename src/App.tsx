@@ -14,6 +14,7 @@ import Register from "./pages/Register";
 import Favorites from "./pages/Favorites";
 import Alerts from "./pages/Alerts";
 import NotFound from "./pages/NotFound";
+import AdminDashboard from "./pages/AdminDashboard";
 
 const queryClient = new QueryClient();
 
@@ -34,6 +35,7 @@ const App = () => (
           <Route path="/cadastro" element={<Register />} />
           <Route path="/favoritos" element={<Favorites />} />
           <Route path="/alertas" element={<Alerts />} />
+          <Route path="/admin" element={<AdminDashboard />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
