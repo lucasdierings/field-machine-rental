@@ -177,6 +177,20 @@ export type Database = {
             foreignKeyName: "bookings_machine_id_fkey"
             columns: ["machine_id"]
             isOneToOne: false
+            referencedRelation: "machine_pricing"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_machine_id_fkey"
+            columns: ["machine_id"]
+            isOneToOne: false
+            referencedRelation: "machine_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_machine_id_fkey"
+            columns: ["machine_id"]
+            isOneToOne: false
             referencedRelation: "machines"
             referencedColumns: ["id"]
           },
@@ -195,6 +209,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      leads: {
+        Row: {
+          categoria: string | null
+          cep: string | null
+          created_at: string
+          email: string
+          id: string
+          raio_km: number | null
+          status: string | null
+        }
+        Insert: {
+          categoria?: string | null
+          cep?: string | null
+          created_at?: string
+          email: string
+          id?: string
+          raio_km?: number | null
+          status?: string | null
+        }
+        Update: {
+          categoria?: string | null
+          cep?: string | null
+          created_at?: string
+          email?: string
+          id?: string
+          raio_km?: number | null
+          status?: string | null
+        }
+        Relationships: []
       }
       machines: {
         Row: {
@@ -331,9 +375,31 @@ export type Database = {
           },
         ]
       }
+      user_roles: {
+        Row: {
+          created_at: string | null
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
       users: {
         Row: {
           address: Json | null
+          auth_user_id: string | null
           cpf_cnpj: string | null
           created_at: string | null
           email: string
@@ -349,6 +415,7 @@ export type Database = {
         }
         Insert: {
           address?: Json | null
+          auth_user_id?: string | null
           cpf_cnpj?: string | null
           created_at?: string | null
           email: string
@@ -364,6 +431,7 @@ export type Database = {
         }
         Update: {
           address?: Json | null
+          auth_user_id?: string | null
           cpf_cnpj?: string | null
           created_at?: string | null
           email?: string
@@ -381,13 +449,72 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      machine_pricing: {
+        Row: {
+          id: string | null
+          price_day: number | null
+          price_hectare: number | null
+          price_hour: number | null
+        }
+        Insert: {
+          id?: string | null
+          price_day?: number | null
+          price_hectare?: number | null
+          price_hour?: number | null
+        }
+        Update: {
+          id?: string | null
+          price_day?: number | null
+          price_hectare?: number | null
+          price_hour?: number | null
+        }
+        Relationships: []
+      }
+      machine_public: {
+        Row: {
+          brand: string | null
+          category: string | null
+          id: string | null
+          images: string[] | null
+          model: string | null
+          name: string | null
+          specifications: Json | null
+          status: string | null
+          year: number | null
+        }
+        Insert: {
+          brand?: string | null
+          category?: string | null
+          id?: string | null
+          images?: string[] | null
+          model?: string | null
+          name?: string | null
+          specifications?: Json | null
+          status?: string | null
+          year?: number | null
+        }
+        Update: {
+          brand?: string | null
+          category?: string | null
+          id?: string | null
+          images?: string[] | null
+          model?: string | null
+          name?: string | null
+          specifications?: Json | null
+          status?: string | null
+          year?: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
-      [_ in never]: never
+      current_auth_user_id: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "owner" | "renter" | "user"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -514,6 +641,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "owner", "renter", "user"],
+    },
   },
 } as const
