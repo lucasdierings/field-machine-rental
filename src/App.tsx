@@ -15,6 +15,7 @@ import Favorites from "./pages/Favorites";
 import Alerts from "./pages/Alerts";
 import NotFound from "./pages/NotFound";
 import AdminDashboard from "./pages/AdminDashboard";
+import OnboardingDashboard from "./pages/OnboardingDashboard";
 
 const queryClient = new QueryClient();
 
@@ -33,6 +34,7 @@ const App = () => (
           <Route path="/alugar-minha-maquina" element={<RentMyMachine />} />
           <Route path="/entrar" element={<Login />} />
           <Route path="/cadastro" element={<Register />} />
+          <Route path="/dashboard/onboarding" element={<OnboardingDashboard />} />
           <Route path="/favoritos" element={<Favorites />} />
           <Route path="/alertas" element={<Alerts />} />
           <Route path="/admin" element={<AdminDashboard />} />
