@@ -39,6 +39,8 @@ export interface RegisterFormData {
   // Step 5: Verificação
   emailVerified: boolean;
   phoneVerified: boolean;
+  emailCode: string;
+  phoneCode: string;
   documentsUploaded: boolean;
   termsAccepted: boolean;
 }
@@ -82,6 +84,8 @@ export const useRegisterForm = () => {
     radius: 50,
     emailVerified: false,
     phoneVerified: false,
+    emailCode: '',
+    phoneCode: '',
     documentsUploaded: false,
     termsAccepted: false,
   });

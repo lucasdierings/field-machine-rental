@@ -8,6 +8,7 @@ import { CheckCircle, Mail, Phone, Upload, FileText } from "lucide-react";
 import { RegisterFormData } from "@/hooks/useRegisterForm";
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { useToast } from "@/hooks/use-toast";
 
 interface VerificationStepProps {
   formData: RegisterFormData;
@@ -26,36 +27,79 @@ export const VerificationStep = ({
   onPrev,
   isSubmitting = false
 }: VerificationStepProps) => {
-  const [emailCode, setEmailCode] = useState('');
-  const [phoneCode, setPhoneCode] = useState('');
+  const { toast } = useToast();
   const [isVerifyingEmail, setIsVerifyingEmail] = useState(false);
   const [isVerifyingPhone, setIsVerifyingPhone] = useState(false);
 
   const handleSendEmailCode = async () => {
     setIsVerifyingEmail(true);
-    // Simular envio de código
-    setTimeout(() => {
+    try {
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      console.log('Email verification code would be sent to:', formData.email);
+      toast({
+        title: "Código enviado!",
+        description: "Verifique sua caixa de entrada (desenvolvimento: use 123456)",
+      });
+    } catch (error) {
+      toast({
+        title: "Erro ao enviar código",
+        description: "Tente novamente em alguns minutos",
+        variant: "destructive",
+      });
+    } finally {
       setIsVerifyingEmail(false);
-    }, 2000);
+    }
   };
 
   const handleSendPhoneCode = async () => {
     setIsVerifyingPhone(true);
-    // Simular envio de SMS
-    setTimeout(() => {
+    try {
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      console.log('SMS verification code would be sent to:', formData.phone);
+      toast({
+        title: "SMS enviado!",
+        description: "Código enviado para seu celular (desenvolvimento: use 123456)",
+      });
+    } catch (error) {
+      toast({
+        title: "Erro ao enviar SMS",
+        description: "Tente novamente em alguns minutos",
+        variant: "destructive",
+      });
+    } finally {
       setIsVerifyingPhone(false);
-    }, 2000);
+    }
   };
 
   const handleVerifyEmail = () => {
-    if (emailCode === '123456') {
+    if (formData.emailCode === '123456') {
       onUpdate({ emailVerified: true });
+      toast({
+        title: "Email verificado!",
+        description: "Seu email foi confirmado com sucesso",
+      });
+    } else if (formData.emailCode.length === 6) {
+      toast({
+        title: "Código inválido",
+        description: "Para desenvolvimento, use o código 123456",
+        variant: "destructive",
+      });
     }
   };
 
   const handleVerifyPhone = () => {
-    if (phoneCode === '123456') {
+    if (formData.phoneCode === '123456') {
       onUpdate({ phoneVerified: true });
+      toast({
+        title: "Telefone verificado!",
+        description: "Seu número foi confirmado com sucesso",
+      });
+    } else if (formData.phoneCode.length === 6) {
+      toast({
+        title: "Código inválido",
+        description: "Para desenvolvimento, use o código 123456",
+        variant: "destructive",
+      });
     }
   };
 
@@ -104,14 +148,14 @@ export const VerificationStep = ({
                   <div className="flex gap-2">
                     <Input
                       placeholder="Código de 6 dígitos"
-                      value={emailCode}
-                      onChange={(e) => setEmailCode(e.target.value)}
+                      value={formData.emailCode}
+                      onChange={(e) => onUpdate({ emailCode: e.target.value })}
                       maxLength={6}
                     />
                     <Button 
                       variant="outline" 
                       onClick={handleVerifyEmail}
-                      disabled={emailCode.length !== 6}
+                      disabled={formData.emailCode.length !== 6}
                     >
                       Verificar
                     </Button>
@@ -153,14 +197,14 @@ export const VerificationStep = ({
                   <div className="flex gap-2">
                     <Input
                       placeholder="Código SMS"
-                      value={phoneCode}
-                      onChange={(e) => setPhoneCode(e.target.value)}
+                      value={formData.phoneCode}
+                      onChange={(e) => onUpdate({ phoneCode: e.target.value })}
                       maxLength={6}
                     />
                     <Button 
                       variant="outline" 
                       onClick={handleVerifyPhone}
-                      disabled={phoneCode.length !== 6}
+                      disabled={formData.phoneCode.length !== 6}
                     >
                       Verificar
                     </Button>

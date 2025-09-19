@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Menu, User, Heart, Bell } from "lucide-react";
 import { Link } from "react-router-dom";
+import { AuthButton } from "../auth/AuthButton";
 
 export const Header = () => {
   return (
@@ -46,18 +47,7 @@ export const Header = () => {
               </Link>
             </Button>
 
-            <Button variant="outline" size="sm" asChild>
-              <Link to="/entrar">
-                <User className="h-4 w-4 mr-2" />
-                Entrar
-              </Link>
-            </Button>
-
-            <Button size="sm" className="bg-gradient-primary" asChild>
-              <Link to="/cadastro">
-                Cadastrar
-              </Link>
-            </Button>
+            <AuthButton />
 
             {/* Mobile Menu */}
             <Button variant="ghost" size="sm" className="md:hidden">
