@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import johnDeereTractor from "@/assets/john-deere-tractor.jpg";
 import combineHarvester from "@/assets/combine-harvester.jpg";
-import pulverizador from "@/assets/pulverizador.jpg";
+import pulverizadorAutopropelido from "@/assets/pulverizador-autopropelido.jpg";
 import plantadeira from "@/assets/plantadeira.jpg";
 import implementos from "@/assets/implementos.jpg";
 
@@ -21,7 +21,7 @@ const categories = [
   {
     title: "Pulverizadores",
     description: "Aplicação precisa de defensivos",
-    image: pulverizador,
+    image: pulverizadorAutopropelido,
     link: "/buscar?categoria=pulverizadores"
   },
   {

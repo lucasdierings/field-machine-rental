@@ -56,7 +56,7 @@ const basicDataSchema = z.object({
 });
 
 const locationSchema = z.object({
-  cep: z.string().length(8, 'CEP deve ter 8 dígitos'),
+  cep: z.string().min(8, 'CEP deve ter 8 dígitos').max(9, 'CEP inválido'),
   address: z.string().min(5, 'Endereço muito curto'),
   city: z.string().min(2, 'Cidade inválida'),
   state: z.string().length(2, 'Estado inválido'),

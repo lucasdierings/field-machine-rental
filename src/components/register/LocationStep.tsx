@@ -20,14 +20,15 @@ export const LocationStep = ({ formData, errors, onUpdate, onNext, onPrev }: Loc
 
   const formatCep = (value: string) => {
     const numbers = value.replace(/\D/g, '');
+    if (numbers.length <= 5) return numbers;
     return numbers.replace(/(\d{5})(\d{3})/, '$1-$2');
   };
 
   const handleCepChange = async (value: string) => {
-    const formatted = formatCep(value);
-    onUpdate({ cep: formatted });
-
     const numbers = value.replace(/\D/g, '');
+    const formatted = formatCep(numbers);
+    onUpdate({ cep: numbers }); // Store only numbers for validation
+
     if (numbers.length === 8) {
       setIsLoadingCep(true);
       try {
@@ -69,7 +70,7 @@ export const LocationStep = ({ formData, errors, onUpdate, onNext, onPrev }: Loc
               <div className="relative">
                 <Input
                   id="cep"
-                  value={formData.cep}
+                  value={formatCep(formData.cep)}
                   onChange={(e) => handleCepChange(e.target.value)}
                   placeholder="00000-000"
                   maxLength={9}

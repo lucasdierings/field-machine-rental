@@ -149,33 +149,33 @@ export const EnhancedHero = () => {
             <Button 
               variant="outline" 
               size="lg"
-              className="flex-1 h-12 border-white/20 text-white hover:bg-white/10 backdrop-blur-sm"
+              className="flex-1 h-12 border-white text-white hover:bg-white hover:text-primary backdrop-blur-sm bg-black/20"
               asChild
             >
               <Link to="/buscar">
-                Quero Produtor
+                Quero Alugar Máquinas
               </Link>
             </Button>
             
             <Button 
               variant="outline" 
               size="lg"
-              className="flex-1 h-12 border-white/20 text-white hover:bg-white/10 backdrop-blur-sm"
+              className="flex-1 h-12 border-white text-white hover:bg-white hover:text-primary backdrop-blur-sm bg-black/20"
               asChild
             >
               <Link to="/alugar-minha-maquina">
-                Sou Proprietário
+                Quero Alugar Minhas Máquinas
               </Link>
             </Button>
             
             <Button 
               variant="outline" 
               size="lg"
-              className="flex-1 h-12 border-white/20 text-white hover:bg-white/10 backdrop-blur-sm"
+              className="flex-1 h-12 border-white text-white hover:bg-white hover:text-primary backdrop-blur-sm bg-black/20"
               asChild
             >
-              <Link to="/alugar-minha-maquina">
-                Sou Produtor e Proprietário
+              <Link to="/cadastro">
+                Cadastrar-se
               </Link>
             </Button>
           </div>
