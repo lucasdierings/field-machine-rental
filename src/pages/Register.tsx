@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useRegisterForm } from "@/hooks/useRegisterForm";
+import { supabase } from "@/integrations/supabase/client";
 import { UserTypeSelection } from "@/components/register/UserTypeSelection";
 import { BasicDataStep } from "@/components/register/BasicDataStep";
 import { LocationStep } from "@/components/register/LocationStep";
@@ -42,20 +43,35 @@ const Register = () => {
     setIsSubmitting(true);
     
     try {
-      // Simular criação da conta
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
+      // Criar conta no Supabase
+      const { data, error } = await supabase.auth.signUp({
+        email: formData.email,
+        password: formData.password,
+        options: {
+          data: {
+            full_name: formData.fullName,
+            user_type: formData.userType,
+            phone: formData.phone
+          }
+        }
+      });
+
+      if (error) {
+        throw error;
+      }
+
       toast({
         title: "Conta criada com sucesso!",
         description: "Bem-vindo ao FieldMachine. Você será redirecionado para seu dashboard.",
       });
       
-      // Redirecionar para dashboard de onboarding
-      navigate("/dashboard/onboarding");
-    } catch (error) {
+      // Redirecionar para dashboard principal
+      navigate("/dashboard");
+    } catch (error: any) {
+      console.error("Registration error:", error);
       toast({
         title: "Erro ao criar conta",
-        description: "Tente novamente em alguns minutos.",
+        description: error.message || "Tente novamente em alguns minutos.",
         variant: "destructive",
       });
     } finally {

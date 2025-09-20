@@ -14,6 +14,48 @@ export type Database = {
   }
   public: {
     Tables: {
+      alerts: {
+        Row: {
+          category: string | null
+          created_at: string
+          id: string
+          is_active: boolean | null
+          location: Json | null
+          max_power: number | null
+          min_power: number | null
+          price_range: Json | null
+          radius_km: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          location?: Json | null
+          max_power?: number | null
+          min_power?: number | null
+          price_range?: Json | null
+          radius_km?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          location?: Json | null
+          max_power?: number | null
+          min_power?: number | null
+          price_range?: Json | null
+          radius_km?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       analytics: {
         Row: {
           created_at: string | null
@@ -240,8 +282,70 @@ export type Database = {
         }
         Relationships: []
       }
+      machine_bookings: {
+        Row: {
+          created_at: string
+          end_date: string
+          id: string
+          machine_id: string
+          owner_id: string
+          renter_id: string
+          start_date: string
+          status: string | null
+          total_price: number | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          end_date: string
+          id?: string
+          machine_id: string
+          owner_id: string
+          renter_id: string
+          start_date: string
+          status?: string | null
+          total_price?: number | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          end_date?: string
+          id?: string
+          machine_id?: string
+          owner_id?: string
+          renter_id?: string
+          start_date?: string
+          status?: string | null
+          total_price?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "machine_bookings_machine_id_fkey"
+            columns: ["machine_id"]
+            isOneToOne: false
+            referencedRelation: "machine_pricing"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "machine_bookings_machine_id_fkey"
+            columns: ["machine_id"]
+            isOneToOne: false
+            referencedRelation: "machine_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "machine_bookings_machine_id_fkey"
+            columns: ["machine_id"]
+            isOneToOne: false
+            referencedRelation: "machines"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       machines: {
         Row: {
+          auth_owner_id: string | null
           brand: string | null
           category: string
           created_at: string | null
@@ -263,6 +367,7 @@ export type Database = {
           year: number | null
         }
         Insert: {
+          auth_owner_id?: string | null
           brand?: string | null
           category: string
           created_at?: string | null
@@ -284,6 +389,7 @@ export type Database = {
           year?: number | null
         }
         Update: {
+          auth_owner_id?: string | null
           brand?: string | null
           category?: string
           created_at?: string | null
@@ -374,6 +480,45 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      user_profiles: {
+        Row: {
+          address: Json | null
+          auth_user_id: string
+          cpf_cnpj: string | null
+          created_at: string
+          full_name: string | null
+          id: string
+          phone: string | null
+          updated_at: string
+          user_type: string | null
+          verified: boolean | null
+        }
+        Insert: {
+          address?: Json | null
+          auth_user_id: string
+          cpf_cnpj?: string | null
+          created_at?: string
+          full_name?: string | null
+          id?: string
+          phone?: string | null
+          updated_at?: string
+          user_type?: string | null
+          verified?: boolean | null
+        }
+        Update: {
+          address?: Json | null
+          auth_user_id?: string
+          cpf_cnpj?: string | null
+          created_at?: string
+          full_name?: string | null
+          id?: string
+          phone?: string | null
+          updated_at?: string
+          user_type?: string | null
+          verified?: boolean | null
+        }
+        Relationships: []
       }
       user_roles: {
         Row: {

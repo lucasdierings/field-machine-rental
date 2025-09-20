@@ -1,6 +1,7 @@
 import { MachineCard, type Machine } from "@/components/ui/machine-card";
 import { useState, useEffect } from "react";
 import { type FilterValues } from "@/components/ui/advanced-filters";
+import { supabase } from "@/integrations/supabase/client";
 
 // Mock data - em uma aplicação real viria de uma API
 const mockMachines: Machine[] = [
@@ -145,15 +146,69 @@ interface MachineGridProps {
 }
 
 export const MachineGrid = ({ searchFilters }: MachineGridProps) => {
-  const [filteredMachines, setFilteredMachines] = useState<Machine[]>(mockMachines);
+  const [filteredMachines, setFilteredMachines] = useState<Machine[]>([]);
+  const [allMachines, setAllMachines] = useState<Machine[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadMachines();
+  }, []);
+
+  const loadMachines = async () => {
+    try {
+      const { data: machines, error } = await supabase
+        .from("machines")
+        .select("*")
+        .eq("status", "available");
+
+      if (error) {
+        console.error("Error loading machines:", error);
+        setAllMachines(mockMachines);
+        setFilteredMachines(mockMachines);
+      } else {
+        // Transform database machines to match interface
+        const transformedMachines = machines.map(machine => ({
+          id: machine.id,
+          name: machine.name,
+          brand: machine.brand || "",
+          year: machine.year || new Date().getFullYear(),
+          power: "N/A",
+          category: machine.category,
+          location: typeof machine.location === 'object' && machine.location !== null && 'city' in machine.location 
+            ? `${machine.location.city}, ${machine.location.state}` 
+            : "Localização não informada",
+          rating: 0,
+          reviews: 0,
+          rate: machine.price_hour || machine.price_day || machine.price_hectare || 0,
+          image: machine.images?.[0] || "https://images.unsplash.com/photo-1625246333195-78d9c38ad449?w=400&h=300&fit=crop",
+          availability: machine.status === "available" ? "Disponível" : "Ocupado",
+          owner: "Proprietário",
+          servicesCompleted: 0,
+          chargeType: machine.price_hour ? "hora" as const : machine.price_hectare ? "hectare" as const : "hora" as const,
+          comments: [],
+          verified: false,
+          workWidth: 0,
+          tankCapacity: 0
+        }));
+        setAllMachines(transformedMachines);
+        setFilteredMachines(transformedMachines);
+      }
+    } catch (error) {
+      console.error("Error loading machines:", error);
+      setAllMachines(mockMachines);
+      setFilteredMachines(mockMachines);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (!searchFilters) {
-      setFilteredMachines(mockMachines);
+      setFilteredMachines(allMachines);
       return;
     }
 
-    let filtered = mockMachines.filter((machine) => {
+    let filtered = allMachines.filter((machine) => {
       // Filtro de preço
       if (searchFilters.priceRange) {
         const [minPrice, maxPrice] = searchFilters.priceRange;
@@ -230,7 +285,7 @@ export const MachineGrid = ({ searchFilters }: MachineGridProps) => {
     });
 
     setFilteredMachines(filtered);
-  }, [searchFilters]);
+  }, [searchFilters, allMachines]);
   return (
     <section className="py-16">
       <div className="container mx-auto px-4">
@@ -243,11 +298,21 @@ export const MachineGrid = ({ searchFilters }: MachineGridProps) => {
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredMachines.map((machine) => (
-            <MachineCard key={machine.id} machine={machine} />
-          ))}
-        </div>
+        {loading ? (
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[...Array(6)].map((_, i) => (
+              <div key={i} className="animate-pulse">
+                <div className="bg-muted rounded-lg h-64 w-full"></div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredMachines.map((machine) => (
+              <MachineCard key={machine.id} machine={machine} />
+            ))}
+          </div>
+        )}
 
         {filteredMachines.length === 0 && (
           <div className="text-center py-12">

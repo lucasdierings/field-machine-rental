@@ -17,6 +17,8 @@ import Alerts from "./pages/Alerts";
 import NotFound from "./pages/NotFound";
 import AdminDashboard from "./pages/AdminDashboard";
 import OnboardingDashboard from "./pages/OnboardingDashboard";
+import Dashboard from "./pages/Dashboard";
+import AddMachine from "./pages/AddMachine";
 
 const queryClient = new QueryClient();
 
@@ -52,7 +54,17 @@ const App = () => (
               <Alerts />
             </ProtectedRoute>
           } />
-          <Route path="/dashboard/*" element={
+          <Route path="/dashboard" element={
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
+          } />
+          <Route path="/add-machine" element={
+            <ProtectedRoute>
+              <AddMachine />
+            </ProtectedRoute>
+          } />
+          <Route path="/dashboard/onboarding" element={
             <ProtectedRoute>
               <OnboardingDashboard />
             </ProtectedRoute>
