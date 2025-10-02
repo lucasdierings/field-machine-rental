@@ -10,48 +10,66 @@ import AdminUsersTab from '@/components/admin/AdminUsersTab';
 import AdminAnalyticsTab from '@/components/admin/AdminAnalyticsTab';
 
 interface DashboardStats {
-  totalUsers: number;
-  activeMachines: number;
-  monthlyGMV: number;
-  conversionRate: number;
-  userGrowth: number;
-  machineGrowth: number;
-  gmvGrowth: number;
+  total_users: number;
+  verified_users: number;
+  new_users_30d: number;
+  total_machines: number;
+  available_machines: number;
+  new_machines_30d: number;
+  total_bookings: number;
+  pending_bookings: number;
+  completed_bookings: number;
+  new_bookings_30d: number;
+  total_revenue: number;
+  revenue_30d: number;
+  total_platform_fees: number;
 }
 
 const AdminDashboard = () => {
-  const [userType, setUserType] = useState<string | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [stats, setStats] = useState<DashboardStats>({
-    totalUsers: 0,
-    activeMachines: 0,
-    monthlyGMV: 0,
-    conversionRate: 0,
-    userGrowth: 0,
-    machineGrowth: 0,
-    gmvGrowth: 0,
-  });
+  const [stats, setStats] = useState<DashboardStats | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
 
   useEffect(() => {
     checkAdminAuth();
-    loadDashboardStats();
   }, []);
 
   const checkAdminAuth = async () => {
     try {
-      const sessionResult = await supabase.auth.getSession();
-      const session = sessionResult.data.session;
+      const { data: { session } } = await supabase.auth.getSession();
       
       if (!session) {
+        toast({
+          title: "Acesso negado",
+          description: "Você precisa estar logado para acessar esta página",
+          variant: "destructive"
+        });
         navigate('/entrar');
         return;
       }
 
-      // For now, assume admin access (would check user_type in production)
-      // TODO: Implement proper admin check with user_type from users table
-      setUserType('admin');
+      // Verificar se o usuário tem role de admin
+      const { data: userRoles, error } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', session.user.id)
+        .eq('role', 'admin')
+        .single();
+
+      if (error || !userRoles) {
+        toast({
+          title: "Acesso negado",
+          description: "Você não tem permissão de administrador",
+          variant: "destructive"
+        });
+        navigate('/');
+        return;
+      }
+
+      setIsAdmin(true);
+      loadDashboardStats();
     } catch (err) {
       console.error('Auth check failed:', err);
       navigate('/entrar');
@@ -62,30 +80,32 @@ const AdminDashboard = () => {
 
   const loadDashboardStats = async () => {
     try {
-      // Get total users
-      const usersResult = await supabase
-        .from('users')
-        .select('*', { count: 'exact', head: true });
+      // Buscar estatísticas da view admin_platform_stats
+      const { data, error } = await supabase
+        .from('admin_platform_stats')
+        .select('*')
+        .single();
 
-      // Get active machines
-      const machinesResult = await supabase
-        .from('machines')
-        .select('*', { count: 'exact', head: true })
-        .eq('status', 'available');
+      if (error) {
+        console.error('Failed to load stats:', error);
+        toast({
+          title: "Erro ao carregar estatísticas",
+          description: "Não foi possível carregar os dados do dashboard",
+          variant: "destructive"
+        });
+        return;
+      }
 
-      // Mock data for other stats (would need actual booking/payment tables)
-      setStats({
-        totalUsers: usersResult.count || 0,
-        activeMachines: machinesResult.count || 0,
-        monthlyGMV: 285000,
-        conversionRate: 3.2,
-        userGrowth: 12,
-        machineGrowth: 8,
-        gmvGrowth: 25,
-      });
+      setStats(data);
     } catch (error) {
       console.error('Failed to load stats:', error);
     }
+  };
+
+  // Calcular taxa de conversão (bookings completados / total de usuários)
+  const calculateConversionRate = () => {
+    if (!stats || stats.total_users === 0) return "0.0";
+    return ((stats.completed_bookings / stats.total_users) * 100).toFixed(1);
   };
 
   if (loading) {
@@ -96,7 +116,7 @@ const AdminDashboard = () => {
     );
   }
 
-  if (userType !== 'admin') {
+  if (!isAdmin) {
     return null;
   }
 
@@ -148,9 +168,9 @@ const AdminDashboard = () => {
                   <Users className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{stats.totalUsers.toLocaleString()}</div>
+                  <div className="text-2xl font-bold">{stats?.total_users || 0}</div>
                   <p className="text-xs text-green-600">
-                    +{stats.userGrowth}% este mês
+                    +{stats?.new_users_30d || 0} este mês
                   </p>
                 </CardContent>
               </Card>
@@ -161,9 +181,9 @@ const AdminDashboard = () => {
                   <Tractor className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{stats.activeMachines.toLocaleString()}</div>
+                  <div className="text-2xl font-bold">{stats?.available_machines || 0}</div>
                   <p className="text-xs text-green-600">
-                    +{stats.machineGrowth}% este mês
+                    +{stats?.new_machines_30d || 0} este mês
                   </p>
                 </CardContent>
               </Card>
@@ -175,10 +195,10 @@ const AdminDashboard = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold">
-                    R$ {stats.monthlyGMV.toLocaleString('pt-BR')}
+                    R$ {(stats?.revenue_30d || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                   </div>
-                  <p className="text-xs text-green-600">
-                    +{stats.gmvGrowth}% este mês
+                  <p className="text-xs text-muted-foreground">
+                    Total: R$ {(stats?.total_revenue || 0).toLocaleString('pt-BR')}
                   </p>
                 </CardContent>
               </Card>
@@ -189,10 +209,78 @@ const AdminDashboard = () => {
                   <TrendingUp className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{stats.conversionRate}%</div>
+                  <div className="text-2xl font-bold">{calculateConversionRate()}%</div>
                   <p className="text-xs text-muted-foreground">
                     Meta: 3%
                   </p>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Quick Stats */}
+            <div className="grid gap-6 md:grid-cols-3">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Reservas</CardTitle>
+                  <CardDescription>Status atual</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-muted-foreground">Total</span>
+                    <span className="font-bold">{stats?.total_bookings || 0}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-muted-foreground">Pendentes</span>
+                    <span className="font-bold text-yellow-600">{stats?.pending_bookings || 0}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-muted-foreground">Completadas</span>
+                    <span className="font-bold text-green-600">{stats?.completed_bookings || 0}</span>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Usuários</CardTitle>
+                  <CardDescription>Verificação</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-muted-foreground">Total</span>
+                    <span className="font-bold">{stats?.total_users || 0}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-muted-foreground">Verificados</span>
+                    <span className="font-bold text-green-600">{stats?.verified_users || 0}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-muted-foreground">Pendentes</span>
+                    <span className="font-bold text-yellow-600">
+                      {(stats?.total_users || 0) - (stats?.verified_users || 0)}
+                    </span>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Receita</CardTitle>
+                  <CardDescription>Taxas da plataforma (10%)</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-muted-foreground">Total</span>
+                    <span className="font-bold">
+                      R$ {(stats?.total_platform_fees || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-muted-foreground">Este mês</span>
+                    <span className="font-bold text-green-600">
+                      R$ {((stats?.revenue_30d || 0) * 0.1).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                    </span>
+                  </div>
                 </CardContent>
               </Card>
             </div>
