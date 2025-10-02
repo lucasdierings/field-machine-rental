@@ -153,7 +153,7 @@ export const EnhancedHero = () => {
               asChild
             >
               <Link to="/buscar">
-                Quero Alugar Máquinas
+                Quero Contratar Serviços
               </Link>
             </Button>
             
@@ -164,7 +164,7 @@ export const EnhancedHero = () => {
               asChild
             >
               <Link to="/alugar-minha-maquina">
-                Quero Alugar Minhas Máquinas
+                Quero Prestar Serviços
               </Link>
             </Button>
             

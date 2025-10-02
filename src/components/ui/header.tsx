@@ -27,7 +27,7 @@ export const Header = () => {
               Como Funciona
             </Link>
             <Link to="/alugar-minha-maquina" className="text-foreground hover:text-primary transition-colors">
-              Alugar Minha Máquina
+              Prestar Serviços
             </Link>
           </nav>
 

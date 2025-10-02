@@ -7,7 +7,7 @@ const testimonials = [
     name: "João Silva",
     city: "Cascavel, PR",
     rating: 5,
-    text: "Consegui alugar uma colheitadeira quando a minha quebrou na safra. Salvou meu plantio e economizei muito comparado ao preço de uma nova.",
+    text: "Consegui contratar um serviço de colheita quando minha máquina quebrou na safra. Salvou meu plantio e economizei muito comparado ao preço de uma nova.",
     avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face"
   },
   {

@@ -111,7 +111,7 @@ export const HeroSection = ({ onSearch }: HeroSectionProps) => {
               Field<span className="text-primary-glow">Machine</span>
             </h1>
             <p className="text-xl md:text-2xl font-light opacity-90">
-              Alugue máquinas agrícolas de forma rápida e segura
+              Contrate serviços agrícolas de forma rápida e segura
             </p>
           </div>
 
@@ -193,9 +193,12 @@ export const HeroSection = ({ onSearch }: HeroSectionProps) => {
                 >
                   <option>Todas as categorias</option>
                   <option>Tratores</option>
+                  <option>Implementos Agrícolas</option>
                   <option>Pulverizadores</option>
                   <option>Colheitadeiras</option>
-                  <option>Caminhões</option>
+                  <option>Caminhões de Frete</option>
+                  <option>Cegonhas para Transporte</option>
+                  <option>Agricultura de Precisão</option>
                 </select>
               </div>
             </div>
@@ -296,8 +299,8 @@ export const HeroSection = ({ onSearch }: HeroSectionProps) => {
                 <div className="w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-4">
                   <CalendarIcon className="h-8 w-8 text-primary-glow" />
                 </div>
-                <h3 className="text-lg font-semibold">Reserve Instantaneamente</h3>
-                <p className="text-sm opacity-80">Processo simples e seguro de locação</p>
+                <h3 className="text-lg font-semibold">Contrate Instantaneamente</h3>
+                <p className="text-sm opacity-80">Processo simples e seguro de contratação</p>
               </div>
             
             <div className="text-center space-y-2">

@@ -491,7 +491,7 @@ export type Database = {
           id: string
           phone: string | null
           updated_at: string
-          user_type: string | null
+          user_types: string[] | null
           verified: boolean | null
         }
         Insert: {
@@ -503,7 +503,7 @@ export type Database = {
           id?: string
           phone?: string | null
           updated_at?: string
-          user_type?: string | null
+          user_types?: string[] | null
           verified?: boolean | null
         }
         Update: {
@@ -515,7 +515,7 @@ export type Database = {
           id?: string
           phone?: string | null
           updated_at?: string
-          user_type?: string | null
+          user_types?: string[] | null
           verified?: boolean | null
         }
         Relationships: []

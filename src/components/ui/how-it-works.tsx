@@ -54,7 +54,7 @@ export const HowItWorks = () => {
           <div>
             <div className="text-center mb-8">
               <h3 className="text-2xl font-bold text-primary mb-2">Para Produtores</h3>
-              <p className="text-muted-foreground">Encontre e alugue máquinas facilmente</p>
+              <p className="text-muted-foreground">Encontre e contrate serviços facilmente</p>
             </div>
             
             <div className="space-y-6">
@@ -77,8 +77,8 @@ export const HowItWorks = () => {
           {/* Para Proprietários */}
           <div>
             <div className="text-center mb-8">
-              <h3 className="text-2xl font-bold text-primary mb-2">Para Proprietários</h3>
-              <p className="text-muted-foreground">Monetize suas máquinas paradas</p>
+              <h3 className="text-2xl font-bold text-primary mb-2">Para Prestadores de Serviço</h3>
+              <p className="text-muted-foreground">Monetize suas máquinas e ofereça seus serviços</p>
             </div>
             
             <div className="space-y-6">

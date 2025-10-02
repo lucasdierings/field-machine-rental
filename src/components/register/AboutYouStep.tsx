@@ -130,10 +130,10 @@ export const AboutYouStep = ({ formData, errors, onUpdate, onNext, onPrev }: Abo
                 )}
               </div>
 
-              {/* Frequência de aluguel */}
+              {/* Frequência de contratação */}
               <div className="space-y-2">
                 <Label>
-                  Frequência de Aluguel Esperada
+                  Frequência de Contratação Esperada
                 </Label>
                 <Select 
                   value={formData.rentalFrequency} 
@@ -222,7 +222,7 @@ export const AboutYouStep = ({ formData, errors, onUpdate, onNext, onPrev }: Abo
             {/* Experiência */}
             <div className="space-y-2">
               <Label>
-                Experiência com Locação
+                Experiência com Prestação de Serviços
               </Label>
               <Select 
                 value={formData.rentalExperience} 

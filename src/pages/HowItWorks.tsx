@@ -145,7 +145,7 @@ const HowItWorks = () => {
                     <h3 className="font-semibold mb-2">Como posso me tornar um fornecedor?</h3>
                     <p className="text-muted-foreground">
                       Cadastre-se em nossa plataforma, complete o processo de verificação 
-                      e comece a alugar seus equipamentos para outros produtores.
+                      e comece a oferecer seus serviços para outros produtores.
                     </p>
                   </CardContent>
                 </Card>

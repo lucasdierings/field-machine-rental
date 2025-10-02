@@ -52,7 +52,7 @@ export const UserTypeSelection = ({ selectedType, onSelect, onNext }: UserTypeSe
                   Sou Produtor Rural
                 </h2>
                 <p className="text-lg text-muted-foreground mb-6">
-                  Preciso alugar máquinas para minha produção
+                  Preciso contratar serviços para minha produção
                 </p>
               </div>
 
@@ -103,10 +103,10 @@ export const UserTypeSelection = ({ selectedType, onSelect, onNext }: UserTypeSe
 
               <div>
                 <h2 className="text-3xl font-bold text-foreground mb-2">
-                  Sou Proprietário
+                  Sou Prestador de Serviço
                 </h2>
                 <p className="text-lg text-muted-foreground mb-6">
-                  Quero disponibilizar minhas máquinas
+                  Quero oferecer serviços com minhas máquinas
                 </p>
               </div>
 
@@ -125,7 +125,7 @@ export const UserTypeSelection = ({ selectedType, onSelect, onNext }: UserTypeSe
                 </div>
                 <div className="flex items-center gap-3">
                   <CheckCircle className="w-5 h-5 text-accent" />
-                  <span className="text-foreground">Gestão completa de locações</span>
+                  <span className="text-foreground">Gestão completa de contratações</span>
                 </div>
               </div>
 
@@ -133,7 +133,7 @@ export const UserTypeSelection = ({ selectedType, onSelect, onNext }: UserTypeSe
                 className="w-full bg-accent text-accent-foreground text-lg py-6"
                 size="lg"
               >
-                Cadastrar como Proprietário
+                Cadastrar como Prestador
               </Button>
             </div>
           </Card>

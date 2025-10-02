@@ -27,8 +27,8 @@ export const EnhancedFooter = () => {
               </h3>
             </div>
             <p className="text-muted-foreground">
-              A maior plataforma de aluguel de máquinas agrícolas do Paraná. 
-              Conectamos produtores e proprietários de forma segura e confiável.
+              A maior plataforma de serviços agrícolas do Paraná. 
+              Conectamos produtores e prestadores de serviço de forma segura e confiável.
             </p>
             
             {/* Social Media */}
@@ -58,7 +58,7 @@ export const EnhancedFooter = () => {
                   to={`/buscar?cidade=${cidade}`}
                   className="block text-muted-foreground hover:text-primary transition-colors text-sm"
                 >
-                  Aluguel de Trator em {cidade}
+                  Serviço de Trator em {cidade}
                 </Link>
               ))}
             </div>

@@ -98,7 +98,7 @@ export default function AddMachine() {
 
       toast({
         title: "Máquina cadastrada com sucesso!",
-        description: "Sua máquina já está disponível para locação",
+        description: "Seu serviço já está disponível para contratação",
       });
 
       navigate("/dashboard");
@@ -221,7 +221,7 @@ export default function AddMachine() {
                 </div>
 
                 <div>
-                  <h3 className="text-lg font-medium mb-4">Preços de Locação</h3>
+                  <h3 className="text-lg font-medium mb-4">Preços do Serviço</h3>
                   <div className="grid md:grid-cols-3 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="price_hour">Preço por Hora (R$)</Label>

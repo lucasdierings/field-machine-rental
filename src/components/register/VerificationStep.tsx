@@ -286,7 +286,7 @@ export const VerificationStep = ({
                   <Link to="#" className="text-primary hover:underline">
                     política de privacidade
                   </Link>
-                  , e autorizo o compartilhamento dos meus dados com proprietários/locatários para fins de locação de máquinas agrícolas.
+                  , e autorizo o compartilhamento dos meus dados com prestadores/produtores para fins de contratação de serviços agrícolas.
                 </Label>
               </div>
               {errors.termsAccepted && (
