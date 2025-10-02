@@ -345,7 +345,6 @@ export type Database = {
       }
       machines: {
         Row: {
-          auth_owner_id: string | null
           brand: string | null
           category: string
           created_at: string | null
@@ -367,7 +366,6 @@ export type Database = {
           year: number | null
         }
         Insert: {
-          auth_owner_id?: string | null
           brand?: string | null
           category: string
           created_at?: string | null
@@ -389,7 +387,6 @@ export type Database = {
           year?: number | null
         }
         Update: {
-          auth_owner_id?: string | null
           brand?: string | null
           category?: string
           created_at?: string | null

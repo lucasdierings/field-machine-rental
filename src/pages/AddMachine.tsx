@@ -81,7 +81,7 @@ export default function AddMachine() {
         location: formData.location,
         radius_km: formData.radius_km,
         specifications: formData.specifications,
-        auth_owner_id: user.id,
+        owner_id: user.id,
         price_hour: formData.price_hour ? parseFloat(formData.price_hour) : null,
         price_day: formData.price_day ? parseFloat(formData.price_day) : null,
         price_hectare: formData.price_hectare ? parseFloat(formData.price_hectare) : null,

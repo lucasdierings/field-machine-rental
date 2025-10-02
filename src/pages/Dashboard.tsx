@@ -47,7 +47,7 @@ export default function Dashboard() {
       const { data: machines } = await supabase
         .from("machines")
         .select("*")
-        .eq("auth_owner_id", user.id);
+        .eq("owner_id", user.id);
       
       setUserMachines(machines || []);
 
