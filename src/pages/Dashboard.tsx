@@ -53,12 +53,12 @@ export default function Dashboard() {
 
       // Load bookings
       const { data: userBookings } = await supabase
-        .from("machine_bookings")
+        .from("bookings" as any)
         .select(`
           *,
           machines(name, category, brand),
-          renter:user_profiles!machine_bookings_renter_id_fkey(full_name),
-          owner:user_profiles!machine_bookings_owner_id_fkey(full_name)
+          renter:user_profiles!bookings_renter_id_fkey(full_name),
+          owner:user_profiles!bookings_owner_id_fkey(full_name)
         `)
         .or(`renter_id.eq.${user.id},owner_id.eq.${user.id}`);
       

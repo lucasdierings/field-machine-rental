@@ -82,7 +82,7 @@ const AdminDashboard = () => {
     try {
       // Buscar estatísticas da view admin_platform_stats
       const { data, error } = await supabase
-        .from('admin_platform_stats')
+        .from('admin_platform_stats' as any)
         .select('*')
         .single();
 
@@ -96,7 +96,7 @@ const AdminDashboard = () => {
         return;
       }
 
-      setStats(data);
+      setStats(data as unknown as DashboardStats);
     } catch (error) {
       console.error('Failed to load stats:', error);
     }
