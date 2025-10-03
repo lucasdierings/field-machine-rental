@@ -211,7 +211,7 @@ const AdminDashboard = () => {
                 <CardContent>
                   <div className="text-2xl font-bold">{calculateConversionRate()}%</div>
                   <p className="text-xs text-muted-foreground">
-                    Meta: 3%
+                    {stats?.completed_bookings || 0} reservas completadas
                   </p>
                 </CardContent>
               </Card>
