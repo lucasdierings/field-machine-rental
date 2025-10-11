@@ -347,6 +347,21 @@ export type Database = {
           },
         ]
       }
+      kv_store_d2a77f5f: {
+        Row: {
+          key: string
+          value: Json
+        }
+        Insert: {
+          key: string
+          value: Json
+        }
+        Update: {
+          key?: string
+          value?: Json
+        }
+        Relationships: []
+      }
       leads: {
         Row: {
           categoria: string | null
