@@ -6,6 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Users, Tractor, DollarSign, TrendingUp, Activity, BarChart3 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
+import { useUserRole } from '@/hooks/useUserRole';
 import AdminUsersTab from '@/components/admin/AdminUsersTab';
 import AdminAnalyticsTab from '@/components/admin/AdminAnalyticsTab';
 
@@ -26,57 +27,25 @@ interface DashboardStats {
 }
 
 const AdminDashboard = () => {
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { isAdmin, loading: roleLoading } = useUserRole();
 
   useEffect(() => {
-    checkAdminAuth();
-  }, []);
-
-  const checkAdminAuth = async () => {
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (!session) {
-        toast({
-          title: "Acesso negado",
-          description: "Você precisa estar logado para acessar esta página",
-          variant: "destructive"
-        });
-        navigate('/entrar');
-        return;
-      }
-
-      // Verificar se o usuário tem role de admin
-      const { data: userRoles, error } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', session.user.id)
-        .eq('role', 'admin')
-        .single();
-
-      if (error || !userRoles) {
-        toast({
-          title: "Acesso negado",
-          description: "Você não tem permissão de administrador",
-          variant: "destructive"
-        });
-        navigate('/');
-        return;
-      }
-
-      setIsAdmin(true);
+    if (!roleLoading && isAdmin()) {
       loadDashboardStats();
-    } catch (err) {
-      console.error('Auth check failed:', err);
-      navigate('/entrar');
-    } finally {
       setLoading(false);
+    } else if (!roleLoading && !isAdmin()) {
+      toast({
+        title: "Acesso negado",
+        description: "Você não tem permissão de administrador",
+        variant: "destructive"
+      });
+      navigate('/dashboard');
     }
-  };
+  }, [roleLoading, isAdmin, navigate, toast]);
 
   const loadDashboardStats = async () => {
     try {
@@ -108,16 +77,12 @@ const AdminDashboard = () => {
     return ((stats.completed_bookings / stats.total_users) * 100).toFixed(1);
   };
 
-  if (loading) {
+  if (loading || roleLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-background to-muted/20 flex items-center justify-center">
         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
       </div>
     );
-  }
-
-  if (!isAdmin) {
-    return null;
   }
 
   return (

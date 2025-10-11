@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
+import { RoleProtectedRoute } from "./components/auth/RoleProtectedRoute";
 import Index from "./pages/Index";
 import Search from "./pages/Search";
 import Machines from "./pages/Machines";
@@ -69,9 +70,12 @@ const App = () => (
               <OnboardingDashboard />
             </ProtectedRoute>
           } />
+          {/* Admin Only Route */}
           <Route path="/admin" element={
             <ProtectedRoute>
-              <AdminDashboard />
+              <RoleProtectedRoute allowedRoles={['admin']}>
+                <AdminDashboard />
+              </RoleProtectedRoute>
             </ProtectedRoute>
           } />
           
