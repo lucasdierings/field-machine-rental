@@ -28,6 +28,9 @@ All colors MUST be HSL - Agricultural theme with green field and earth tones
 
     --muted: 30 15% 92%;
     --muted-foreground: 25 10% 50%;
+    
+    --success: 142 76% 36%;
+    --warning: 38 92% 50%;
 
     /* Accent earth tone */
     --accent: 35 45% 65%;

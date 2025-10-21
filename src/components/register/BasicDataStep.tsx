@@ -3,9 +3,17 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Eye, EyeOff, User, Mail, Phone, Lock } from "lucide-react";
+import { Eye, EyeOff, User, Mail, Phone, Lock, CheckCircle2, XCircle } from "lucide-react";
 import { useState } from "react";
 import { RegisterFormData } from "@/hooks/useRegisterForm";
+import { 
+  validateCPFCNPJ, 
+  validateEmail, 
+  validatePhoneBR, 
+  validatePasswordStrength 
+} from "@/lib/validation";
+import { PasswordStrengthIndicator } from "@/components/ui/password-strength-indicator";
+import { cn } from "@/lib/utils";
 
 interface BasicDataStepProps {
   formData: RegisterFormData;
@@ -18,6 +26,14 @@ interface BasicDataStepProps {
 export const BasicDataStep = ({ formData, errors, onUpdate, onNext, onPrev }: BasicDataStepProps) => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [validationState, setValidationState] = useState({
+    cpfCnpj: null as boolean | null,
+    email: null as boolean | null,
+    phone: null as boolean | null,
+  });
+
+  const passwordStrengthResult = formData.password ? validatePasswordStrength(formData.password) : null;
+  const passwordStrength = passwordStrengthResult?.score || 0;
 
   const formatCpfCnpj = (value: string) => {
     const numbers = value.replace(/\D/g, '');
@@ -38,11 +54,34 @@ export const BasicDataStep = ({ formData, errors, onUpdate, onNext, onPrev }: Ba
   const handleCpfCnpjChange = (value: string) => {
     const formatted = formatCpfCnpj(value);
     onUpdate({ cpfCnpj: formatted });
+    
+    // Validate on change if field has content
+    if (formatted.length >= 14) {
+      const isValid = validateCPFCNPJ(formatted);
+      setValidationState(prev => ({ ...prev, cpfCnpj: isValid }));
+    } else {
+      setValidationState(prev => ({ ...prev, cpfCnpj: null }));
+    }
   };
 
   const handlePhoneChange = (value: string) => {
     const formatted = formatPhone(value);
     onUpdate({ phone: formatted });
+    
+    // Validate on change if field has content
+    if (formatted.length >= 14) {
+      const isValid = validatePhoneBR(formatted);
+      setValidationState(prev => ({ ...prev, phone: isValid }));
+    } else {
+      setValidationState(prev => ({ ...prev, phone: null }));
+    }
+  };
+
+  const handleEmailBlur = () => {
+    if (formData.email) {
+      const isValid = validateEmail(formData.email);
+      setValidationState(prev => ({ ...prev, email: isValid }));
+    }
   };
 
   return (
@@ -79,14 +118,30 @@ export const BasicDataStep = ({ formData, errors, onUpdate, onNext, onPrev }: Ba
               <Label htmlFor="cpfCnpj">
                 CPF ou CNPJ *
               </Label>
-              <Input
-                id="cpfCnpj"
-                value={formData.cpfCnpj}
-                onChange={(e) => handleCpfCnpjChange(e.target.value)}
-                placeholder="000.000.000-00 ou 00.000.000/0000-00"
-                maxLength={18}
-                className={errors.cpfCnpj ? 'border-destructive' : ''}
-              />
+              <div className="relative">
+                <Input
+                  id="cpfCnpj"
+                  value={formData.cpfCnpj}
+                  onChange={(e) => handleCpfCnpjChange(e.target.value)}
+                  placeholder="000.000.000-00 ou 00.000.000/0000-00"
+                  maxLength={18}
+                  className={cn(
+                    errors.cpfCnpj && 'border-destructive',
+                    validationState.cpfCnpj === true && "border-success",
+                    validationState.cpfCnpj === false && "border-destructive",
+                    "pr-10"
+                  )}
+                />
+                {validationState.cpfCnpj !== null && (
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                    {validationState.cpfCnpj ? (
+                      <CheckCircle2 className="h-4 w-4 text-success" />
+                    ) : (
+                      <XCircle className="h-4 w-4 text-destructive" />
+                    )}
+                  </div>
+                )}
+              </div>
               {errors.cpfCnpj && (
                 <p className="text-sm text-destructive">{errors.cpfCnpj}</p>
               )}
@@ -98,14 +153,31 @@ export const BasicDataStep = ({ formData, errors, onUpdate, onNext, onPrev }: Ba
                 <Mail className="w-4 h-4" />
                 E-mail *
               </Label>
-              <Input
-                id="email"
-                type="email"
-                value={formData.email}
-                onChange={(e) => onUpdate({ email: e.target.value })}
-                placeholder="seu@email.com"
-                className={errors.email ? 'border-destructive' : ''}
-              />
+              <div className="relative">
+                <Input
+                  id="email"
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) => onUpdate({ email: e.target.value })}
+                  onBlur={handleEmailBlur}
+                  placeholder="seu@email.com"
+                  className={cn(
+                    errors.email && 'border-destructive',
+                    validationState.email === true && "border-success",
+                    validationState.email === false && "border-destructive",
+                    "pr-10"
+                  )}
+                />
+                {validationState.email !== null && (
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                    {validationState.email ? (
+                      <CheckCircle2 className="h-4 w-4 text-success" />
+                    ) : (
+                      <XCircle className="h-4 w-4 text-destructive" />
+                    )}
+                  </div>
+                )}
+              </div>
               {errors.email && (
                 <p className="text-sm text-destructive">{errors.email}</p>
               )}
@@ -117,14 +189,30 @@ export const BasicDataStep = ({ formData, errors, onUpdate, onNext, onPrev }: Ba
                 <Phone className="w-4 h-4" />
                 Celular *
               </Label>
-              <Input
-                id="phone"
-                value={formData.phone}
-                onChange={(e) => handlePhoneChange(e.target.value)}
-                placeholder="(11) 99999-9999"
-                maxLength={15}
-                className={errors.phone ? 'border-destructive' : ''}
-              />
+              <div className="relative">
+                <Input
+                  id="phone"
+                  value={formData.phone}
+                  onChange={(e) => handlePhoneChange(e.target.value)}
+                  placeholder="(11) 99999-9999"
+                  maxLength={15}
+                  className={cn(
+                    errors.phone && 'border-destructive',
+                    validationState.phone === true && "border-success",
+                    validationState.phone === false && "border-destructive",
+                    "pr-10"
+                  )}
+                />
+                {validationState.phone !== null && (
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                    {validationState.phone ? (
+                      <CheckCircle2 className="h-4 w-4 text-success" />
+                    ) : (
+                      <XCircle className="h-4 w-4 text-destructive" />
+                    )}
+                  </div>
+                )}
+              </div>
               {errors.phone && (
                 <p className="text-sm text-destructive">{errors.phone}</p>
               )}
@@ -170,6 +258,9 @@ export const BasicDataStep = ({ formData, errors, onUpdate, onNext, onPrev }: Ba
                     )}
                   </Button>
                 </div>
+                {formData.password && (
+                  <PasswordStrengthIndicator strength={passwordStrength} />
+                )}
                 {errors.password && (
                   <p className="text-sm text-destructive">{errors.password}</p>
                 )}

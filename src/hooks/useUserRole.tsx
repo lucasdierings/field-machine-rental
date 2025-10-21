@@ -54,6 +54,7 @@ export const useUserRole = () => {
       }
 
       // Check for admin role first, then others
+      // SECURITY: No role in database = no access (fail closed)
       if (userRoles && userRoles.length > 0) {
         const adminRole = userRoles.find(r => r.role === 'admin');
         if (adminRole) {
@@ -62,7 +63,8 @@ export const useUserRole = () => {
           setRole(userRoles[0].role);
         }
       } else {
-        setRole('user'); // Default role
+        // Don't assign default role - users without roles have no permissions
+        setRole(null);
       }
     } catch (err) {
       console.error('Failed to fetch user role:', err);
