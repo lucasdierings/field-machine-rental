@@ -72,6 +72,33 @@ export default function AddMachine() {
         return;
       }
 
+      // Verificar se o usuário tem perfil verificado
+      const { data: profile, error: profileError } = await supabase
+        .from("user_profiles")
+        .select("verified")
+        .eq("auth_user_id", user.id)
+        .single();
+
+      if (profileError || !profile) {
+        toast({
+          title: "Erro ao verificar perfil",
+          description: "Não foi possível verificar seu perfil. Complete seu cadastro primeiro.",
+          variant: "destructive"
+        });
+        navigate("/onboarding");
+        return;
+      }
+
+      if (!profile.verified) {
+        toast({
+          title: "Perfil não verificado",
+          description: "Você precisa verificar seu perfil antes de cadastrar máquinas. Complete o processo de verificação.",
+          variant: "destructive"
+        });
+        navigate("/onboarding");
+        return;
+      }
+
       const machineData = {
         name: formData.name,
         category: formData.category,
@@ -93,6 +120,7 @@ export default function AddMachine() {
         .insert([machineData]);
 
       if (error) {
+        console.error("Supabase error:", error);
         throw error;
       }
 
@@ -104,9 +132,16 @@ export default function AddMachine() {
       navigate("/dashboard");
     } catch (error: any) {
       console.error("Error adding machine:", error);
+      
+      let errorMessage = error.message || "Tente novamente em alguns instantes";
+      
+      if (error.message?.includes("verificados")) {
+        errorMessage = "Apenas usuários verificados podem cadastrar máquinas. Complete a verificação do seu perfil.";
+      }
+      
       toast({
         title: "Erro ao cadastrar máquina",
-        description: error.message || "Tente novamente em alguns instantes",
+        description: errorMessage,
         variant: "destructive"
       });
     } finally {
