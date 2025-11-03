@@ -1142,25 +1142,25 @@ export type Database = {
         }
         Returns: Json
       }
-      calculate_user_rating: {
-        Args: { user_uuid: string }
-        Returns: number
-      }
+      calculate_user_rating: { Args: { user_uuid: string }; Returns: number }
       can_user_review: {
         Args: { booking_uuid: string; user_uuid: string }
         Returns: boolean
       }
-      check_machine_availability: {
-        Args:
-          | { end_dt: string; machine_uuid: string; start_dt: string }
-          | {
+      check_machine_availability:
+        | {
+            Args: {
               p_booking_id?: string
               p_end_date: string
               p_machine_id: string
               p_start_date: string
             }
-        Returns: boolean
-      }
+            Returns: boolean
+          }
+        | {
+            Args: { end_dt: string; machine_uuid: string; start_dt: string }
+            Returns: boolean
+          }
       create_notification: {
         Args: {
           notif_link?: string
@@ -1171,34 +1171,133 @@ export type Database = {
         }
         Returns: string
       }
-      current_auth_user_id: {
-        Args: Record<PropertyKey, never>
-        Returns: string
+      current_auth_user_id: { Args: never; Returns: string }
+      get_admin_analytics_summary: {
+        Args: { p_end_date?: string; p_start_date?: string }
+        Returns: {
+          date: string
+          event_count: number
+          event_type: string
+          unique_sessions: number
+          unique_users: number
+        }[]
       }
-      is_admin: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
+      get_admin_bookings_list: {
+        Args: { p_limit?: number; p_offset?: number }
+        Returns: {
+          created_at: string
+          end_date: string
+          id: string
+          machine_category: string
+          machine_name: string
+          owner_email: string
+          owner_name: string
+          owner_phone: string
+          payment_status: string
+          platform_fee: number
+          renter_email: string
+          renter_name: string
+          renter_phone: string
+          start_date: string
+          status: string
+          total_price: number
+          updated_at: string
+        }[]
       }
-      validate_cnpj: {
-        Args: { cnpj: string }
-        Returns: boolean
+      get_admin_machines_list: {
+        Args: { p_limit?: number; p_offset?: number }
+        Returns: {
+          brand: string
+          category: string
+          completed_bookings: number
+          created_at: string
+          id: string
+          location: Json
+          model: string
+          name: string
+          owner_email: string
+          owner_id: string
+          owner_name: string
+          owner_phone: string
+          owner_verified: boolean
+          price_day: number
+          price_hectare: number
+          price_hour: number
+          status: string
+          total_bookings: number
+          total_revenue: number
+          year: number
+        }[]
       }
-      validate_cpf: {
-        Args: { cpf: string }
-        Returns: boolean
+      get_admin_pending_documents: {
+        Args: never
+        Returns: {
+          cpf_cnpj: string
+          created_at: string
+          document_type: string
+          document_url: string
+          id: string
+          user_email: string
+          user_id: string
+          user_name: string
+          user_phone: string
+        }[]
       }
-      validate_cpf_cnpj: {
-        Args: { doc: string }
-        Returns: boolean
+      get_admin_platform_stats: {
+        Args: never
+        Returns: {
+          active_bookings: number
+          available_machines: number
+          average_rating: number
+          completed_bookings: number
+          confirmed_bookings: number
+          new_bookings_30d: number
+          new_leads_30d: number
+          new_machines_30d: number
+          new_users_30d: number
+          new_users_7d: number
+          pending_bookings: number
+          rented_machines: number
+          revenue_30d: number
+          total_bookings: number
+          total_leads: number
+          total_machines: number
+          total_platform_fees: number
+          total_revenue: number
+          total_reviews: number
+          total_users: number
+          verified_users: number
+        }[]
       }
-      validate_email: {
-        Args: { email: string }
-        Returns: boolean
+      get_admin_users_list: {
+        Args: { p_limit?: number; p_offset?: number }
+        Returns: {
+          auth_user_id: string
+          cpf_cnpj: string
+          created_at: string
+          email: string
+          full_name: string
+          id: string
+          last_sign_in_at: string
+          machines_count: number
+          pending_documents: number
+          phone: string
+          profile_image: string
+          rating: number
+          rentals_count: number
+          services_count: number
+          total_transactions: number
+          updated_at: string
+          user_types: string[]
+          verified: boolean
+        }[]
       }
-      validate_phone_br: {
-        Args: { phone: string }
-        Returns: boolean
-      }
+      is_admin: { Args: never; Returns: boolean }
+      validate_cnpj: { Args: { cnpj: string }; Returns: boolean }
+      validate_cpf: { Args: { cpf: string }; Returns: boolean }
+      validate_cpf_cnpj: { Args: { doc: string }; Returns: boolean }
+      validate_email: { Args: { email: string }; Returns: boolean }
+      validate_phone_br: { Args: { phone: string }; Returns: boolean }
     }
     Enums: {
       app_role: "admin" | "owner" | "renter" | "user"

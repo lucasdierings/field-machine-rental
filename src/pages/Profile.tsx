@@ -50,14 +50,15 @@ const Profile = () => {
       }
 
       if (profile) {
+        const address = profile.address as any;
         setFormData({
           full_name: profile.full_name || "",
           phone: profile.phone || "",
           email: user.email || "",
           cpf_cnpj: profile.cpf_cnpj || "",
-          city: profile.address?.city || "",
-          state: profile.address?.state || "",
-          cep: profile.address?.cep || ""
+          city: address?.city || "",
+          state: address?.state || "",
+          cep: address?.cep || ""
         });
       } else {
         setFormData(prev => ({ ...prev, email: user.email || "" }));

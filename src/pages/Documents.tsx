@@ -101,7 +101,11 @@ const Documents = () => {
               {/* Upload Section */}
               <div>
                 <h3 className="font-semibold mb-4">Enviar Novo Documento</h3>
-                <KYCUpload onUploadComplete={loadDocuments} />
+                <KYCUpload 
+                  userId="" 
+                  documents={[]} 
+                  onDocumentsChange={() => loadDocuments()} 
+                />
               </div>
 
               {/* Documents List */}
