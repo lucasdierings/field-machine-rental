@@ -111,21 +111,37 @@ export default function AddMachine() {
 
       if (profileError || !profile) {
         toast({
-          title: "Perfil não encontrado",
+          title: "Perfil incompleto",
           description: "Complete seu cadastro antes de cadastrar máquinas.",
-          variant: "destructive"
+          variant: "destructive",
+          action: (
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => navigate("/dashboard/perfil")}
+            >
+              Completar Cadastro
+            </Button>
+          )
         });
-        navigate("/onboarding");
         return;
       }
 
       if (!profile.verified) {
         toast({
           title: "Verificação pendente",
-          description: "Seu perfil precisa ser verificado antes de cadastrar máquinas. Aguarde a análise dos seus documentos.",
-          variant: "destructive"
+          description: "Envie seus documentos para verificação antes de cadastrar máquinas.",
+          variant: "destructive",
+          action: (
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => navigate("/dashboard/documentos")}
+            >
+              Enviar Documentos
+            </Button>
+          )
         });
-        navigate("/onboarding");
         return;
       }
 

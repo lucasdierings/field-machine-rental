@@ -20,6 +20,8 @@ import AdminDashboard from "./pages/AdminDashboard";
 import OnboardingDashboard from "./pages/OnboardingDashboard";
 import Dashboard from "./pages/Dashboard";
 import AddMachine from "./pages/AddMachine";
+import Profile from "./pages/Profile";
+import Documents from "./pages/Documents";
 
 const queryClient = new QueryClient();
 
@@ -66,6 +68,21 @@ const App = () => (
             </ProtectedRoute>
           } />
           <Route path="/dashboard/onboarding" element={
+            <ProtectedRoute>
+              <OnboardingDashboard />
+            </ProtectedRoute>
+          } />
+          <Route path="/dashboard/perfil" element={
+            <ProtectedRoute>
+              <Profile />
+            </ProtectedRoute>
+          } />
+          <Route path="/dashboard/documentos" element={
+            <ProtectedRoute>
+              <Documents />
+            </ProtectedRoute>
+          } />
+          <Route path="/onboarding" element={
             <ProtectedRoute>
               <OnboardingDashboard />
             </ProtectedRoute>
