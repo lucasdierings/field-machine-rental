@@ -57,6 +57,36 @@ export default function AddMachine() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validação de campos obrigatórios
+    if (!formData.name || !formData.category || !formData.brand) {
+      toast({
+        title: "Campos obrigatórios",
+        description: "Preencha todos os campos marcados com *",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (!formData.location.city || !formData.location.state) {
+      toast({
+        title: "Localização obrigatória",
+        description: "Informe a cidade e estado da máquina",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Validação de pelo menos um preço
+    if (!formData.price_hour && !formData.price_day && !formData.price_hectare) {
+      toast({
+        title: "Preço obrigatório",
+        description: "Informe pelo menos um tipo de preço (hora, dia ou hectare)",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -75,14 +105,14 @@ export default function AddMachine() {
       // Verificar se o usuário tem perfil verificado
       const { data: profile, error: profileError } = await supabase
         .from("user_profiles")
-        .select("verified")
+        .select("verified, full_name, phone")
         .eq("auth_user_id", user.id)
         .single();
 
       if (profileError || !profile) {
         toast({
-          title: "Erro ao verificar perfil",
-          description: "Não foi possível verificar seu perfil. Complete seu cadastro primeiro.",
+          title: "Perfil não encontrado",
+          description: "Complete seu cadastro antes de cadastrar máquinas.",
           variant: "destructive"
         });
         navigate("/onboarding");
@@ -91,8 +121,8 @@ export default function AddMachine() {
 
       if (!profile.verified) {
         toast({
-          title: "Perfil não verificado",
-          description: "Você precisa verificar seu perfil antes de cadastrar máquinas. Complete o processo de verificação.",
+          title: "Verificação pendente",
+          description: "Seu perfil precisa ser verificado antes de cadastrar máquinas. Aguarde a análise dos seus documentos.",
           variant: "destructive"
         });
         navigate("/onboarding");
@@ -103,7 +133,7 @@ export default function AddMachine() {
         name: formData.name,
         category: formData.category,
         brand: formData.brand,
-        model: formData.model,
+        model: formData.model || null,
         year: formData.year,
         location: formData.location,
         radius_km: formData.radius_km,
@@ -115,32 +145,33 @@ export default function AddMachine() {
         status: "available"
       };
 
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from("machines")
-        .insert([machineData]);
+        .insert([machineData])
+        .select()
+        .single();
 
       if (error) {
-        console.error("Supabase error:", error);
         throw error;
       }
 
       toast({
-        title: "Máquina cadastrada com sucesso!",
-        description: "Seu serviço já está disponível para contratação",
+        title: "Máquina cadastrada!",
+        description: "Sua máquina está disponível para locação",
       });
 
       navigate("/dashboard");
     } catch (error: any) {
-      console.error("Error adding machine:", error);
+      let errorMessage = "Erro ao cadastrar máquina. Tente novamente.";
       
-      let errorMessage = error.message || "Tente novamente em alguns instantes";
-      
-      if (error.message?.includes("verificados")) {
-        errorMessage = "Apenas usuários verificados podem cadastrar máquinas. Complete a verificação do seu perfil.";
+      if (error.message?.includes("verificados") || error.message?.includes("verified")) {
+        errorMessage = "Apenas usuários verificados podem cadastrar máquinas.";
+      } else if (error.code === "23505") {
+        errorMessage = "Já existe uma máquina cadastrada com esses dados.";
       }
       
       toast({
-        title: "Erro ao cadastrar máquina",
+        title: "Erro no cadastro",
         description: errorMessage,
         variant: "destructive"
       });
