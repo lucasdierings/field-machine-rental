@@ -300,13 +300,6 @@ export type Database = {
             foreignKeyName: "bookings_machine_id_fkey"
             columns: ["machine_id"]
             isOneToOne: false
-            referencedRelation: "admin_machines_list"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "bookings_machine_id_fkey"
-            columns: ["machine_id"]
-            isOneToOne: false
             referencedRelation: "available_machines_view"
             referencedColumns: ["id"]
           },
@@ -421,13 +414,6 @@ export type Database = {
           order_index?: number | null
         }
         Relationships: [
-          {
-            foreignKeyName: "machine_images_machine_id_fkey"
-            columns: ["machine_id"]
-            isOneToOne: false
-            referencedRelation: "admin_machines_list"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "machine_images_machine_id_fkey"
             columns: ["machine_id"]
@@ -589,13 +575,6 @@ export type Database = {
             foreignKeyName: "messages_booking_id_fkey"
             columns: ["booking_id"]
             isOneToOne: false
-            referencedRelation: "admin_bookings_list"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "messages_booking_id_fkey"
-            columns: ["booking_id"]
-            isOneToOne: false
             referencedRelation: "bookings"
             referencedColumns: ["id"]
           },
@@ -675,13 +654,6 @@ export type Database = {
           reviewer_id?: string | null
         }
         Relationships: [
-          {
-            foreignKeyName: "reviews_booking_id_fkey"
-            columns: ["booking_id"]
-            isOneToOne: false
-            referencedRelation: "admin_bookings_list"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "reviews_booking_id_fkey"
             columns: ["booking_id"]
@@ -872,134 +844,6 @@ export type Database = {
       }
     }
     Views: {
-      admin_analytics_summary: {
-        Row: {
-          date: string | null
-          event_count: number | null
-          event_type: string | null
-          unique_sessions: number | null
-          unique_users: number | null
-        }
-        Relationships: []
-      }
-      admin_bookings_list: {
-        Row: {
-          created_at: string | null
-          end_date: string | null
-          id: string | null
-          machine_category: string | null
-          machine_name: string | null
-          owner_email: string | null
-          owner_name: string | null
-          owner_phone: string | null
-          payment_status: string | null
-          platform_fee: number | null
-          renter_email: string | null
-          renter_name: string | null
-          renter_phone: string | null
-          start_date: string | null
-          status: string | null
-          total_price: number | null
-          updated_at: string | null
-        }
-        Relationships: []
-      }
-      admin_machines_list: {
-        Row: {
-          brand: string | null
-          category: string | null
-          completed_bookings: number | null
-          created_at: string | null
-          id: string | null
-          location: Json | null
-          model: string | null
-          name: string | null
-          owner_email: string | null
-          owner_id: string | null
-          owner_name: string | null
-          owner_phone: string | null
-          owner_verified: boolean | null
-          price_day: number | null
-          price_hectare: number | null
-          price_hour: number | null
-          status: string | null
-          total_bookings: number | null
-          total_revenue: number | null
-          year: number | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "machines_owner_id_fkey"
-            columns: ["owner_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      admin_pending_documents: {
-        Row: {
-          cpf_cnpj: string | null
-          created_at: string | null
-          document_type: string | null
-          document_url: string | null
-          id: string | null
-          user_email: string | null
-          user_id: string | null
-          user_name: string | null
-          user_phone: string | null
-        }
-        Relationships: []
-      }
-      admin_platform_stats: {
-        Row: {
-          active_bookings: number | null
-          available_machines: number | null
-          average_rating: number | null
-          completed_bookings: number | null
-          confirmed_bookings: number | null
-          new_bookings_30d: number | null
-          new_leads_30d: number | null
-          new_machines_30d: number | null
-          new_users_30d: number | null
-          new_users_7d: number | null
-          pending_bookings: number | null
-          rented_machines: number | null
-          revenue_30d: number | null
-          total_bookings: number | null
-          total_leads: number | null
-          total_machines: number | null
-          total_platform_fees: number | null
-          total_revenue: number | null
-          total_reviews: number | null
-          total_users: number | null
-          verified_users: number | null
-        }
-        Relationships: []
-      }
-      admin_users_list: {
-        Row: {
-          auth_user_id: string | null
-          cpf_cnpj: string | null
-          created_at: string | null
-          email: string | null
-          full_name: string | null
-          id: string | null
-          last_sign_in_at: string | null
-          machines_count: number | null
-          pending_documents: number | null
-          phone: string | null
-          profile_image: string | null
-          rating: number | null
-          rentals_count: number | null
-          services_count: number | null
-          total_transactions: number | null
-          updated_at: string | null
-          user_types: string[] | null
-          verified: boolean | null
-        }
-        Relationships: []
-      }
       available_machines_view: {
         Row: {
           all_images: Json | null
