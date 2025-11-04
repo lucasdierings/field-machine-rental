@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -31,7 +31,7 @@ export default function Login() {
     setLoading(true);
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      const { error, data } = await supabase.auth.signInWithPassword({
         email: formData.email,
         password: formData.password,
       });
@@ -55,8 +55,17 @@ export default function Login() {
           title: "Login realizado!",
           description: "Bem-vindo de volta ao FieldMachine",
         });
-        // Redirecionar para dashboard após login bem-sucedido
-        navigate("/dashboard", { replace: true });
+        
+        // Verificar se o usuário é admin
+        const { data: userRoles } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', data.user.id);
+
+        const isAdmin = userRoles?.some(r => r.role === 'admin');
+        
+        // Redirecionar para página apropriada
+        navigate(isAdmin ? "/admin-dashboard" : "/dashboard", { replace: true });
       }
     } catch (error: any) {
       toast({
