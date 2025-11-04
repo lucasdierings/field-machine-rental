@@ -300,27 +300,6 @@ export type Database = {
             foreignKeyName: "bookings_machine_id_fkey"
             columns: ["machine_id"]
             isOneToOne: false
-            referencedRelation: "available_machines_view"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "bookings_machine_id_fkey"
-            columns: ["machine_id"]
-            isOneToOne: false
-            referencedRelation: "machine_pricing"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "bookings_machine_id_fkey"
-            columns: ["machine_id"]
-            isOneToOne: false
-            referencedRelation: "machine_public"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "bookings_machine_id_fkey"
-            columns: ["machine_id"]
-            isOneToOne: false
             referencedRelation: "machines"
             referencedColumns: ["id"]
           },
@@ -414,27 +393,6 @@ export type Database = {
           order_index?: number | null
         }
         Relationships: [
-          {
-            foreignKeyName: "machine_images_machine_id_fkey"
-            columns: ["machine_id"]
-            isOneToOne: false
-            referencedRelation: "available_machines_view"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "machine_images_machine_id_fkey"
-            columns: ["machine_id"]
-            isOneToOne: false
-            referencedRelation: "machine_pricing"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "machine_images_machine_id_fkey"
-            columns: ["machine_id"]
-            isOneToOne: false
-            referencedRelation: "machine_public"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "machine_images_machine_id_fkey"
             columns: ["machine_id"]
@@ -844,124 +802,7 @@ export type Database = {
       }
     }
     Views: {
-      available_machines_view: {
-        Row: {
-          all_images: Json | null
-          available_from: string | null
-          available_until: string | null
-          brand: string | null
-          category: string | null
-          created_at: string | null
-          description: string | null
-          id: string | null
-          images: string[] | null
-          insurance_status: boolean | null
-          location: Json | null
-          machine_rating: number | null
-          maintenance_date: string | null
-          min_rental_days: number | null
-          model: string | null
-          name: string | null
-          operator_cost_per_day: number | null
-          owner_id: string | null
-          owner_image: string | null
-          owner_name: string | null
-          owner_phone: string | null
-          owner_rating: number | null
-          price_day: number | null
-          price_hectare: number | null
-          price_hour: number | null
-          primary_image: string | null
-          radius_km: number | null
-          requires_operator: boolean | null
-          specifications: Json | null
-          status: string | null
-          total_hours_worked: number | null
-          total_rentals: number | null
-          updated_at: string | null
-          year: number | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "machines_owner_id_fkey"
-            columns: ["owner_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      machine_pricing: {
-        Row: {
-          id: string | null
-          price_day: number | null
-          price_hectare: number | null
-          price_hour: number | null
-        }
-        Insert: {
-          id?: string | null
-          price_day?: number | null
-          price_hectare?: number | null
-          price_hour?: number | null
-        }
-        Update: {
-          id?: string | null
-          price_day?: number | null
-          price_hectare?: number | null
-          price_hour?: number | null
-        }
-        Relationships: []
-      }
-      machine_public: {
-        Row: {
-          brand: string | null
-          category: string | null
-          id: string | null
-          images: string[] | null
-          model: string | null
-          name: string | null
-          specifications: Json | null
-          status: string | null
-          year: number | null
-        }
-        Insert: {
-          brand?: string | null
-          category?: string | null
-          id?: string | null
-          images?: string[] | null
-          model?: string | null
-          name?: string | null
-          specifications?: Json | null
-          status?: string | null
-          year?: number | null
-        }
-        Update: {
-          brand?: string | null
-          category?: string | null
-          id?: string | null
-          images?: string[] | null
-          model?: string | null
-          name?: string | null
-          specifications?: Json | null
-          status?: string | null
-          year?: number | null
-        }
-        Relationships: []
-      }
-      user_stats_view: {
-        Row: {
-          auth_user_id: string | null
-          completed_rentals_as_owner: number | null
-          completed_rentals_as_renter: number | null
-          full_name: string | null
-          profile_image: string | null
-          rating: number | null
-          total_earned: number | null
-          total_machines: number | null
-          total_reviews_received: number | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Functions: {
       admin_approve_document: {
