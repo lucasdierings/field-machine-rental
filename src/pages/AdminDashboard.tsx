@@ -49,11 +49,9 @@ const AdminDashboard = () => {
 
   const loadDashboardStats = async () => {
     try {
-      // Buscar estatísticas da view admin_platform_stats
+      // Usar função RPC ao invés da view
       const { data, error } = await supabase
-        .from('admin_platform_stats' as any)
-        .select('*')
-        .single();
+        .rpc('get_admin_platform_stats');
 
       if (error) {
         console.error('Failed to load stats:', error);
@@ -65,7 +63,8 @@ const AdminDashboard = () => {
         return;
       }
 
-      setStats(data as unknown as DashboardStats);
+      // A função retorna um array, pegamos o primeiro elemento
+      setStats((data?.[0] as DashboardStats) || null);
     } catch (error) {
       console.error('Failed to load stats:', error);
     }

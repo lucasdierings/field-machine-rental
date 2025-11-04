@@ -55,10 +55,9 @@ const DocumentApprovalComponent = () => {
   const loadPendingDocuments = async () => {
     try {
       setLoading(true);
+      // Usar função RPC ao invés da view
       const { data, error } = await supabase
-        .from('admin_pending_documents')
-        .select('*')
-        .order('created_at', { ascending: false });
+        .rpc('get_admin_pending_documents');
 
       if (error) throw error;
 
