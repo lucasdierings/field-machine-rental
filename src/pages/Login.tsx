@@ -55,7 +55,8 @@ export default function Login() {
           title: "Login realizado!",
           description: "Bem-vindo de volta ao FieldMachine",
         });
-        navigate(from, { replace: true });
+        // Redirecionar para dashboard após login bem-sucedido
+        navigate("/dashboard", { replace: true });
       }
     } catch (error: any) {
       toast({

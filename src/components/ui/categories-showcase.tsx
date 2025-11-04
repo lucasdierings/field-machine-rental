@@ -1,39 +1,44 @@
 import { Link } from "react-router-dom";
-import johnDeereTractor from "@/assets/john-deere-tractor.jpg";
-import combineHarvester from "@/assets/combine-harvester.jpg";
-import pulverizadorAutopropelido from "@/assets/pulverizador-autopropelido.jpg";
-import plantadeira from "@/assets/plantadeira.jpg";
-import implementos from "@/assets/implementos.jpg";
+import johnDeereTractor from "@/assets/john-deere-tractor-real.jpg";
+import newHollandColheitadeira from "@/assets/new-holland-colheitadeira.jpg";
+import casePulverizador from "@/assets/case-pulverizador.jpg";
+import valtraPlantadeira from "@/assets/valtra-plantadeira.jpg";
+import implementosAgricolas from "@/assets/implementos-agricolas.jpg";
 
 const categories = [
   {
     title: "Tratores",
     description: "Potência e versatilidade para todas as operações",
     image: johnDeereTractor,
+    brand: "John Deere",
     link: "/buscar?categoria=tratores"
   },
   {
     title: "Colheitadeiras", 
     description: "Eficiência na colheita de grãos",
-    image: combineHarvester,
+    image: newHollandColheitadeira,
+    brand: "New Holland",
     link: "/buscar?categoria=colheitadeiras"
   },
   {
     title: "Pulverizadores",
     description: "Aplicação precisa de defensivos",
-    image: pulverizadorAutopropelido,
+    image: casePulverizador,
+    brand: "Case IH",
     link: "/buscar?categoria=pulverizadores"
   },
   {
     title: "Plantadeiras",
     description: "Plantio uniforme e eficiente", 
-    image: plantadeira,
+    image: valtraPlantadeira,
+    brand: "Valtra",
     link: "/buscar?categoria=plantadeiras"
   },
   {
     title: "Implementos",
     description: "Preparo do solo e cultivo",
-    image: implementos,
+    image: implementosAgricolas,
+    brand: "Diversos",
     link: "/buscar?categoria=implementos"
   }
 ];

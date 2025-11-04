@@ -217,6 +217,21 @@ export default function AddMachine() {
       
       <main className="pt-16 pb-8">
         <div className="container mx-auto px-4 max-w-2xl">
+          {/* Alerta informativo sobre requisitos */}
+          <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+            <h3 className="font-semibold text-blue-900 mb-2">📋 Requisitos para Cadastrar Máquinas</h3>
+            <p className="text-sm text-blue-800">
+              Para cadastrar uma máquina, você precisa ter:
+            </p>
+            <ul className="mt-2 text-sm text-blue-800 space-y-1 list-disc list-inside">
+              <li>Perfil completo (nome, telefone, CPF/CNPJ)</li>
+              <li>Documentos enviados e verificados pela equipe</li>
+            </ul>
+            <p className="mt-2 text-xs text-blue-700">
+              O sistema validará automaticamente antes de permitir o cadastro.
+            </p>
+          </div>
+
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-foreground">
               Cadastrar Nova Máquina
