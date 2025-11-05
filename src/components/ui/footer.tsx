@@ -1,9 +1,7 @@
 import { Separator } from "@/components/ui/separator";
 import { Facebook, Instagram, Twitter, Mail, Phone, MapPin } from "lucide-react";
-
 export const Footer = () => {
-  return (
-    <footer className="bg-muted/50 border-t border-border">
+  return <footer className="bg-muted/50 border-t border-border">
       <div className="container mx-auto px-4 py-12">
         <div className="grid md:grid-cols-4 gap-8">
           {/* Brand */}
@@ -62,7 +60,7 @@ export const Footer = () => {
               </div>
               <div className="flex items-center space-x-2">
                 <MapPin className="h-4 w-4" />
-                <span>Cuiabá, Mato Grosso</span>
+                <span>Curitiba, Paraná</span>
               </div>
             </div>
           </div>
@@ -75,6 +73,5 @@ export const Footer = () => {
           <p className="mt-2 md:mt-0">Desenvolvido para o agronegócio brasileiro</p>
         </div>
       </div>
-    </footer>
-  );
+    </footer>;
 };
