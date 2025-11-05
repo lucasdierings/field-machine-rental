@@ -204,7 +204,7 @@ export default function Dashboard() {
                     </Button>
                     <Button 
                       variant="outline"
-                      onClick={() => navigate("/documents")}
+                      onClick={() => navigate("/dashboard/documentos")}
                       className="w-full justify-start"
                     >
                       Meus Documentos
