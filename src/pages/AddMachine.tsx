@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Header } from "@/components/ui/header";
@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2 } from "lucide-react";
+import { Loader2, Upload, X, Image as ImageIcon } from "lucide-react";
 
 const categories = [
   "Tratores",
@@ -37,6 +37,10 @@ export default function AddMachine() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
+  const [uploadingImages, setUploadingImages] = useState(false);
+  const [selectedImages, setSelectedImages] = useState<File[]>([]);
+  const [imagePreviewUrls, setImagePreviewUrls] = useState<string[]>([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [formData, setFormData] = useState({
     name: "",
     category: "",
@@ -54,6 +58,60 @@ export default function AddMachine() {
     radius_km: 50,
     specifications: {}
   });
+
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    
+    if (selectedImages.length + files.length > 3) {
+      toast({
+        title: "Limite de imagens",
+        description: "Você pode enviar no máximo 3 fotos",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Validar cada arquivo
+    const validFiles = files.filter(file => {
+      const isImage = file.type.startsWith('image/');
+      const isValidSize = file.size <= 5 * 1024 * 1024; // 5MB
+      
+      if (!isImage) {
+        toast({
+          title: "Arquivo inválido",
+          description: `${file.name} não é uma imagem`,
+          variant: "destructive"
+        });
+      }
+      if (!isValidSize) {
+        toast({
+          title: "Arquivo muito grande",
+          description: `${file.name} excede 5MB`,
+          variant: "destructive"
+        });
+      }
+      
+      return isImage && isValidSize;
+    });
+
+    if (validFiles.length > 0) {
+      setSelectedImages(prev => [...prev, ...validFiles]);
+      
+      // Criar previews
+      validFiles.forEach(file => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setImagePreviewUrls(prev => [...prev, reader.result as string]);
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+  };
+
+  const removeImage = (index: number) => {
+    setSelectedImages(prev => prev.filter((_, i) => i !== index));
+    setImagePreviewUrls(prev => prev.filter((_, i) => i !== index));
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -169,6 +227,41 @@ export default function AddMachine() {
 
       if (error) {
         throw error;
+      }
+
+      // Upload das imagens se houver
+      if (selectedImages.length > 0) {
+        setUploadingImages(true);
+        
+        for (let i = 0; i < selectedImages.length; i++) {
+          const file = selectedImages[i];
+          const fileName = `${data.id}/${Date.now()}_${i}.${file.name.split('.').pop()}`;
+          
+          const { error: uploadError } = await supabase.storage
+            .from('machine-images')
+            .upload(fileName, file);
+
+          if (uploadError) {
+            console.error('Erro no upload:', uploadError);
+            continue;
+          }
+
+          // Inserir registro na tabela machine_images
+          const { data: { publicUrl } } = supabase.storage
+            .from('machine-images')
+            .getPublicUrl(fileName);
+
+          await supabase
+            .from('machine_images')
+            .insert({
+              machine_id: data.id,
+              image_url: publicUrl,
+              is_primary: i === 0,
+              order_index: i
+            });
+        }
+        
+        setUploadingImages(false);
       }
 
       toast({
@@ -408,6 +501,64 @@ export default function AddMachine() {
                   </div>
                 </div>
 
+                <div>
+                  <h3 className="text-lg font-medium mb-4">Fotos da Máquina</h3>
+                  <div className="space-y-4">
+                    <div className="border-2 border-dashed border-border rounded-lg p-6">
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/*"
+                        multiple
+                        onChange={handleImageSelect}
+                        className="hidden"
+                        id="machine-images"
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => fileInputRef.current?.click()}
+                        disabled={selectedImages.length >= 3}
+                        className="w-full"
+                      >
+                        <Upload className="mr-2 h-4 w-4" />
+                        Selecionar Fotos ({selectedImages.length}/3)
+                      </Button>
+                      <p className="text-xs text-muted-foreground mt-2 text-center">
+                        Envie até 3 fotos da máquina (máx. 5MB cada)
+                      </p>
+                    </div>
+
+                    {imagePreviewUrls.length > 0 && (
+                      <div className="grid grid-cols-3 gap-4">
+                        {imagePreviewUrls.map((url, index) => (
+                          <div key={index} className="relative group">
+                            <img
+                              src={url}
+                              alt={`Preview ${index + 1}`}
+                              className="w-full h-32 object-cover rounded-lg"
+                            />
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="destructive"
+                              className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                              onClick={() => removeImage(index)}
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                            {index === 0 && (
+                              <div className="absolute bottom-2 left-2 bg-primary text-primary-foreground px-2 py-1 rounded text-xs">
+                                Principal
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
                 <div className="flex gap-4">
                   <Button
                     type="button"
@@ -419,13 +570,13 @@ export default function AddMachine() {
                   </Button>
                   <Button
                     type="submit"
-                    disabled={loading}
+                    disabled={loading || uploadingImages}
                     className="flex-1"
                   >
-                    {loading ? (
+                    {loading || uploadingImages ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Cadastrando...
+                        {uploadingImages ? 'Enviando fotos...' : 'Cadastrando...'}
                       </>
                     ) : (
                       'Cadastrar Máquina'

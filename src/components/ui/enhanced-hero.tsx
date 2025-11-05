@@ -56,7 +56,7 @@ export const EnhancedHero = () => {
           {/* Main Heading */}
           <div className="space-y-4">
             <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight">
-              Alugue Máquinas Agrícolas com{" "}
+              Prestação de Serviços Agrícolas com{" "}
               <span className="text-primary-glow">Segurança no Paraná</span>
             </h1>
             <p className="text-xl md:text-2xl font-light opacity-90 max-w-3xl mx-auto">

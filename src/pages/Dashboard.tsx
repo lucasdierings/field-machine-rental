@@ -202,6 +202,13 @@ export default function Dashboard() {
                       <Bell className="mr-2 h-4 w-4" />
                       Configurar Alertas
                     </Button>
+                    <Button 
+                      variant="outline"
+                      onClick={() => navigate("/documents")}
+                      className="w-full justify-start"
+                    >
+                      Meus Documentos
+                    </Button>
                   </CardContent>
                 </Card>
 
