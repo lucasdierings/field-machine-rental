@@ -43,7 +43,7 @@ const Register = () => {
     setIsSubmitting(true);
     
     try {
-      // Criar conta no Supabase
+      // 1. Criar conta no Supabase Auth
       const { data, error } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password,
@@ -58,6 +58,49 @@ const Register = () => {
 
       if (error) {
         throw error;
+      }
+
+      if (!data.user) {
+        throw new Error("Falha ao criar usuário");
+      }
+
+      const userId = data.user.id;
+
+      // 2. Inserir em user_profiles
+      const { error: profileError } = await supabase
+        .from('user_profiles')
+        .insert({
+          auth_user_id: userId,
+          full_name: formData.fullName,
+          phone: formData.phone,
+          cpf_cnpj: formData.cpfCnpj,
+          address: {
+            address: formData.address,
+            city: formData.city,
+            state: formData.state,
+            cep: formData.cep,
+            reference: formData.reference
+          },
+          user_types: [formData.userType]
+        });
+
+      if (profileError) {
+        console.error("Profile creation error:", profileError);
+        throw new Error("Erro ao criar perfil: " + profileError.message);
+      }
+
+      // 3. Inserir em user_roles
+      const roleToAssign = formData.userType === 'producer' || formData.userType === 'owner' ? 'user' : 'user';
+      const { error: roleError } = await supabase
+        .from('user_roles')
+        .insert({
+          user_id: userId,
+          role: roleToAssign
+        });
+
+      if (roleError) {
+        console.error("Role creation error:", roleError);
+        throw new Error("Erro ao definir permissões: " + roleError.message);
       }
 
       toast({
