@@ -1,22 +1,9 @@
 import { Link } from "react-router-dom";
 import { Facebook, Instagram, Twitter, Youtube, Mail, Phone, MapPin } from "lucide-react";
-
-const cidadesPrincipais = [
-  "Curitiba", "Londrina", "Maringá", "Cascavel", "Ponta Grossa",
-  "Foz do Iguaçu", "Guarapuava", "Toledo", "Apucarana", "Campo Largo"
-];
-
-const categoriasBlog = [
-  "Tecnologia Agrícola",
-  "Dicas de Plantio", 
-  "Manutenção de Máquinas",
-  "Mercado Agrícola",
-  "Sustentabilidade"
-];
-
+const cidadesPrincipais = ["Curitiba", "Londrina", "Maringá", "Cascavel", "Ponta Grossa", "Foz do Iguaçu", "Guarapuava", "Toledo", "Apucarana", "Campo Largo"];
+const categoriasBlog = ["Tecnologia Agrícola", "Dicas de Plantio", "Manutenção de Máquinas", "Mercado Agrícola", "Sustentabilidade"];
 export const EnhancedFooter = () => {
-  return (
-    <footer className="bg-card border-t border-border">
+  return <footer className="bg-card border-t border-border">
       <div className="container mx-auto px-4 py-12">
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
           {/* Brand */}
@@ -52,15 +39,9 @@ export const EnhancedFooter = () => {
           <div className="space-y-4">
             <h4 className="font-semibold text-lg">Cidades Atendidas</h4>
             <div className="space-y-2">
-              {cidadesPrincipais.map((cidade) => (
-                <Link 
-                  key={cidade}
-                  to={`/buscar?cidade=${cidade}`}
-                  className="block text-muted-foreground hover:text-primary transition-colors text-sm"
-                >
+              {cidadesPrincipais.map(cidade => <Link key={cidade} to={`/buscar?cidade=${cidade}`} className="block text-muted-foreground hover:text-primary transition-colors text-sm">
                   Serviço de Trator em {cidade}
-                </Link>
-              ))}
+                </Link>)}
             </div>
           </div>
 
@@ -68,15 +49,9 @@ export const EnhancedFooter = () => {
           <div className="space-y-4">
             <h4 className="font-semibold text-lg">Blog</h4>
             <div className="space-y-2">
-              {categoriasBlog.map((categoria) => (
-                <Link 
-                  key={categoria}
-                  to={`/blog/${categoria.toLowerCase().replace(/\s+/g, '-')}`}
-                  className="block text-muted-foreground hover:text-primary transition-colors text-sm"
-                >
+              {categoriasBlog.map(categoria => <Link key={categoria} to={`/blog/${categoria.toLowerCase().replace(/\s+/g, '-')}`} className="block text-muted-foreground hover:text-primary transition-colors text-sm">
                   {categoria}
-                </Link>
-              ))}
+                </Link>)}
             </div>
           </div>
 
@@ -86,11 +61,12 @@ export const EnhancedFooter = () => {
             <div className="space-y-3">
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Mail className="h-4 w-4" />
-                <span>contato@fieldmachine.com.br</span>
+                <span>fieldmachinebrasil@gmail.com
+              </span>
               </div>
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Phone className="h-4 w-4" />
-                <span>(41) 3000-0000</span>
+                <span>(45)99144-7004</span>
               </div>
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <MapPin className="h-4 w-4" />
@@ -129,6 +105,5 @@ export const EnhancedFooter = () => {
           </div>
         </div>
       </div>
-    </footer>
-  );
+    </footer>;
 };
