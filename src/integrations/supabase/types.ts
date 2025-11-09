@@ -977,7 +977,20 @@ export type Database = {
           verified: boolean
         }[]
       }
-      is_admin: { Args: never; Returns: boolean }
+      get_public_profile: {
+        Args: { profile_user_id: string }
+        Returns: {
+          city: string
+          full_name: string
+          id: string
+          profile_image: string
+          rating: number
+          state: string
+          total_rentals: number
+          total_services: number
+          verified: boolean
+        }[]
+      }
       validate_cnpj: { Args: { cnpj: string }; Returns: boolean }
       validate_cpf: { Args: { cpf: string }; Returns: boolean }
       validate_cpf_cnpj: { Args: { doc: string }; Returns: boolean }
