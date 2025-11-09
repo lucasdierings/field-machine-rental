@@ -160,10 +160,10 @@ export default function AddMachine() {
         return;
       }
 
-      // Verificar se o usuário tem perfil verificado
+      // Verificar se o usuário tem perfil com dados básicos
       const { data: profile, error: profileError } = await supabase
         .from("user_profiles")
-        .select("verified, full_name, phone")
+        .select("full_name, phone")
         .eq("auth_user_id", user.id)
         .single();
 
@@ -179,24 +179,6 @@ export default function AddMachine() {
               onClick={() => navigate("/dashboard/perfil")}
             >
               Completar Cadastro
-            </Button>
-          )
-        });
-        return;
-      }
-
-      if (!profile.verified) {
-        toast({
-          title: "Verificação pendente",
-          description: "Envie seus documentos para verificação antes de cadastrar máquinas.",
-          variant: "destructive",
-          action: (
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={() => navigate("/dashboard/documentos")}
-            >
-              Enviar Documentos
             </Button>
           )
         });
@@ -273,9 +255,7 @@ export default function AddMachine() {
     } catch (error: any) {
       let errorMessage = "Erro ao cadastrar máquina. Tente novamente.";
       
-      if (error.message?.includes("verificados") || error.message?.includes("verified")) {
-        errorMessage = "Apenas usuários verificados podem cadastrar máquinas.";
-      } else if (error.code === "23505") {
+      if (error.code === "23505") {
         errorMessage = "Já existe uma máquina cadastrada com esses dados.";
       }
       
