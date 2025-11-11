@@ -66,10 +66,10 @@ const Register = () => {
 
       const userId = data.user.id;
 
-      // 2. Inserir em user_profiles
+      // 2. Upsert em user_profiles (pode já existir via trigger)
       const { error: profileError } = await supabase
         .from('user_profiles')
-        .insert({
+        .upsert({
           auth_user_id: userId,
           full_name: formData.fullName,
           phone: formData.phone,
@@ -82,6 +82,8 @@ const Register = () => {
             reference: formData.reference
           },
           user_types: [formData.userType]
+        }, {
+          onConflict: 'auth_user_id'
         });
 
       if (profileError) {
