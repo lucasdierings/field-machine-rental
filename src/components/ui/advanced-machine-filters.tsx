@@ -54,7 +54,9 @@ export const AdvancedMachineFilters = ({ filters, onFiltersChange }: AdvancedMac
     { id: 'Tratores', label: 'Tratores' },
     { id: 'Colheitadeiras', label: 'Colheitadeiras' },
     { id: 'Pulverizadores', label: 'Pulverizadores' },
-    { id: 'Plantadeiras', label: 'Plantadeiras' }
+    { id: 'Plantadeiras', label: 'Plantadeiras' },
+    { id: 'Implementos', label: 'Implementos' },
+    { id: 'Transporte de Cargas', label: 'Transporte de Cargas' }
   ];
 
   const powerRanges = [

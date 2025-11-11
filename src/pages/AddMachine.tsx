@@ -18,7 +18,7 @@ const categories = [
   "Pulverizadores",
   "Plantadeiras",
   "Implementos",
-  "Caminhões"
+  "Transporte de Cargas"
 ];
 
 const brands = [

@@ -87,6 +87,8 @@ const Search = () => {
                       <SelectItem value="Colheitadeiras">Colheitadeiras</SelectItem>
                       <SelectItem value="Pulverizadores">Pulverizadores</SelectItem>
                       <SelectItem value="Plantadeiras">Plantadeiras</SelectItem>
+                      <SelectItem value="Implementos">Implementos</SelectItem>
+                      <SelectItem value="Transporte de Cargas">Transporte de Cargas</SelectItem>
                     </SelectContent>
                   </Select>
 

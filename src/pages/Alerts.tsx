@@ -70,6 +70,8 @@ const Alerts = () => {
                           <SelectItem value="colheitadeiras">Colheitadeiras</SelectItem>
                           <SelectItem value="pulverizadores">Pulverizadores</SelectItem>
                           <SelectItem value="plantadeiras">Plantadeiras</SelectItem>
+                          <SelectItem value="implementos">Implementos</SelectItem>
+                          <SelectItem value="transporte-de-cargas">Transporte de Cargas</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>

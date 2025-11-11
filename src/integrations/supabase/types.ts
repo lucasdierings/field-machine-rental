@@ -410,9 +410,11 @@ export type Database = {
           category: string
           created_at: string | null
           description: string | null
+          has_munck: boolean | null
           id: string
           images: string[] | null
           insurance_status: boolean | null
+          load_capacity_kg: number | null
           location: Json | null
           maintenance_date: string | null
           min_rental_days: number | null
@@ -423,6 +425,8 @@ export type Database = {
           price_day: number | null
           price_hectare: number | null
           price_hour: number | null
+          price_per_km: number | null
+          price_per_ton: number | null
           radius_km: number | null
           requires_operator: boolean | null
           specifications: Json | null
@@ -438,9 +442,11 @@ export type Database = {
           category: string
           created_at?: string | null
           description?: string | null
+          has_munck?: boolean | null
           id?: string
           images?: string[] | null
           insurance_status?: boolean | null
+          load_capacity_kg?: number | null
           location?: Json | null
           maintenance_date?: string | null
           min_rental_days?: number | null
@@ -451,6 +457,8 @@ export type Database = {
           price_day?: number | null
           price_hectare?: number | null
           price_hour?: number | null
+          price_per_km?: number | null
+          price_per_ton?: number | null
           radius_km?: number | null
           requires_operator?: boolean | null
           specifications?: Json | null
@@ -466,9 +474,11 @@ export type Database = {
           category?: string
           created_at?: string | null
           description?: string | null
+          has_munck?: boolean | null
           id?: string
           images?: string[] | null
           insurance_status?: boolean | null
+          load_capacity_kg?: number | null
           location?: Json | null
           maintenance_date?: string | null
           min_rental_days?: number | null
@@ -479,6 +489,8 @@ export type Database = {
           price_day?: number | null
           price_hectare?: number | null
           price_hour?: number | null
+          price_per_km?: number | null
+          price_per_ton?: number | null
           radius_km?: number | null
           requires_operator?: boolean | null
           specifications?: Json | null

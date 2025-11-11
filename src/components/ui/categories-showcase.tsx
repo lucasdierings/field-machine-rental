@@ -4,6 +4,7 @@ import newHollandColheitadeira from "@/assets/new-holland-colheitadeira.jpg";
 import casePulverizador from "@/assets/case-pulverizador.jpg";
 import valtraPlantadeira from "@/assets/valtra-plantadeira.jpg";
 import implementosAgricolas from "@/assets/implementos-agricolas.jpg";
+import transporteCarga from "@/assets/transporte-carga.jpg";
 
 const categories = [
   {
@@ -40,6 +41,13 @@ const categories = [
     image: implementosAgricolas,
     brand: "Diversos",
     link: "/buscar?categoria=implementos"
+  },
+  {
+    title: "Transporte de Cargas",
+    description: "Caminhões, carretas e bitrens",
+    image: transporteCarga,
+    brand: "Diversos",
+    link: "/buscar?categoria=transporte-de-cargas"
   }
 ];
 
