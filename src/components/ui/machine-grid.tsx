@@ -156,15 +156,38 @@ export const MachineGrid = ({ searchFilters }: MachineGridProps) => {
 
   const loadMachines = async () => {
     try {
-      const { data: machines, error } = await supabase
+      // Extrair categoria da URL
+      const params = new URLSearchParams(window.location.search);
+      const categoryParam = params.get('categoria');
+      
+      let query = supabase
         .from("machines")
         .select("*")
-        .eq("status", "available");
+        .eq("status", "available"); // Apenas disponíveis
+
+      // Filtrar por categoria se houver na URL
+      if (categoryParam) {
+        const categoryMap: Record<string, string> = {
+          'tratores': 'Tratores',
+          'colheitadeiras': 'Colheitadeiras',
+          'pulverizadores': 'Pulverizadores',
+          'plantadeiras': 'Plantadeiras',
+          'implementos': 'Implementos',
+          'transporte-de-cargas': 'Transporte de Cargas'
+        };
+        
+        const category = categoryMap[categoryParam];
+        if (category) {
+          query = query.eq('category', category);
+        }
+      }
+
+      const { data: machines, error } = await query;
 
       if (error) {
         console.error("Error loading machines:", error);
-        setAllMachines(mockMachines);
-        setFilteredMachines(mockMachines);
+        setAllMachines(mockMachines.filter(m => m.availability === "Disponível"));
+        setFilteredMachines(mockMachines.filter(m => m.availability === "Disponível"));
       } else {
         // Transform database machines to match interface
         const transformedMachines = machines.map(machine => ({
@@ -181,7 +204,7 @@ export const MachineGrid = ({ searchFilters }: MachineGridProps) => {
           reviews: 0,
           rate: machine.price_hour || machine.price_day || machine.price_hectare || 0,
           image: machine.images?.[0] || "https://images.unsplash.com/photo-1625246333195-78d9c38ad449?w=400&h=300&fit=crop",
-          availability: machine.status === "available" ? "Disponível" : "Ocupado",
+          availability: "Disponível",
           owner: "Proprietário",
           servicesCompleted: 0,
           chargeType: machine.price_hour ? "hora" as const : machine.price_hectare ? "hectare" as const : "hora" as const,
@@ -195,8 +218,8 @@ export const MachineGrid = ({ searchFilters }: MachineGridProps) => {
       }
     } catch (error) {
       console.error("Error loading machines:", error);
-      setAllMachines(mockMachines);
-      setFilteredMachines(mockMachines);
+      setAllMachines(mockMachines.filter(m => m.availability === "Disponível"));
+      setFilteredMachines(mockMachines.filter(m => m.availability === "Disponível"));
     } finally {
       setLoading(false);
     }

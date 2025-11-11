@@ -56,12 +56,39 @@ const Machines = () => {
   const [showMobileMap, setShowMobileMap] = useState(false);
   const [totalCount, setTotalCount] = useState(0);
 
+  // Extrair categoria da URL
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const categoryParam = params.get('categoria');
+    
+    if (categoryParam) {
+      // Converter slug para nome da categoria
+      const categoryMap: Record<string, string> = {
+        'tratores': 'Tratores',
+        'colheitadeiras': 'Colheitadeiras',
+        'pulverizadores': 'Pulverizadores',
+        'plantadeiras': 'Plantadeiras',
+        'implementos': 'Implementos',
+        'transporte-de-cargas': 'Transporte de Cargas'
+      };
+      
+      const category = categoryMap[categoryParam];
+      if (category) {
+        setFilters(prev => ({
+          ...prev,
+          categories: [category]
+        }));
+      }
+    }
+  }, []);
+
   const fetchMachines = async () => {
     setLoading(true);
     try {
       let query = supabase
         .from('machines')
-        .select('*');
+        .select('*', { count: 'exact' })
+        .eq('status', 'available'); // Apenas equipamentos disponíveis
 
       // Apply filters
       if (filters.categories && filters.categories.length > 0) {
@@ -78,14 +105,13 @@ const Machines = () => {
           .lte('year', filters.yearRange[1]);
       }
 
-      if (filters.verifiedOnly) {
-        query = query.eq('status', 'verified');
-      }
-
       // Apply sorting
       switch (sortBy) {
         case 'price_low':
           query = query.order('price_hour', { ascending: true });
+          break;
+        case 'price_high':
+          query = query.order('price_hour', { ascending: false });
           break;
         case 'distance':
           // For now, order by created_at as distance calculation needs coordinates
@@ -99,7 +125,7 @@ const Machines = () => {
           query = query.order('created_at', { ascending: false });
       }
 
-      const { data, error, count } = await query.limit(20);
+      const { data, error, count } = await query.limit(50);
 
       if (error) throw error;
 
