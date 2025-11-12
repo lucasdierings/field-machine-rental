@@ -3,56 +3,56 @@
 @tailwind utilities;
 
 /* Field Machine Agricultural App Design System
-All colors MUST be HSL - Modern tech theme with vibrant gradients
+All colors MUST be HSL - Green/Black/White theme with dark background
 */
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 220 15% 10%;
+    --background: 0 0% 7%;
+    --foreground: 0 0% 98%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 220 15% 10%;
+    --card: 0 0% 10%;
+    --card-foreground: 0 0% 98%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 220 15% 10%;
+    --popover: 0 0% 10%;
+    --popover-foreground: 0 0% 98%;
 
-    /* Tech blue as primary */
-    --primary: 217 91% 60%;
+    /* Vibrant green as primary */
+    --primary: 142 76% 45%;
     --primary-foreground: 0 0% 100%;
-    --primary-glow: 200 100% 65%;
+    --primary-glow: 142 80% 55%;
 
-    /* Modern gray for secondary */
-    --secondary: 220 13% 91%;
-    --secondary-foreground: 220 15% 10%;
+    /* Dark secondary */
+    --secondary: 0 0% 15%;
+    --secondary-foreground: 0 0% 98%;
 
-    --muted: 220 13% 95%;
-    --muted-foreground: 220 10% 50%;
+    --muted: 0 0% 12%;
+    --muted-foreground: 0 0% 65%;
     
     --success: 142 76% 45%;
     --warning: 38 92% 50%;
 
-    /* Accent cyan */
-    --accent: 187 85% 53%;
+    /* Accent green */
+    --accent: 142 70% 50%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 220 13% 88%;
-    --input: 220 13% 88%;
-    --ring: 217 91% 60%;
+    --border: 0 0% 18%;
+    --input: 0 0% 15%;
+    --ring: 142 76% 45%;
 
-    /* Tech gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(217 91% 60%), hsl(200 100% 65%));
-    --gradient-hero: linear-gradient(135deg, hsl(217 91% 60%) 0%, hsl(187 85% 53%) 50%, hsl(280 70% 60%) 100%);
-    --gradient-card: linear-gradient(145deg, hsl(0 0% 100%) 0%, hsl(220 60% 98%) 100%);
-    --gradient-accent: linear-gradient(90deg, hsl(187 85% 53%), hsl(217 91% 60%));
+    /* Green/Black gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(142 76% 45%), hsl(142 80% 55%));
+    --gradient-hero: linear-gradient(135deg, hsl(0 0% 7%) 0%, hsl(142 76% 45%) 100%);
+    --gradient-card: linear-gradient(145deg, hsl(0 0% 10%) 0%, hsl(0 0% 13%) 100%);
+    --gradient-accent: linear-gradient(90deg, hsl(142 80% 55%), hsl(142 76% 45%));
 
-    /* Enhanced shadows with glow */
-    --shadow-card: 0 4px 25px -5px hsl(217 91% 60% / 0.15);
-    --shadow-hero: 0 20px 60px -15px hsl(217 91% 60% / 0.4);
-    --shadow-glow: 0 0 40px hsl(200 100% 65% / 0.3);
+    /* Enhanced shadows with green glow */
+    --shadow-card: 0 4px 25px -5px hsl(142 76% 45% / 0.2);
+    --shadow-hero: 0 20px 60px -15px hsl(142 76% 45% / 0.4);
+    --shadow-glow: 0 0 40px hsl(142 80% 55% / 0.3);
 
     /* Transitions */
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -77,34 +77,34 @@ All colors MUST be HSL - Modern tech theme with vibrant gradients
   }
 
   .dark {
-    --background: 220 25% 6%;
-    --foreground: 220 10% 95%;
+    --background: 0 0% 5%;
+    --foreground: 0 0% 98%;
 
-    --card: 220 20% 10%;
-    --card-foreground: 220 10% 95%;
+    --card: 0 0% 8%;
+    --card-foreground: 0 0% 98%;
 
-    --popover: 220 20% 10%;
-    --popover-foreground: 220 10% 95%;
+    --popover: 0 0% 8%;
+    --popover-foreground: 0 0% 98%;
 
-    --primary: 217 91% 60%;
+    --primary: 142 76% 45%;
     --primary-foreground: 0 0% 100%;
-    --primary-glow: 200 100% 70%;
+    --primary-glow: 142 80% 60%;
 
-    --secondary: 220 15% 15%;
-    --secondary-foreground: 220 10% 95%;
+    --secondary: 0 0% 12%;
+    --secondary-foreground: 0 0% 98%;
 
-    --muted: 220 15% 12%;
-    --muted-foreground: 220 10% 65%;
+    --muted: 0 0% 10%;
+    --muted-foreground: 0 0% 70%;
 
-    --accent: 187 85% 53%;
+    --accent: 142 70% 50%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 70% 55%;
-    --destructive-foreground: 220 10% 95%;
+    --destructive-foreground: 0 0% 98%;
 
-    --border: 220 15% 18%;
-    --input: 220 15% 18%;
-    --ring: 217 91% 60%;
+    --border: 0 0% 15%;
+    --input: 0 0% 12%;
+    --ring: 142 76% 45%;
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
     --sidebar-primary: 224.3 76.3% 48%;

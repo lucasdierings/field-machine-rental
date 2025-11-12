@@ -1,5 +1,6 @@
 import { Header } from "@/components/ui/header";
 import { EnhancedHero } from "@/components/ui/enhanced-hero";
+import { ProcessFlow } from "@/components/ui/process-flow";
 import { StatsSection } from "@/components/ui/stats-section";
 import { HowItWorks } from "@/components/ui/how-it-works";
 import { CategoriesShowcase } from "@/components/ui/categories-showcase";
@@ -12,6 +13,7 @@ const Index = () => {
       <Header />
       <main>
         <EnhancedHero />
+        <ProcessFlow />
         <StatsSection />
         <HowItWorks />
         <CategoriesShowcase />

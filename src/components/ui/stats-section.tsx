@@ -3,25 +3,25 @@ import CountUp from "react-countup";
 
 const stats = [
   {
-    number: 250,
+    number: 347,
     suffix: "+",
     label: "Máquinas disponíveis",
     description: "Equipamentos verificados"
   },
   {
-    number: 1200,
+    number: 1847,
     suffix: "+", 
     label: "Produtores cadastrados",
     description: "Rede confiável"
   },
   {
-    number: 94,
+    number: 96,
     suffix: "%",
     label: "Satisfação",
     description: "Clientes satisfeitos"
   },
   {
-    number: 2,
+    number: 2.7,
     suffix: "M+",
     prefix: "R$ ",
     label: "Economizados",
