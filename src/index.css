@@ -11,10 +11,10 @@ All colors MUST be HSL - Green/Black/White theme with dark background
     --background: 0 0% 7%;
     --foreground: 0 0% 98%;
 
-    --card: 142 25% 15%;
+    --card: 0 0% 18%;
     --card-foreground: 0 0% 98%;
 
-    --popover: 142 25% 15%;
+    --popover: 0 0% 18%;
     --popover-foreground: 0 0% 98%;
 
     /* Vibrant green as primary */
@@ -26,7 +26,7 @@ All colors MUST be HSL - Green/Black/White theme with dark background
     --secondary: 0 0% 15%;
     --secondary-foreground: 0 0% 98%;
 
-    --muted: 142 20% 14%;
+    --muted: 0 0% 15%;
     --muted-foreground: 0 0% 65%;
     
     --success: 142 76% 45%;
@@ -39,8 +39,8 @@ All colors MUST be HSL - Green/Black/White theme with dark background
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 142 30% 25%;
-    --input: 142 25% 18%;
+    --border: 0 0% 25%;
+    --input: 0 0% 20%;
     --ring: 142 76% 45%;
 
     /* Green/Black gradients */
@@ -80,10 +80,10 @@ All colors MUST be HSL - Green/Black/White theme with dark background
     --background: 0 0% 5%;
     --foreground: 0 0% 98%;
 
-    --card: 142 25% 12%;
+    --card: 0 0% 16%;
     --card-foreground: 0 0% 98%;
 
-    --popover: 142 25% 12%;
+    --popover: 0 0% 16%;
     --popover-foreground: 0 0% 98%;
 
     --primary: 142 76% 45%;
@@ -93,7 +93,7 @@ All colors MUST be HSL - Green/Black/White theme with dark background
     --secondary: 0 0% 12%;
     --secondary-foreground: 0 0% 98%;
 
-    --muted: 142 20% 11%;
+    --muted: 0 0% 13%;
     --muted-foreground: 0 0% 70%;
 
     --accent: 142 70% 50%;
@@ -102,8 +102,8 @@ All colors MUST be HSL - Green/Black/White theme with dark background
     --destructive: 0 70% 55%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 142 30% 20%;
-    --input: 142 25% 15%;
+    --border: 0 0% 22%;
+    --input: 0 0% 18%;
     --ring: 142 76% 45%;
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
