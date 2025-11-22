@@ -22,6 +22,7 @@ import Dashboard from "./pages/Dashboard";
 import AddMachine from "./pages/AddMachine";
 import Profile from "./pages/Profile";
 import Documents from "./pages/Documents";
+import SupabaseConnectionTest from "./components/SupabaseConnectionTest";
 
 const queryClient = new QueryClient();
 
@@ -40,7 +41,7 @@ const App = () => (
           <Route path="/login" element={<Login />} />
           <Route path="/entrar" element={<Login />} />
           <Route path="/cadastro" element={<Register />} />
-          
+
           {/* Protected Routes */}
           <Route path="/alugar-minha-maquina" element={
             <ProtectedRoute>
@@ -95,7 +96,8 @@ const App = () => (
               </RoleProtectedRoute>
             </ProtectedRoute>
           } />
-          
+
+          <Route path="/test-connection" element={<SupabaseConnectionTest />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
