@@ -1,5 +1,6 @@
 {
     "recommendations": [
-        "supabase.postgrestools"
+        "supabase.postgrestools",
+        "github.vscode-github-actions"
     ]
 }

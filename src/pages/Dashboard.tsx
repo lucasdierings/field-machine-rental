@@ -3,12 +3,12 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Header } from "@/components/ui/header";
 import { Footer } from "@/components/ui/footer";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Settings, BarChart3, Bell, History } from "lucide-react";
-import { MachineGallery } from "@/components/machines/MachineGallery";
+import { Plus, TrendingUp, TrendingDown, Tractor, ShoppingCart, BarChart3, Calendar } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -17,8 +17,18 @@ export default function Dashboard() {
   const [userProfile, setUserProfile] = useState<any>(null);
   const [userMachines, setUserMachines] = useState<any[]>([]);
   const [bookings, setBookings] = useState<any[]>([]);
-  const [alerts, setAlerts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const [metrics, setMetrics] = useState({
+    monthlyRevenue: 0,
+    revenueChange: 0,
+    occupancyRate: 0,
+    occupancyChange: 0,
+    activeMachines: 0,
+    pendingRequests: 0,
+    monthlyEarnings: 0,
+    upcomingReservations: 0
+  });
 
   useEffect(() => {
     loadUserData();
@@ -49,7 +59,8 @@ export default function Dashboard() {
         .select("*")
         .eq("owner_id", user.id);
 
-      setUserMachines(machines || []);
+      const machinesList = machines || [];
+      setUserMachines(machinesList);
 
       // Load bookings
       const { data: userBookings } = await supabase
@@ -62,15 +73,43 @@ export default function Dashboard() {
         `)
         .or(`renter_id.eq.${user.id},owner_id.eq.${user.id}`);
 
-      setBookings(userBookings || []);
+      const bookingsList = userBookings || [];
+      setBookings(bookingsList);
 
-      // Load alerts
-      const { data: userAlerts } = await supabase
-        .from("alerts")
-        .select("*")
-        .eq("user_id", user.id);
+      // Calculate Metrics
+      const now = new Date();
+      const currentMonth = now.getMonth();
+      const currentYear = now.getFullYear();
 
-      setAlerts(userAlerts || []);
+      const activeMachinesCount = machinesList.filter((m: any) => m.status === 'available').length;
+      const pendingRequestsCount = bookingsList.filter((b: any) => b.status === 'pending' && b.owner_id === user.id).length;
+
+      const monthlyRevenueValue = bookingsList
+        .filter((b: any) => {
+          const bookingDate = new Date(b.created_at);
+          return b.owner_id === user.id &&
+            (b.status === 'confirmed' || b.status === 'completed') &&
+            bookingDate.getMonth() === currentMonth &&
+            bookingDate.getFullYear() === currentYear;
+        })
+        .reduce((acc: number, curr: any) => acc + Number(curr.total_price || 0), 0);
+
+      const upcomingReservationsCount = bookingsList.filter((b: any) =>
+        (b.owner_id === user.id || b.renter_id === user.id) &&
+        (b.status === 'confirmed') &&
+        new Date(b.start_date) > now
+      ).length;
+
+      setMetrics({
+        monthlyRevenue: monthlyRevenueValue,
+        revenueChange: 0, // Requires historical data
+        occupancyRate: 0, // Requires complex calculation
+        occupancyChange: 0,
+        activeMachines: activeMachinesCount,
+        pendingRequests: pendingRequestsCount,
+        monthlyEarnings: monthlyRevenueValue, // Assuming earnings = revenue for now
+        upcomingReservations: upcomingReservationsCount
+      });
 
     } catch (error) {
       if (import.meta.env.DEV) {
@@ -101,368 +140,252 @@ export default function Dashboard() {
     <div className="min-h-screen bg-background">
       <Header />
 
-      <main className="pt-16 pb-8">
-        <div className="container mx-auto px-4">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-foreground">
-              Olá, {userProfile?.full_name || user?.email}
-            </h1>
-            <p className="text-muted-foreground">
-              Gerencie suas máquinas, reservas e perfil
-            </p>
+      <main className="pt-16 pb-24">
+        <div className="container mx-auto px-4 max-w-7xl">
+          {/* Page Header */}
+          <div className="mb-6 flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-bold text-foreground">
+                Painel do Proprietário
+              </h1>
+              <p className="text-muted-foreground text-sm">
+                Olá, {userProfile?.full_name || 'Fazenda Santa Rita'}!
+              </p>
+            </div>
+            <div className="flex gap-2">
+              <Button variant="outline" size="icon">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                </svg>
+              </Button>
+              <Button variant="outline" size="icon">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+              </Button>
+            </div>
           </div>
 
-          <Tabs defaultValue="overview" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-5">
-              <TabsTrigger value="overview">Visão Geral</TabsTrigger>
-              <TabsTrigger value="machines">Minhas Máquinas</TabsTrigger>
-              <TabsTrigger value="bookings">Reservas</TabsTrigger>
-              <TabsTrigger value="alerts">Alertas</TabsTrigger>
-              <TabsTrigger value="profile">Perfil</TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="overview" className="space-y-6">
-              <div className="grid md:grid-cols-3 gap-6">
-                <Card>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">
-                      Máquinas Cadastradas
-                    </CardTitle>
-                    <Settings className="h-4 w-4 text-muted-foreground" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">{userMachines.length}</div>
-                    <p className="text-xs text-muted-foreground">
-                      equipamentos disponíveis
-                    </p>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">
-                      Reservas Ativas
-                    </CardTitle>
-                    <BarChart3 className="h-4 w-4 text-muted-foreground" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">
-                      {bookings.filter(b => b.status === 'confirmed' || b.status === 'in_progress').length}
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      contratos em andamento
-                    </p>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">
-                      Alertas Ativos
-                    </CardTitle>
-                    <Bell className="h-4 w-4 text-muted-foreground" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">
-                      {alerts.filter(a => a.is_active).length}
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      notificações configuradas
-                    </p>
-                  </CardContent>
-                </Card>
-              </div>
-
+          {/* Hero Card - Blue */}
+          <Card className="mb-6 bg-gradient-to-br from-blue-500 to-blue-600 border-0 shadow-lg">
+            <CardContent className="p-6">
+              <h2 className="text-white text-xl font-bold mb-6">Painel do Proprietário</h2>
               <div className="grid md:grid-cols-2 gap-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Ações Rápidas</CardTitle>
-                    <CardDescription>
-                      Principais funcionalidades do sistema
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    <Button
-                      onClick={() => navigate("/add-machine")}
-                      className="w-full justify-start"
-                    >
-                      <Plus className="mr-2 h-4 w-4" />
-                      Cadastrar Nova Máquina
-                    </Button>
-                    <Button
-                      variant="outline"
-                      onClick={() => navigate("/search")}
-                      className="w-full justify-start"
-                    >
-                      Buscar Máquinas
-                    </Button>
-                    <Button
-                      variant="outline"
-                      onClick={() => navigate("/alerts")}
-                      className="w-full justify-start"
-                    >
-                      <Bell className="mr-2 h-4 w-4" />
-                      Configurar Alertas
-                    </Button>
-                    <Button
-                      variant="outline"
-                      onClick={() => navigate("/dashboard/documentos")}
-                      className="w-full justify-start"
-                    >
-                      Meus Documentos
-                    </Button>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Últimas Atividades</CardTitle>
-                    <CardDescription>
-                      Histórico recente de reservas
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    {bookings.slice(0, 3).map((booking) => (
-                      <div key={booking.id} className="flex items-center justify-between py-2">
-                        <div>
-                          <p className="text-sm font-medium">{booking.machines?.name}</p>
-                          <p className="text-xs text-muted-foreground">
-                            {booking.status === 'pending' && 'Pendente'}
-                            {booking.status === 'confirmed' && 'Confirmado'}
-                            {booking.status === 'completed' && 'Concluído'}
-                          </p>
-                        </div>
-                        <span className="text-xs text-muted-foreground">
-                          {new Date(booking.start_date).toLocaleDateString()}
-                        </span>
-                      </div>
-                    ))}
-                    {bookings.length === 0 && (
-                      <p className="text-sm text-muted-foreground">
-                        Nenhuma atividade recente
-                      </p>
-                    )}
-                  </CardContent>
-                </Card>
-              </div>
-            </TabsContent>
-
-            <TabsContent value="machines" className="space-y-6">
-              <div className="flex justify-between items-center">
+                {/* Monthly Revenue */}
                 <div>
-                  <h2 className="text-2xl font-bold">Minhas Máquinas</h2>
-                  <p className="text-muted-foreground">
-                    Gerencie seus equipamentos cadastrados
-                  </p>
-                </div>
-                <Button onClick={() => navigate("/add-machine")}>
-                  <Plus className="mr-2 h-4 w-4" />
-                  Nova Máquina
-                </Button>
-              </div>
-
-              {userMachines.length > 0 ? (
-                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {userMachines.map((machine) => (
-                    <Card key={machine.id}>
-                      <CardHeader>
-                        <CardTitle className="text-lg">{machine.name}</CardTitle>
-                        <CardDescription>
-                          {machine.brand} - {machine.year}
-                        </CardDescription>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="space-y-2">
-                          <div className="flex justify-between">
-                            <span className="text-sm">Categoria:</span>
-                            <span className="text-sm font-medium">{machine.category}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-sm">Status:</span>
-                            <span className={`text-sm font-medium ${machine.status === 'available'
-                                ? 'text-green-600'
-                                : 'text-yellow-600'
-                              }`}>
-                              {machine.status === 'available' ? 'Disponível' : 'Ocupado'}
-                            </span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-sm">Preço/hora:</span>
-                            <span className="text-sm font-medium">
-                              R$ {machine.price_hour?.toFixed(2) || '0,00'}
-                            </span>
-                          </div>
-                        </div>
-                        <div className="mt-4 space-x-2">
-                          <Button size="sm" variant="outline">
-                            Editar
-                          </Button>
-                          <Button size="sm" variant="outline">
-                            Galeria
-                          </Button>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              ) : (
-                <Card>
-                  <CardContent className="text-center py-12">
-                    <Settings className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-                    <h3 className="text-lg font-medium mb-2">
-                      Nenhuma máquina cadastrada
+                  <p className="text-blue-100 text-sm mb-1">Faturamento Mensal</p>
+                  <div className="flex items-end gap-3">
+                    <h3 className="text-white text-4xl font-bold">
+                      R$ {(metrics.monthlyRevenue / 1000).toFixed(1)}k
                     </h3>
-                    <p className="text-muted-foreground mb-4">
-                      Comece cadastrando sua primeira máquina
-                    </p>
-                    <Button onClick={() => navigate("/add-machine")}>
-                      <Plus className="mr-2 h-4 w-4" />
-                      Cadastrar Primeira Máquina
-                    </Button>
-                  </CardContent>
-                </Card>
-              )}
-            </TabsContent>
-
-            <TabsContent value="bookings" className="space-y-6">
-              <div>
-                <h2 className="text-2xl font-bold">Histórico de Reservas</h2>
-                <p className="text-muted-foreground">
-                  Contratos realizados e em andamento
-                </p>
-              </div>
-
-              {bookings.length > 0 ? (
-                <div className="space-y-4">
-                  {bookings.map((booking) => (
-                    <Card key={booking.id}>
-                      <CardContent className="pt-6">
-                        <div className="grid md:grid-cols-4 gap-4">
-                          <div>
-                            <p className="text-sm font-medium">{booking.machines?.name}</p>
-                            <p className="text-xs text-muted-foreground">
-                              {booking.machines?.brand} - {booking.machines?.category}
-                            </p>
-                          </div>
-                          <div>
-                            <p className="text-sm font-medium">
-                              {new Date(booking.start_date).toLocaleDateString()} -
-                              {new Date(booking.end_date).toLocaleDateString()}
-                            </p>
-                            <p className="text-xs text-muted-foreground">Período</p>
-                          </div>
-                          <div>
-                            <p className="text-sm font-medium">
-                              R$ {booking.total_price?.toFixed(2) || '0,00'}
-                            </p>
-                            <p className="text-xs text-muted-foreground">Valor Total</p>
-                          </div>
-                          <div>
-                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${booking.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                                booking.status === 'confirmed' ? 'bg-blue-100 text-blue-800' :
-                                  booking.status === 'in_progress' ? 'bg-purple-100 text-purple-800' :
-                                    booking.status === 'completed' ? 'bg-green-100 text-green-800' :
-                                      'bg-red-100 text-red-800'
-                              }`}>
-                              {booking.status === 'pending' && 'Pendente'}
-                              {booking.status === 'confirmed' && 'Confirmado'}
-                              {booking.status === 'in_progress' && 'Em Andamento'}
-                              {booking.status === 'completed' && 'Concluído'}
-                              {booking.status === 'cancelled' && 'Cancelado'}
-                            </span>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              ) : (
-                <Card>
-                  <CardContent className="text-center py-12">
-                    <History className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-                    <h3 className="text-lg font-medium mb-2">
-                      Nenhuma reserva encontrada
-                    </h3>
-                    <p className="text-muted-foreground">
-                      Suas reservas aparecerão aqui
-                    </p>
-                  </CardContent>
-                </Card>
-              )}
-            </TabsContent>
-
-            <TabsContent value="alerts" className="space-y-6">
-              <div>
-                <h2 className="text-2xl font-bold">Meus Alertas</h2>
-                <p className="text-muted-foreground">
-                  Configurações de notificações para novas máquinas
-                </p>
-              </div>
-
-              <Card>
-                <CardContent className="text-center py-12">
-                  <Bell className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-                  <h3 className="text-lg font-medium mb-2">
-                    Sistema de alertas em desenvolvimento
-                  </h3>
-                  <p className="text-muted-foreground">
-                    Em breve você poderá configurar alertas personalizados
-                  </p>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="profile" className="space-y-6">
-              <div>
-                <h2 className="text-2xl font-bold">Meu Perfil</h2>
-                <p className="text-muted-foreground">
-                  Gerencie suas informações pessoais
-                </p>
-              </div>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>Informações Pessoais</CardTitle>
-                  <CardDescription>
-                    Seus dados cadastrais no sistema
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="text-sm font-medium">Nome Completo</label>
-                      <p className="text-sm text-muted-foreground">
-                        {userProfile?.full_name || 'Não informado'}
-                      </p>
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium">Email</label>
-                      <p className="text-sm text-muted-foreground">
-                        {user?.email}
-                      </p>
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium">Telefone</label>
-                      <p className="text-sm text-muted-foreground">
-                        {userProfile?.phone || 'Não informado'}
-                      </p>
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium">Tipo de Usuário</label>
-                      <p className="text-sm text-muted-foreground">
-                        {userProfile?.user_type === 'producer' ? 'Produtor' :
-                          userProfile?.user_type === 'owner' ? 'Proprietário' :
-                            'Não definido'}
-                      </p>
+                    <div className="flex items-center gap-1 text-white mb-1">
+                      <TrendingUp className="w-4 h-4" />
+                      <span className="text-sm">+{metrics.revenueChange}%</span>
                     </div>
                   </div>
-                  <Button>Editar Perfil</Button>
+                </div>
+
+                {/* Occupancy Rate */}
+                <div>
+                  <p className="text-blue-100 text-sm mb-1">Taxa de Ocupação</p>
+                  <div className="flex items-end gap-3">
+                    <h3 className="text-white text-4xl font-bold">
+                      {metrics.occupancyRate}%
+                    </h3>
+                    <div className="flex items-center gap-1 text-white mb-1">
+                      <TrendingUp className="w-4 h-4" />
+                      <span className="text-sm">+{metrics.occupancyChange}%</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Metrics Grid 2x2 */}
+          <div className="grid grid-cols-2 gap-4 mb-6">
+            {/* Active Machines */}
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
+                    <Tractor className="w-6 h-6 text-green-600" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-muted-foreground text-xs mb-1">Máquinas Ativas</p>
+                    <p className="text-2xl font-bold">{metrics.activeMachines}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Pending Requests */}
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-full bg-orange-100 flex items-center justify-center flex-shrink-0">
+                    <ShoppingCart className="w-6 h-6 text-orange-600" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-muted-foreground text-xs mb-1">Solicitações</p>
+                    <p className="text-2xl font-bold">{metrics.pendingRequests}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Monthly Earnings */}
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
+                    <BarChart3 className="w-6 h-6 text-blue-600" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-muted-foreground text-xs mb-1">Ganhos do Mês</p>
+                    <p className="text-2xl font-bold">R$ {(metrics.monthlyEarnings / 1000).toFixed(1)}k</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Upcoming Reservations */}
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center flex-shrink-0">
+                    <Calendar className="w-6 h-6 text-purple-600" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-muted-foreground text-xs mb-1">Próximas Reservas</p>
+                    <p className="text-2xl font-bold">{metrics.upcomingReservations}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Minhas Máquinas Section */}
+          <div className="mb-6">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <Tractor className="w-5 h-5 text-primary" />
+                <h2 className="text-xl font-bold">Minhas Máquinas</h2>
+              </div>
+              <Button
+                onClick={() => navigate("/add-machine")}
+                className="bg-primary hover:bg-primary/90"
+              >
+                <Plus className="w-4 h-4 mr-1" />
+                Adicionar
+              </Button>
+            </div>
+
+            {userMachines.length > 0 ? (
+              <div className="space-y-4">
+                {userMachines.slice(0, 3).map((machine) => {
+                  // Calculate real metrics for each machine
+                  const machineBookings = bookings.filter((b: any) => b.machine_id === machine.id);
+                  const machineRevenue = machineBookings
+                    .filter((b: any) => b.status === 'completed' || b.status === 'confirmed')
+                    .reduce((acc: number, curr: any) => acc + Number(curr.total_price || 0), 0);
+                  const machineReservations = machineBookings.length;
+
+                  return (
+                    <Card key={machine.id}>
+                      <CardContent className="p-4">
+                        <div className="flex gap-4">
+                          {/* Machine Image */}
+                          <div className="w-20 h-20 rounded-lg bg-gradient-to-br from-green-100 to-green-200 flex-shrink-0 overflow-hidden">
+                            {machine.images && machine.images[0] ? (
+                              <img
+                                src={machine.images[0]}
+                                alt={machine.name}
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center">
+                                <Tractor className="w-10 h-10 text-green-600" />
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Machine Info */}
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-start justify-between mb-2">
+                              <div className="flex-1 min-w-0">
+                                <h3 className="font-bold text-base mb-0.5 truncate">
+                                  {machine.name || `${machine.brand} ${machine.model}`}
+                                </h3>
+                                <p className="text-xs text-muted-foreground">
+                                  {machine.category}
+                                </p>
+                              </div>
+                              <div className="text-right ml-2 flex-shrink-0">
+                                <p className="text-green-600 font-bold text-base">
+                                  R$ {(machineRevenue / 1000).toFixed(1)}k
+                                </p>
+                                <p className="text-xs text-muted-foreground">
+                                  {machineReservations} reservas
+                                </p>
+                              </div>
+                            </div>
+
+                            <Badge
+                              variant={machine.status === 'available' ? 'default' : 'secondary'}
+                              className={machine.status === 'available'
+                                ? 'bg-green-500 hover:bg-green-600'
+                                : 'bg-red-500 hover:bg-red-600'
+                              }
+                            >
+                              {machine.status === 'available' ? 'Ativo' : 'Inativo'}
+                            </Badge>
+
+                            {/* Occupancy Progress - Placeholder for now */}
+                            <div className="mt-3">
+                              <div className="flex justify-between items-center mb-1">
+                                <span className="text-xs text-muted-foreground">Taxa de ocupação</span>
+                                <span className="text-xs font-medium">0%</span>
+                              </div>
+                              <Progress value={0} className="h-2" />
+                            </div>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+            ) : (
+              <Card>
+                <CardContent className="text-center py-12">
+                  <Tractor className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+                  <h3 className="text-lg font-medium mb-2">
+                    Nenhuma máquina cadastrada
+                  </h3>
+                  <p className="text-muted-foreground mb-4">
+                    Comece cadastrando sua primeira máquina
+                  </p>
+                  <Button onClick={() => navigate("/add-machine")}>
+                    <Plus className="mr-2 h-4 w-4" />
+                    Cadastrar Primeira Máquina
+                  </Button>
                 </CardContent>
               </Card>
-            </TabsContent>
-          </Tabs>
+            )}
+          </div>
         </div>
       </main>
+
+      {/* FAB - Floating Action Button */}
+      <button
+        onClick={() => navigate("/add-machine")}
+        className="fixed bottom-6 right-6 w-14 h-14 bg-primary hover:bg-primary/90 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 flex items-center justify-center z-50"
+        aria-label="Adicionar Máquina"
+      >
+        <Plus className="w-6 h-6" />
+      </button>
 
       <Footer />
     </div>

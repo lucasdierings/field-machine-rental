@@ -133,6 +133,18 @@ export const formatPhoneBR = (phone: string): string => {
   return phone;
 };
 
+// Aliases for convenience
+export const formatPhone = formatPhoneBR;
+export const formatCPFCNPJ = (doc: string): string => {
+  const numbers = doc.replace(/\D/g, '');
+  if (numbers.length === 11) {
+    return formatCPF(doc);
+  } else if (numbers.length === 14) {
+    return formatCNPJ(doc);
+  }
+  return doc;
+};
+
 // ============================================
 // VALIDAÇÃO DE TELEFONE BR
 // ============================================
@@ -406,11 +418,18 @@ export const getVerificationStatus = async (): Promise<{
       .eq('auth_user_id', session.user.id)
       .single();
 
+    // Type assertion for the selected fields since database types might be out of sync
+    const typedProfile = profile as unknown as {
+      profile_completed: boolean;
+      profile_completion_step: number;
+      email_verified_at: string | null;
+    } | null;
+
     return {
       emailVerified: !!session.user.email_confirmed_at,
       emailVerifiedAt: session.user.email_confirmed_at || null,
-      profileCompleted: profile?.profile_completed || false,
-      profileCompletionStep: profile?.profile_completion_step || 1,
+      profileCompleted: typedProfile?.profile_completed || false,
+      profileCompletionStep: typedProfile?.profile_completion_step || 1,
       canCreateBooking: !!session.user.email_confirmed_at
     };
   } catch (error) {

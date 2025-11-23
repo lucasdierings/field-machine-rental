@@ -13,6 +13,7 @@ import HowItWorks from "./pages/HowItWorks";
 import RentMyMachine from "./pages/RentMyMachine";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import { Onboarding } from "./pages/Onboarding";
 import Favorites from "./pages/Favorites";
 import Alerts from "./pages/Alerts";
 import NotFound from "./pages/NotFound";
@@ -44,6 +45,7 @@ const App = () => (
           <Route path="/login" element={<Login />} />
           <Route path="/entrar" element={<Login />} />
           <Route path="/cadastro" element={<Register />} />
+          <Route path="/onboarding" element={<Onboarding />} />
 
           {/* Protected Routes */}
           <Route path="/alugar-minha-maquina" element={
