@@ -51,22 +51,34 @@ const MachineDetails = () => {
         try {
             if (!id) return;
 
-            const { data, error } = await supabase
+            const { data: machineData, error: machineError } = await supabase
                 .from('machines')
-                .select(`
-          *,
-          owner:users(full_name, avatar_url)
-        `)
+                .select('*')
                 .eq('id', id)
                 .single();
 
-            if (error) throw error;
+            if (machineError) throw machineError;
 
-            // Ajuste para o owner se o join falhar ou não retornar dados como esperado
-            // O Supabase retorna o objeto relacionado na propriedade com o nome da tabela ou alias
-            // Aqui estamos assumindo que users retorna { full_name, avatar_url }
+            let ownerData = null;
+            if (machineData.owner_id) {
+                const { data: profile } = await supabase
+                    .from('user_profiles')
+                    .select('full_name')
+                    .eq('auth_user_id', machineData.owner_id)
+                    .maybeSingle();
 
-            setMachine(data as any);
+                if (profile) {
+                    ownerData = {
+                        full_name: profile.full_name,
+                        avatar_url: "" // user_profiles doesn't have avatar_url yet
+                    };
+                }
+            }
+
+            setMachine({
+                ...machineData,
+                owner: ownerData
+            } as any);
         } catch (error: any) {
             console.error("Erro ao carregar máquina:", error);
             toast({

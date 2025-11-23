@@ -12,12 +12,12 @@ import { useToast } from '@/hooks/use-toast';
 interface User {
   id: string;
   full_name: string;
-  email: string;
+  email: string | null; // Now available in user_profiles
   cpf_cnpj: string | null;
-  user_type: string | null;
+  user_types: string[] | null;
   verified: boolean | null;
   created_at: string;
-  total_transactions: number | null;
+  total_transactions?: number | null;
 }
 
 const AdminUsersTab = () => {
@@ -41,7 +41,7 @@ const AdminUsersTab = () => {
       setLoading(true);
 
       let query = supabase
-        .from('users')
+        .from('user_profiles')
         .select('*', { count: 'exact' });
 
       // Apply filters
@@ -50,7 +50,7 @@ const AdminUsersTab = () => {
       }
 
       if (filterType !== 'all') {
-        query = query.eq('user_type', filterType);
+        query = query.contains('user_types', [filterType]);
       }
 
       if (filterVerified !== 'all') {
@@ -69,7 +69,7 @@ const AdminUsersTab = () => {
 
       if (error) throw error;
 
-      setUsers(data || []);
+      setUsers((data as unknown as User[]) || []);
       setTotalUsers(count || 0);
     } catch (error) {
       if (import.meta.env.DEV) {
@@ -88,7 +88,7 @@ const AdminUsersTab = () => {
   const toggleUserVerification = async (userId: string, currentStatus: boolean | null) => {
     try {
       const { error } = await supabase
-        .from('users')
+        .from('user_profiles')
         .update({ verified: !currentStatus })
         .eq('id', userId);
 
@@ -115,7 +115,7 @@ const AdminUsersTab = () => {
   const exportUsers = async () => {
     try {
       const { data, error } = await supabase
-        .from('users')
+        .from('user_profiles')
         .select('*')
         .csv();
 
@@ -149,17 +149,25 @@ const AdminUsersTab = () => {
     return new Date(date).toLocaleDateString('pt-BR');
   };
 
-  const getUserTypeBadge = (type: string | null) => {
-    switch (type) {
-      case 'admin':
-        return <Badge variant="destructive">Admin</Badge>;
-      case 'owner':
-        return <Badge variant="default">Proprietário</Badge>;
-      case 'renter':
-        return <Badge variant="secondary">Locatário</Badge>;
-      default:
-        return <Badge variant="outline">-</Badge>;
-    }
+  const getUserTypeBadge = (types: string[] | null) => {
+    if (!types || types.length === 0) return <Badge variant="outline">-</Badge>;
+
+    return (
+      <div className="flex gap-1 flex-wrap">
+        {types.map(type => {
+          switch (type) {
+            case 'admin':
+              return <Badge key={type} variant="destructive">Admin</Badge>;
+            case 'owner':
+              return <Badge key={type} variant="default">Proprietário</Badge>;
+            case 'producer':
+              return <Badge key={type} variant="secondary">Produtor</Badge>;
+            default:
+              return <Badge key={type} variant="outline">{type}</Badge>;
+          }
+        })}
+      </div>
+    );
   };
 
   const totalPages = Math.ceil(totalUsers / usersPerPage);
@@ -262,7 +270,7 @@ const AdminUsersTab = () => {
                     <TableCell className="font-medium">{user.full_name}</TableCell>
                     <TableCell>{user.email}</TableCell>
                     <TableCell>{user.cpf_cnpj || '-'}</TableCell>
-                    <TableCell>{getUserTypeBadge(user.user_type)}</TableCell>
+                    <TableCell>{getUserTypeBadge(user.user_types)}</TableCell>
                     <TableCell>
                       {user.verified ? (
                         <Badge variant="default" className="gap-1">

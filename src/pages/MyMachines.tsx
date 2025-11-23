@@ -47,19 +47,10 @@ const MyMachines = () => {
             const { data: { user } } = await supabase.auth.getUser();
             if (!user) return;
 
-            // Buscar ID do usuário na tabela public.users
-            const { data: userData } = await supabase
-                .from('users')
-                .select('id')
-                .eq('auth_user_id', user.id)
-                .single();
-
-            if (!userData) return;
-
             const { data, error } = await supabase
                 .from('machines')
                 .select('*')
-                .eq('owner_id', userData.id)
+                .eq('owner_id', user.id)
                 .order('created_at', { ascending: false });
 
             if (error) throw error;

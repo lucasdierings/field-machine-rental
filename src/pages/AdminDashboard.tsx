@@ -53,7 +53,7 @@ const AdminDashboard = () => {
     try {
       // 1. Users Stats
       const { count: totalUsers } = await supabase
-        .from('users')
+        .from('user_profiles')
         .select('*', { count: 'exact', head: true });
 
       // 2. Machines Stats

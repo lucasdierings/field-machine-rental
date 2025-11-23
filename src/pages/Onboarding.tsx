@@ -9,6 +9,7 @@ import { useOnboarding } from '@/hooks/useOnboarding';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { validateCPFCNPJ, validateEmail, formatPhone } from '@/lib/validation';
+import { ToastAction } from "@/components/ui/toast";
 
 export const Onboarding = () => {
     const navigate = useNavigate();
@@ -52,6 +53,8 @@ export const Onboarding = () => {
         };
     };
 
+
+
     // Handle Step 2 Next (Create Account)
     const handleRegisterNext = async () => {
         const validation = validateRegistration();
@@ -91,6 +94,22 @@ export const Onboarding = () => {
             nextStep(); // Go to verification step
         } catch (error: any) {
             console.error('Signup error:', error);
+
+            // Check for existing user error
+            if (error.message?.includes('already registered') || error.code === 'user_already_exists') {
+                toast({
+                    title: 'Conta já existe',
+                    description: 'Este email já está cadastrado no sistema.',
+                    variant: 'destructive',
+                    action: (
+                        <ToastAction altText="Fazer Login" onClick={() => navigate('/login')}>
+                            Fazer Login
+                        </ToastAction>
+                    ),
+                });
+                return;
+            }
+
             toast({
                 title: 'Erro ao criar conta',
                 description: error.message,

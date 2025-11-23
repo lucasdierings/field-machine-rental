@@ -67,10 +67,10 @@ const Register = () => {
       return { success: true };
 
     } catch (error: any) {
-      console.error("Erro ao criar conta:", error);
+      console.error("Erro ao criar conta (FULL):", error);
       toast({
         title: "Erro ao criar conta",
-        description: error.message,
+        description: `${error.message} (Code: ${error.code || 'N/A'})`,
         variant: "destructive",
       });
       throw error;

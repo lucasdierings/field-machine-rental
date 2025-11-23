@@ -248,50 +248,7 @@ export default function AddMachine() {
         return;
       }
 
-      // Buscar ou criar o registro do usuário na tabela public.users
-      let { data: publicUser, error: userError } = await supabase
-        .from("users")
-        .select("id, email, full_name")
-        .eq("auth_user_id", user.id)
-        .maybeSingle();
-
-      // Se o usuário não existe em public.users, criar o registro
-      if (!publicUser) {
-        const { data: newUser, error: insertError } = await supabase
-          .from("users")
-          .insert({
-            id: user.id,
-            auth_user_id: user.id,
-            email: user.email || '',
-            full_name: user.user_metadata?.full_name || user.email || 'Usuário',
-            user_type: user.user_metadata?.user_type || 'owner'
-          })
-          .select("id, email, full_name")
-          .single();
-
-        if (insertError) {
-          console.error("Erro ao criar usuário público:", insertError);
-          toast({
-            title: "Erro de cadastro",
-            description: "Não foi possível criar seu cadastro de usuário. Entre em contato com o suporte.",
-            variant: "destructive"
-          });
-          return;
-        }
-
-        publicUser = newUser;
-      }
-
-      if (!publicUser) {
-        toast({
-          title: "Erro de cadastro",
-          description: "Não foi possível identificar seu cadastro de usuário. Entre em contato com o suporte.",
-          variant: "destructive"
-        });
-        return;
-      }
-
-      const ownerId = publicUser.id;
+      const ownerId = user.id;
 
       const machineData = {
         name: formData.name,
