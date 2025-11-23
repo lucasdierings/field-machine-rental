@@ -22,6 +22,8 @@ import Dashboard from "./pages/Dashboard";
 import AddMachine from "./pages/AddMachine";
 import Profile from "./pages/Profile";
 import Documents from "./pages/Documents";
+import MyMachines from "./pages/MyMachines";
+import MachineDetails from "./pages/MachineDetails";
 import SupabaseConnectionTest from "./components/SupabaseConnectionTest";
 
 const queryClient = new QueryClient();
@@ -36,6 +38,7 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/buscar" element={<Search />} />
           <Route path="/maquinas" element={<Machines />} />
+          <Route path="/maquinas/:id" element={<MachineDetails />} />
           <Route path="/categorias" element={<Categories />} />
           <Route path="/como-funciona" element={<HowItWorks />} />
           <Route path="/login" element={<Login />} />
@@ -68,6 +71,11 @@ const App = () => (
               <AddMachine />
             </ProtectedRoute>
           } />
+          <Route path="/edit-machine/:id" element={
+            <ProtectedRoute>
+              <AddMachine />
+            </ProtectedRoute>
+          } />
           <Route path="/dashboard/onboarding" element={
             <ProtectedRoute>
               <OnboardingDashboard />
@@ -76,6 +84,11 @@ const App = () => (
           <Route path="/dashboard/perfil" element={
             <ProtectedRoute>
               <Profile />
+            </ProtectedRoute>
+          } />
+          <Route path="/minhas-maquinas" element={
+            <ProtectedRoute>
+              <MyMachines />
             </ProtectedRoute>
           } />
           <Route path="/dashboard/documentos" element={

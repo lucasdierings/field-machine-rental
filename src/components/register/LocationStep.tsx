@@ -13,9 +13,10 @@ interface LocationStepProps {
   onUpdate: (updates: Partial<RegisterFormData>) => void;
   onNext: () => void;
   onPrev: () => void;
+  onSkip?: () => void;
 }
 
-export const LocationStep = ({ formData, errors, onUpdate, onNext, onPrev }: LocationStepProps) => {
+export const LocationStep = ({ formData, errors, onUpdate, onNext, onPrev, onSkip }: LocationStepProps) => {
   const [isLoadingCep, setIsLoadingCep] = useState(false);
 
   const formatCep = (value: string) => {
@@ -184,9 +185,16 @@ export const LocationStep = ({ formData, errors, onUpdate, onNext, onPrev }: Loc
             <Button variant="outline" onClick={onPrev}>
               Voltar
             </Button>
-            <Button onClick={onNext} className="bg-gradient-primary">
-              Continuar
-            </Button>
+            <div className="flex gap-2">
+              {onSkip && (
+                <Button variant="ghost" onClick={onSkip}>
+                  Pular por Enquanto
+                </Button>
+              )}
+              <Button onClick={onNext} className="bg-gradient-primary">
+                Continuar
+              </Button>
+            </div>
           </div>
         </CardContent>
       </Card>

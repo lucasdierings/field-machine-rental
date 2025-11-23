@@ -15,7 +15,7 @@ interface VerificationStepProps {
   errors: Record<string, string>;
   onUpdate: (updates: Partial<RegisterFormData>) => void;
   onVerifyEmail: (code: string) => Promise<void>;
-  onVerifyPhone: (code: string) => Promise<void>;
+  onResendEmail?: () => Promise<void>;
   onFinalize: () => void;
   onPrev: () => void;
   isSubmitting?: boolean;
@@ -26,18 +26,41 @@ export const VerificationStep = ({
   errors,
   onUpdate,
   onVerifyEmail,
-  onVerifyPhone,
+  onResendEmail,
   onFinalize,
   onPrev,
   isSubmitting = false
 }: VerificationStepProps) => {
   const { toast } = useToast();
+  const [resendCooldown, setResendCooldown] = useState(0);
 
   const handleVerifyEmail = async () => {
     if (formData.emailCode.length !== 6) return;
 
     try {
       await onVerifyEmail(formData.emailCode);
+    } catch (error) {
+      // Error handled in parent
+    }
+  };
+
+  const handleResendEmail = async () => {
+    if (!onResendEmail || resendCooldown > 0) return;
+
+    try {
+      await onResendEmail();
+      setResendCooldown(60);
+
+      // Countdown timer
+      const interval = setInterval(() => {
+        setResendCooldown((prev) => {
+          if (prev <= 1) {
+            clearInterval(interval);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
     } catch (error) {
       // Error handled in parent
     }
@@ -103,6 +126,19 @@ export const VerificationStep = ({
                       Verificar
                     </Button>
                   </div>
+                  {onResendEmail && (
+                    <Button
+                      variant="link"
+                      onClick={handleResendEmail}
+                      disabled={resendCooldown > 0}
+                      className="w-full text-sm"
+                    >
+                      {resendCooldown > 0
+                        ? `Reenviar código em ${resendCooldown}s`
+                        : 'Reenviar código'
+                      }
+                    </Button>
+                  )}
                 </div>
               )}
             </Card>

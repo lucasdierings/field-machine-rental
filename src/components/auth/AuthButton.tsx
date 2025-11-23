@@ -10,7 +10,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { LogOut, Settings, User as UserIcon } from "lucide-react";
+import { LogOut, Settings, User as UserIcon, Tractor } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 
@@ -75,8 +75,12 @@ export const AuthButton = () => {
 
   const handleLogout = async () => {
     try {
+      // Clear any cached data
+      localStorage.clear();
+      sessionStorage.clear();
+
       const { error } = await supabase.auth.signOut();
-      
+
       if (error) {
         toast({
           title: "Erro ao sair",
@@ -88,7 +92,8 @@ export const AuthButton = () => {
           title: "Logout realizado",
           description: "Até logo!",
         });
-        navigate('/');
+        // Force reload to clear all state
+        window.location.href = '/';
       }
     } catch (error) {
       toast({
@@ -121,9 +126,9 @@ export const AuthButton = () => {
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="relative h-8 w-8 rounded-full">
           <Avatar className="h-8 w-8">
-            <AvatarImage 
-              src={user.user_metadata?.avatar_url} 
-              alt={user.user_metadata?.full_name || user.email} 
+            <AvatarImage
+              src={user.user_metadata?.avatar_url}
+              alt={user.user_metadata?.full_name || user.email}
             />
             <AvatarFallback>
               {user.user_metadata?.full_name?.[0] || user.email?.[0]?.toUpperCase()}
@@ -148,6 +153,10 @@ export const AuthButton = () => {
         <DropdownMenuItem onClick={() => navigate('/dashboard/perfil')}>
           <Settings className="mr-2 h-4 w-4" />
           <span>Configurações</span>
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => navigate('/minhas-maquinas')}>
+          <Tractor className="mr-2 h-4 w-4" />
+          <span>Minhas Máquinas</span>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={handleLogout}>

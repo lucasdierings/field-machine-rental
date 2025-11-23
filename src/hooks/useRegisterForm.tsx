@@ -43,6 +43,9 @@ export interface RegisterFormData {
   phoneCode: string;
   documentsUploaded: boolean;
   termsAccepted: boolean;
+
+  // Rastreamento de conclusão de perfil
+  profile_completion_step?: number;
 }
 
 const basicDataSchema = z.object({

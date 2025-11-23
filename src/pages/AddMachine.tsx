@@ -1,5 +1,5 @@
-import { useState, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useRef, useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Header } from "@/components/ui/header";
 import { Footer } from "@/components/ui/footer";
@@ -41,6 +41,9 @@ export default function AddMachine() {
   const [selectedImages, setSelectedImages] = useState<File[]>([]);
   const [imagePreviewUrls, setImagePreviewUrls] = useState<string[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { id } = useParams();
+  const isEditing = !!id;
+
   const [formData, setFormData] = useState({
     name: "",
     category: "",
@@ -58,6 +61,66 @@ export default function AddMachine() {
     radius_km: 50,
     specifications: {}
   });
+
+  useEffect(() => {
+    if (isEditing) {
+      loadMachineData();
+    }
+  }, [id]);
+
+  const loadMachineData = async () => {
+    try {
+      setLoading(true);
+      const { data: machine, error } = await supabase
+        .from('machines')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+      if (error) throw error;
+
+      if (machine) {
+        // Parse location if it's a string, or use as object
+        let locationData = machine.location;
+        if (typeof locationData === 'string') {
+          try {
+            locationData = JSON.parse(locationData);
+          } catch (e) {
+            locationData = { city: "", state: "", address: "" };
+          }
+        }
+
+        setFormData({
+          name: machine.name,
+          category: machine.category,
+          brand: machine.brand || "",
+          model: machine.model || "",
+          year: machine.year || new Date().getFullYear(),
+          price_hour: machine.price_hour?.toString() || "",
+          price_day: machine.price_day?.toString() || "",
+          price_hectare: machine.price_hectare?.toString() || "",
+          location: (locationData as { city: string; state: string; address: string }) || { city: "", state: "", address: "" },
+          radius_km: machine.radius_km || 50,
+          specifications: machine.specifications || {}
+        });
+
+        if (machine.images && machine.images.length > 0) {
+          setImagePreviewUrls(machine.images);
+          // Note: We can't set selectedImages (Files) from URLs, 
+          // so we'll need to handle existing images separately or just show previews
+        }
+      }
+    } catch (error: any) {
+      toast({
+        title: "Erro ao carregar máquina",
+        description: error.message,
+        variant: "destructive"
+      });
+      navigate('/minhas-maquinas');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
@@ -246,14 +309,25 @@ export default function AddMachine() {
         status: "available"
       };
 
-      const { data, error } = await supabase
-        .from("machines")
-        .insert([machineData])
-        .select()
-        .single();
+      let machineId;
 
-      if (error) {
-        throw error;
+      if (isEditing) {
+        const { error } = await supabase
+          .from("machines")
+          .update(machineData)
+          .eq('id', id);
+
+        if (error) throw error;
+        machineId = id;
+      } else {
+        const { data, error } = await supabase
+          .from("machines")
+          .insert([machineData])
+          .select()
+          .single();
+
+        if (error) throw error;
+        machineId = data.id;
       }
 
       // Upload das imagens se houver
@@ -262,7 +336,7 @@ export default function AddMachine() {
 
         for (let i = 0; i < selectedImages.length; i++) {
           const file = selectedImages[i];
-          const fileName = `${data.id}/${Date.now()}_${i}.${file.name.split('.').pop()}`;
+          const fileName = `${machineId}/${Date.now()}_${i}.${file.name.split('.').pop()}`;
 
           const { error: uploadError } = await supabase.storage
             .from('machine-images')
@@ -283,7 +357,7 @@ export default function AddMachine() {
           await supabase
             .from('machine_images')
             .insert({
-              machine_id: data.id,
+              machine_id: machineId,
               image_url: publicUrl,
               is_primary: i === 0,
               order_index: i
@@ -291,14 +365,30 @@ export default function AddMachine() {
         }
 
         setUploadingImages(false);
+
+        // Atualizar o array de imagens na tabela machines
+        const imageUrls = [];
+        const { data: imagesData } = await supabase
+          .from('machine_images')
+          .select('image_url')
+          .eq('machine_id', machineId)
+          .order('order_index');
+
+        if (imagesData) {
+          const urls = imagesData.map(img => img.image_url);
+          await supabase
+            .from('machines')
+            .update({ images: urls })
+            .eq('id', machineId);
+        }
       }
 
       toast({
-        title: "Máquina cadastrada!",
-        description: "Sua máquina está disponível para locação",
+        title: isEditing ? "Máquina atualizada!" : "Máquina cadastrada!",
+        description: isEditing ? "As informações foram salvas com sucesso." : "Sua máquina está disponível para locação",
       });
 
-      navigate("/dashboard");
+      navigate("/minhas-maquinas");
     } catch (error: any) {
       let errorMessage = "Erro ao cadastrar máquina. Tente novamente.";
 
@@ -354,10 +444,10 @@ export default function AddMachine() {
 
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-foreground">
-              Cadastrar Nova Máquina
+              {isEditing ? "Editar Máquina" : "Cadastrar Nova Máquina"}
             </h1>
             <p className="text-muted-foreground">
-              Adicione uma máquina ao seu portfólio de equipamentos
+              {isEditing ? "Atualize as informações do seu equipamento" : "Adicione uma máquina ao seu portfólio de equipamentos"}
             </p>
           </div>
 

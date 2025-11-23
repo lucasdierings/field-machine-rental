@@ -15,6 +15,7 @@ interface AboutYouStepProps {
   onUpdate: (updates: Partial<RegisterFormData>) => void;
   onNext: () => void;
   onPrev: () => void;
+  onSkip?: () => void;
 }
 
 const CROPS_OPTIONS = [
@@ -46,7 +47,7 @@ const EXPERIENCE_OPTIONS = [
   { value: 'experienced', label: 'Mais de 5 anos' }
 ];
 
-export const AboutYouStep = ({ formData, errors, onUpdate, onNext, onPrev }: AboutYouStepProps) => {
+export const AboutYouStep = ({ formData, errors, onUpdate, onNext, onPrev, onSkip }: AboutYouStepProps) => {
   const [newCrop, setNewCrop] = useState('');
 
   const addCrop = (crop: string) => {
@@ -276,9 +277,16 @@ export const AboutYouStep = ({ formData, errors, onUpdate, onNext, onPrev }: Abo
             <Button variant="outline" onClick={onPrev}>
               Voltar
             </Button>
-            <Button onClick={onNext} className="bg-gradient-primary">
-              Continuar
-            </Button>
+            <div className="flex gap-2">
+              {onSkip && (
+                <Button variant="ghost" onClick={onSkip}>
+                  Pular por Enquanto
+                </Button>
+              )}
+              <Button onClick={onNext} className="bg-gradient-primary">
+                Continuar
+              </Button>
+            </div>
           </div>
         </CardContent>
       </Card>

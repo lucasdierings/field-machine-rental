@@ -8,13 +8,13 @@
 export const validateCPF = (cpf: string): boolean => {
   // Remove caracteres não numéricos
   const numbers = cpf.replace(/\D/g, '');
-  
+
   // Verifica se tem 11 dígitos
   if (numbers.length !== 11) return false;
-  
+
   // Rejeita CPFs com todos dígitos iguais
   if (/^(\d)\1{10}$/.test(numbers)) return false;
-  
+
   // Calcula primeiro dígito verificador
   let sum = 0;
   for (let i = 0; i < 9; i++) {
@@ -22,7 +22,7 @@ export const validateCPF = (cpf: string): boolean => {
   }
   let digit1 = 11 - (sum % 11);
   if (digit1 >= 10) digit1 = 0;
-  
+
   // Calcula segundo dígito verificador
   sum = 0;
   for (let i = 0; i < 10; i++) {
@@ -30,7 +30,7 @@ export const validateCPF = (cpf: string): boolean => {
   }
   let digit2 = 11 - (sum % 11);
   if (digit2 >= 10) digit2 = 0;
-  
+
   // Verifica se os dígitos calculados conferem
   return (
     parseInt(numbers.charAt(9)) === digit1 &&
@@ -44,13 +44,13 @@ export const validateCPF = (cpf: string): boolean => {
 export const validateCNPJ = (cnpj: string): boolean => {
   // Remove caracteres não numéricos
   const numbers = cnpj.replace(/\D/g, '');
-  
+
   // Verifica se tem 14 dígitos
   if (numbers.length !== 14) return false;
-  
+
   // Rejeita CNPJs com todos dígitos iguais
   if (/^(\d)\1{13}$/.test(numbers)) return false;
-  
+
   // Calcula primeiro dígito verificador
   let sum = 0;
   let weight = 5;
@@ -60,7 +60,7 @@ export const validateCNPJ = (cnpj: string): boolean => {
   }
   let digit1 = 11 - (sum % 11);
   if (digit1 >= 10) digit1 = 0;
-  
+
   // Calcula segundo dígito verificador
   sum = 0;
   weight = 6;
@@ -70,7 +70,7 @@ export const validateCNPJ = (cnpj: string): boolean => {
   }
   let digit2 = 11 - (sum % 11);
   if (digit2 >= 10) digit2 = 0;
-  
+
   // Verifica se os dígitos calculados conferem
   return (
     parseInt(numbers.charAt(12)) === digit1 &&
@@ -83,13 +83,13 @@ export const validateCNPJ = (cnpj: string): boolean => {
 // ============================================
 export const validateCPFCNPJ = (doc: string): boolean => {
   const numbers = doc.replace(/\D/g, '');
-  
+
   if (numbers.length === 11) {
     return validateCPF(doc);
   } else if (numbers.length === 14) {
     return validateCNPJ(doc);
   }
-  
+
   return false;
 };
 
@@ -123,13 +123,13 @@ export const formatCNPJ = (cnpj: string): string => {
 // ============================================
 export const formatPhoneBR = (phone: string): string => {
   const numbers = phone.replace(/\D/g, '');
-  
+
   if (numbers.length === 11) {
     return numbers.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
   } else if (numbers.length === 10) {
     return numbers.replace(/(\d{2})(\d{4})(\d{4})/, '($1) $2-$3');
   }
-  
+
   return phone;
 };
 
@@ -161,42 +161,42 @@ export interface PasswordStrength {
 export const validatePasswordStrength = (password: string): PasswordStrength => {
   const feedback: string[] = [];
   let score = 0;
-  
+
   // Comprimento mínimo
   if (password.length < 8) {
     feedback.push('Mínimo de 8 caracteres');
   } else {
     score++;
   }
-  
+
   // Letra maiúscula
   if (!/[A-Z]/.test(password)) {
     feedback.push('Adicione letra maiúscula');
   } else {
     score++;
   }
-  
+
   // Letra minúscula
   if (!/[a-z]/.test(password)) {
     feedback.push('Adicione letra minúscula');
   } else {
     score++;
   }
-  
+
   // Número
   if (!/\d/.test(password)) {
     feedback.push('Adicione número');
   } else {
     score++;
   }
-  
+
   // Caractere especial
   if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
     feedback.push('Adicione caractere especial');
   } else {
     score++;
   }
-  
+
   return {
     isValid: score >= 5,
     score,
@@ -234,7 +234,7 @@ export const validateReservationDates = (
 ): DateValidation => {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  
+
   // Data de início não pode ser no passado
   if (startDate < today) {
     return {
@@ -242,7 +242,7 @@ export const validateReservationDates = (
       error: 'Data de início não pode ser no passado'
     };
   }
-  
+
   // Data de fim não pode ser antes da data de início
   if (endDate < startDate) {
     return {
@@ -250,7 +250,7 @@ export const validateReservationDates = (
       error: 'Data de término deve ser posterior à data de início'
     };
   }
-  
+
   // Intervalo mínimo de 1 dia
   const daysDiff = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
   if (daysDiff < 1) {
@@ -259,7 +259,7 @@ export const validateReservationDates = (
       error: 'Intervalo mínimo de 1 dia'
     };
   }
-  
+
   // Intervalo máximo de 90 dias
   if (daysDiff > 90) {
     return {
@@ -267,7 +267,7 @@ export const validateReservationDates = (
       error: 'Intervalo máximo de 90 dias'
     };
   }
-  
+
   return { isValid: true };
 };
 
@@ -309,11 +309,11 @@ export const validateMinimumAge = (birthDate: Date): boolean => {
   const today = new Date();
   const age = today.getFullYear() - birthDate.getFullYear();
   const monthDiff = today.getMonth() - birthDate.getMonth();
-  
+
   if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
     return age - 1 >= 18;
   }
-  
+
   return age >= 18;
 };
 
@@ -328,4 +328,93 @@ const SPAM_KEYWORDS = [
 export const containsSpam = (text: string): boolean => {
   const lowerText = text.toLowerCase();
   return SPAM_KEYWORDS.some(keyword => lowerText.includes(keyword));
+};
+
+// ============================================
+// VALIDAÇÃO DE EMAIL VERIFICADO (SUPABASE)
+// ============================================
+import { supabase } from '@/integrations/supabase/client';
+
+/**
+ * Verifica se o usuário atual tem email verificado
+ */
+export const isEmailVerified = async (): Promise<boolean> => {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    return !!user?.email_confirmed_at;
+  } catch (error) {
+    console.error('Erro ao verificar email:', error);
+    return false;
+  }
+};
+
+/**
+ * Verifica se o usuário pode criar bookings (email verificado)
+ */
+export const canCreateBooking = async (): Promise<{
+  allowed: boolean;
+  reason?: string;
+}> => {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+      return {
+        allowed: false,
+        reason: 'Você precisa estar logado para criar uma reserva'
+      };
+    }
+
+    if (!user.email_confirmed_at) {
+      return {
+        allowed: false,
+        reason: 'Você precisa verificar seu email antes de criar uma reserva'
+      };
+    }
+
+    return { allowed: true };
+  } catch (error) {
+    console.error('Erro ao verificar permissões:', error);
+    return {
+      allowed: false,
+      reason: 'Erro ao verificar permissões'
+    };
+  }
+};
+
+/**
+ * Obtém status completo de verificação do usuário
+ */
+export const getVerificationStatus = async (): Promise<{
+  emailVerified: boolean;
+  emailVerifiedAt: string | null;
+  profileCompleted: boolean;
+  profileCompletionStep: number;
+  canCreateBooking: boolean;
+} | null> => {
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+
+    if (!session) {
+      return null;
+    }
+
+    // Busca dados do perfil
+    const { data: profile } = await supabase
+      .from('user_profiles')
+      .select('profile_completed, profile_completion_step, email_verified_at')
+      .eq('auth_user_id', session.user.id)
+      .single();
+
+    return {
+      emailVerified: !!session.user.email_confirmed_at,
+      emailVerifiedAt: session.user.email_confirmed_at || null,
+      profileCompleted: profile?.profile_completed || false,
+      profileCompletionStep: profile?.profile_completion_step || 1,
+      canCreateBooking: !!session.user.email_confirmed_at
+    };
+  } catch (error) {
+    console.error('Erro ao obter status de verificação:', error);
+    return null;
+  }
 };

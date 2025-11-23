@@ -3,12 +3,14 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Users, Tractor, DollarSign, TrendingUp, Activity, BarChart3 } from 'lucide-react';
+import { Users, Tractor, DollarSign, TrendingUp, Activity, BarChart3, FileCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { useUserRole } from '@/hooks/useUserRole';
 import AdminUsersTab from '@/components/admin/AdminUsersTab';
 import AdminAnalyticsTab from '@/components/admin/AdminAnalyticsTab';
+import AdminMachinesTab from '@/components/admin/AdminMachinesTab';
+import { DocumentApproval } from '@/components/admin/DocumentApproval';
 
 interface DashboardStats {
   total_users: number;
@@ -65,9 +67,11 @@ const AdminDashboard = () => {
         .eq('status', 'available');
 
       // 3. Bookings Stats
-      const { data: bookings } = await supabase
+      const { data: bookingsData } = await supabase
         .from('bookings')
         .select('status, total_amount, created_at');
+
+      const bookings = bookingsData as any[] || [];
 
       const totalBookings = bookings?.length || 0;
       const pendingBookings = bookings?.filter(b => b.status === 'pending').length || 0;
@@ -149,7 +153,7 @@ const AdminDashboard = () => {
 
       <main className="container mx-auto px-4 py-8">
         <Tabs defaultValue="dashboard" className="space-y-8">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="dashboard" className="gap-2">
               <BarChart3 className="h-4 w-4" />
               Dashboard
@@ -158,9 +162,17 @@ const AdminDashboard = () => {
               <Users className="h-4 w-4" />
               Usuários
             </TabsTrigger>
+            <TabsTrigger value="machines" className="gap-2">
+              <Tractor className="h-4 w-4" />
+              Máquinas
+            </TabsTrigger>
             <TabsTrigger value="analytics" className="gap-2">
               <TrendingUp className="h-4 w-4" />
               Analytics
+            </TabsTrigger>
+            <TabsTrigger value="documents" className="gap-2">
+              <FileCheck className="h-4 w-4" />
+              Documentos
             </TabsTrigger>
           </TabsList>
 
@@ -338,8 +350,16 @@ const AdminDashboard = () => {
             <AdminUsersTab />
           </TabsContent>
 
+          <TabsContent value="machines">
+            <AdminMachinesTab />
+          </TabsContent>
+
           <TabsContent value="analytics">
             <AdminAnalyticsTab />
+          </TabsContent>
+
+          <TabsContent value="documents">
+            <DocumentApproval />
           </TabsContent>
         </Tabs>
       </main>

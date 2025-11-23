@@ -39,8 +39,8 @@ const Register = () => {
     updateFormData({ userType });
   };
 
-  // 1. Enviar Código de Email (Inicia o SignUp)
-  const handleSendEmailVerification = async () => {
+  // Criar conta com Supabase Auth
+  const handleSignUp = async () => {
     try {
       const { data, error } = await supabase.auth.signUp({
         email: formData.email,
@@ -49,35 +49,27 @@ const Register = () => {
           data: {
             full_name: formData.fullName,
             user_type: formData.userType,
-            // Outros metadados úteis caso o usuário confirme via link depois
             phone: formData.phone,
             cpf_cnpj: formData.cpfCnpj
-          }
+          },
+          emailRedirectTo: `${window.location.origin}/register`
         }
       });
 
       if (error) throw error;
 
-      // Se retornou sessão, o email já foi verificado (ou confirmação está desligada)
-      if (data.session) {
-        updateFormData({ emailVerified: true });
-        toast({
-          title: "Email verificado!",
-          description: "Seu email foi confirmado automaticamente.",
-        });
-        return { autoVerified: true };
-      }
-
+      // Supabase envia email automaticamente
       toast({
-        title: "Código enviado!",
-        description: "Verifique seu email para pegar o código de confirmação.",
+        title: "Conta criada!",
+        description: "Verifique seu email para confirmar sua conta.",
       });
-      return { autoVerified: false };
+
+      return { success: true };
 
     } catch (error: any) {
-      console.error("Erro ao enviar email:", error);
+      console.error("Erro ao criar conta:", error);
       toast({
-        title: "Erro ao enviar código",
+        title: "Erro ao criar conta",
         description: error.message,
         variant: "destructive",
       });
@@ -85,13 +77,13 @@ const Register = () => {
     }
   };
 
-  // 2. Verificar Código de Email
+  // Verificar código OTP de email
   const handleVerifyEmailCode = async (code: string) => {
     try {
       const { data, error } = await supabase.auth.verifyOtp({
         email: formData.email,
         token: code,
-        type: 'signup'
+        type: 'email'
       });
 
       if (error) throw error;
@@ -114,29 +106,25 @@ const Register = () => {
     }
   };
 
-  // 3. Enviar Código SMS (Requer sessão ativa - email verificado)
-  const handleSendPhoneVerification = async () => {
+  // Reenviar email de verificação
+  const handleResendVerification = async () => {
     try {
-      const { data: sessionData } = await supabase.auth.getSession();
-      if (!sessionData.session) {
-        throw new Error("Você precisa verificar o email primeiro.");
-      }
-
-      const { error } = await supabase.auth.updateUser({
-        phone: formData.phone
+      const { error } = await supabase.auth.resend({
+        type: 'signup',
+        email: formData.email
       });
 
       if (error) throw error;
 
       toast({
-        title: "SMS enviado!",
-        description: "Verifique seu celular para pegar o código.",
+        title: "Email reenviado!",
+        description: "Verifique sua caixa de entrada.",
       });
 
     } catch (error: any) {
-      console.error("Erro ao enviar SMS:", error);
+      console.error("Erro ao reenviar email:", error);
       toast({
-        title: "Erro ao enviar SMS",
+        title: "Erro ao reenviar email",
         description: error.message,
         variant: "destructive",
       });
@@ -144,36 +132,7 @@ const Register = () => {
     }
   };
 
-  // 4. Verificar Código SMS
-  const handleVerifyPhoneCode = async (code: string) => {
-    try {
-      const { data, error } = await supabase.auth.verifyOtp({
-        phone: formData.phone,
-        token: code,
-        type: 'phone_change'
-      });
-
-      if (error) throw error;
-
-      if (data.session) {
-        updateFormData({ phoneVerified: true });
-        toast({
-          title: "Celular verificado!",
-          description: "Telefone confirmado com sucesso!",
-        });
-      }
-    } catch (error: any) {
-      console.error("Erro ao verificar SMS:", error);
-      toast({
-        title: "Código inválido",
-        description: "Verifique o código e tente novamente.",
-        variant: "destructive",
-      });
-      throw error;
-    }
-  };
-
-  // 5. Finalizar Cadastro (Salvar Perfil)
+  // Finalizar cadastro (salvar perfil)
   const handleFinalize = async () => {
     setIsSubmitting(true);
 
@@ -184,17 +143,30 @@ const Register = () => {
         throw new Error("Sessão não encontrada. Verifique seu email novamente.");
       }
 
-      const userId = session.user.id;
-
-      // Determine roles based on userType
-      let roles: string[] = [];
-      if (formData.userType === 'both') {
-        roles = ['producer', 'owner'];
-      } else if (formData.userType) {
-        roles = [formData.userType];
+      if (!session.user.email_confirmed_at) {
+        throw new Error("Por favor, verifique seu email antes de continuar.");
       }
 
-      // 1. Upsert em user_profiles
+      const userId = session.user.id;
+
+      // Determina tipos de usuário
+      let userTypes: string[] = [];
+      if (formData.userType === 'both') {
+        userTypes = ['producer', 'owner'];
+      } else if (formData.userType) {
+        userTypes = [formData.userType];
+      }
+
+      // Prepara dados do endereço (apenas se foram preenchidos)
+      const addressData = formData.address ? {
+        address: formData.address,
+        city: formData.city,
+        state: formData.state,
+        cep: formData.cep,
+        reference: formData.reference
+      } : null;
+
+      // Atualiza perfil com dados completos
       const { error: profileError } = await supabase
         .from('user_profiles')
         .upsert({
@@ -202,75 +174,27 @@ const Register = () => {
           full_name: formData.fullName,
           phone: formData.phone,
           cpf_cnpj: formData.cpfCnpj,
-          address: {
-            address: formData.address,
-            city: formData.city,
-            state: formData.state,
-            cep: formData.cep,
-            reference: formData.reference
-          },
-          user_types: roles,
-          verified: formData.documentsUploaded // Se fez upload, marca como pendente de verificação (lógica de backend pode ajustar)
+          address: addressData,
+          user_types: userTypes,
+          user_type: formData.userType === 'both' ? 'producer' : formData.userType,
+          profile_completed: true,
+          profile_completion_step: 5,
+          verified: formData.documentsUploaded
         }, {
           onConflict: 'auth_user_id'
         });
 
       if (profileError) throw new Error("Erro ao salvar perfil: " + profileError.message);
 
-      // 2. Inserir em user_roles
-      // Verifica se já existe role para evitar erro de duplicidade se o usuário clicou várias vezes
-      const { data: existingRoles } = await supabase.from('user_roles').select('*').eq('user_id', userId);
-
-      if (!existingRoles?.length) {
-        const { error: roleError } = await supabase
-          .from('user_roles')
-          .insert({
-            user_id: userId,
-            role: 'user'
-          });
-        if (roleError) throw new Error("Erro ao definir permissões: " + roleError.message);
-      }
-
-      // 3. Inserir em public.users
-      // Verifica se já existe
-      const { data: existingPublicUser } = await supabase.from('users').select('*').eq('id', userId);
-
-      if (!existingPublicUser?.length) {
-        const { error: usersError } = await supabase
-          .from('users')
-          .insert({
-            id: userId, // Importante: ID deve ser igual ao auth_user_id
-            auth_user_id: userId,
-            email: formData.email,
-            full_name: formData.fullName,
-            user_type: formData.userType === 'both' ? 'producer' : formData.userType,
-            phone: formData.phone,
-            cpf_cnpj: formData.cpfCnpj,
-            address: {
-              address: formData.address,
-              city: formData.city,
-              state: formData.state,
-              cep: formData.cep,
-              reference: formData.reference
-            }
-          });
-
-        if (usersError) {
-          console.error("Public user creation error:", usersError);
-          // Não lança erro fatal, pois o principal já foi feito
-        }
-      }
-
       toast({
         title: "Cadastro concluído!",
         description: "Bem-vindo ao FieldMachine.",
       });
 
-      // Redirection Logic
+      // Redireciona baseado no tipo de usuário
       if (formData.userType === 'producer') {
         navigate("/search");
       } else {
-        // Owner or Both
         navigate("/add-machine");
       }
 
@@ -287,14 +211,20 @@ const Register = () => {
   };
 
   const handleBasicDataNext = async () => {
-    // Dispara o envio do email automaticamente ao avançar da etapa de dados básicos
+    // Cria conta com Supabase Auth ao avançar da etapa de dados básicos
     try {
-      await handleSendEmailVerification();
+      await handleSignUp();
       nextStep();
     } catch (error) {
       // Se der erro (ex: email já existe), não avança
-      // O erro já é tratado com toast no handleSendEmailVerification
+      // O erro já é tratado com toast no handleSignUp
     }
+  };
+
+  // Pular etapa (para localização e sobre você)
+  const handleSkipStep = () => {
+    updateFormData({ profile_completion_step: currentStep });
+    nextStep();
   };
 
   const renderCurrentStep = () => {
@@ -325,6 +255,7 @@ const Register = () => {
             onUpdate={updateFormData}
             onNext={nextStep}
             onPrev={prevStep}
+            onSkip={handleSkipStep}
           />
         );
       case 4:
@@ -335,6 +266,7 @@ const Register = () => {
             onUpdate={updateFormData}
             onNext={nextStep}
             onPrev={prevStep}
+            onSkip={handleSkipStep}
           />
         );
       case 5:
@@ -344,7 +276,7 @@ const Register = () => {
             errors={errors}
             onUpdate={updateFormData}
             onVerifyEmail={handleVerifyEmailCode}
-            onVerifyPhone={handleVerifyPhoneCode}
+            onResendEmail={handleResendVerification}
             onFinalize={handleFinalize}
             onPrev={prevStep}
             isSubmitting={isSubmitting}
