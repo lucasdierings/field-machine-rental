@@ -60,7 +60,7 @@ const Machines = () => {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const categoryParam = params.get('categoria');
-    
+
     if (categoryParam) {
       // Converter slug para nome da categoria
       const categoryMap: Record<string, string> = {
@@ -71,7 +71,7 @@ const Machines = () => {
         'implementos': 'Implementos',
         'transporte-de-cargas': 'Transporte de Cargas'
       };
-      
+
       const category = categoryMap[categoryParam];
       if (category) {
         setFilters(prev => ({
@@ -132,7 +132,9 @@ const Machines = () => {
       setMachines(data || []);
       setTotalCount(count || 0);
     } catch (error) {
-      console.error('Error fetching machines:', error);
+      if (import.meta.env.DEV) {
+        console.error('Error fetching machines:', error);
+      }
     } finally {
       setLoading(false);
     }

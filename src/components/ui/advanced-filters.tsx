@@ -7,6 +7,7 @@ import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { Star, Filter, BookmarkPlus, MapPin, Zap, Calendar, Award, Verified } from "lucide-react";
 
 export interface FilterValues {
@@ -53,12 +54,12 @@ const cultureSpecificFilters = {
   }
 };
 
-export const AdvancedFilters = ({ 
-  filters, 
-  onFiltersChange, 
-  onSaveFilters, 
+export const AdvancedFilters = ({
+  filters,
+  onFiltersChange,
+  onSaveFilters,
   isExpanded,
-  onToggle 
+  onToggle
 }: AdvancedFiltersProps) => {
   const [localFilters, setLocalFilters] = useState<FilterValues>(filters);
 
@@ -114,7 +115,7 @@ export const AdvancedFilters = ({
           </div>
         </div>
       </CardHeader>
-      
+
       <CardContent className="space-y-6">
         {/* Faixa de Preço */}
         <div className="space-y-3">
@@ -202,18 +203,38 @@ export const AdvancedFilters = ({
 
           <div className="space-y-3">
             <Label className="text-sm font-medium">Ano do Equipamento</Label>
-            <div className="px-3">
-              <Slider
-                value={localFilters.yearRange}
-                onValueChange={(value) => handleFilterChange('yearRange', value)}
-                max={2024}
-                min={2015}
-                step={1}
-                className="w-full"
-              />
-              <div className="flex justify-between text-sm text-muted-foreground mt-1">
-                <span>{localFilters.yearRange[0]}</span>
-                <span>{localFilters.yearRange[1]}</span>
+            <div className="grid grid-cols-2 gap-4 px-1">
+              <div className="space-y-2">
+                <Label className="text-xs text-muted-foreground">De</Label>
+                <div className="relative">
+                  <Input
+                    type="number"
+                    min={1990}
+                    max={new Date().getFullYear()}
+                    value={localFilters.yearRange[0]}
+                    onChange={(e) => {
+                      const val = parseInt(e.target.value) || 1990;
+                      handleFilterChange('yearRange', [val, localFilters.yearRange[1]]);
+                    }}
+                    className="h-8"
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label className="text-xs text-muted-foreground">Até</Label>
+                <div className="relative">
+                  <Input
+                    type="number"
+                    min={1990}
+                    max={new Date().getFullYear()}
+                    value={localFilters.yearRange[1]}
+                    onChange={(e) => {
+                      const val = parseInt(e.target.value) || new Date().getFullYear();
+                      handleFilterChange('yearRange', [localFilters.yearRange[0], val]);
+                    }}
+                    className="h-8"
+                  />
+                </div>
               </div>
             </div>
           </div>
@@ -227,7 +248,7 @@ export const AdvancedFilters = ({
             <Award className="h-5 w-5 text-primary" />
             Filtros de Confiabilidade
           </Label>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label className="text-sm">Avaliação Mínima</Label>
@@ -264,7 +285,7 @@ export const AdvancedFilters = ({
           </div>
 
           <div className="flex items-center space-x-2">
-            <Checkbox 
+            <Checkbox
               id="verified-only"
               checked={localFilters.verifiedOnly}
               onCheckedChange={(checked) => handleFilterChange('verifiedOnly', checked)}
@@ -284,7 +305,7 @@ export const AdvancedFilters = ({
               <Label className="flex items-center gap-2 text-base font-medium">
                 🌱 Filtros para {localFilters.culture}
               </Label>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-3">
                   <Label className="text-sm">{currentCultureFilters.workWidth.label}</Label>

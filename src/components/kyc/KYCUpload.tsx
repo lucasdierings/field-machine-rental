@@ -4,9 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { 
-  Upload, 
-  FileText, 
+import {
+  Upload,
+  FileText,
   Download,
   Loader2,
   CheckCircle,
@@ -53,11 +53,11 @@ export const KYCUpload = ({ userId, documents, onDocumentsChange }: KYCUploadPro
     const validTypes = [
       'application/pdf',
       'image/jpeg',
-      'image/jpg', 
+      'image/jpg',
       'image/png',
       'image/webp'
     ];
-    
+
     if (!validTypes.includes(file.type)) {
       toast({
         title: "Arquivo inválido",
@@ -103,14 +103,16 @@ export const KYCUpload = ({ userId, documents, onDocumentsChange }: KYCUploadPro
       };
 
       onDocumentsChange([...documents, newDocument]);
-      
+
       toast({
         title: "Documento enviado",
         description: "Seu documento foi enviado para análise",
       });
 
     } catch (error: any) {
-      console.error('Upload error:', error);
+      if (import.meta.env.DEV) {
+        console.error('Upload error:', error);
+      }
       toast({
         title: "Erro no upload",
         description: error.message || "Falha ao enviar documento",
@@ -126,7 +128,7 @@ export const KYCUpload = ({ userId, documents, onDocumentsChange }: KYCUploadPro
 
     try {
       const filePath = `users/${userId}/${document.id}.${document.fileName.split('.').pop()}`;
-      
+
       // Create signed URL for download
       const { data, error } = await supabase.storage
         .from('private-kyc')
@@ -145,7 +147,9 @@ export const KYCUpload = ({ userId, documents, onDocumentsChange }: KYCUploadPro
       window.document.body.removeChild(link);
 
     } catch (error: any) {
-      console.error('Download error:', error);
+      if (import.meta.env.DEV) {
+        console.error('Download error:', error);
+      }
       toast({
         title: "Erro no download",
         description: error.message || "Falha ao baixar documento",
@@ -207,7 +211,7 @@ export const KYCUpload = ({ userId, documents, onDocumentsChange }: KYCUploadPro
             onChange={handleFileInput}
             className="hidden"
           />
-          
+
           {uploading ? (
             <div className="flex flex-col items-center">
               <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -224,9 +228,9 @@ export const KYCUpload = ({ userId, documents, onDocumentsChange }: KYCUploadPro
               <p className="text-xs text-muted-foreground mb-4">
                 PDF, JPG, PNG, WEBP até 10MB
               </p>
-              <Button 
+              <Button
                 type="button"
-                variant="outline" 
+                variant="outline"
                 onClick={() => fileInputRef.current?.click()}
               >
                 Selecionar Arquivo
@@ -264,13 +268,13 @@ export const KYCUpload = ({ userId, documents, onDocumentsChange }: KYCUploadPro
                     </p>
                   </div>
                 </div>
-                
+
                 <div className="flex items-center space-x-2">
                   <Badge variant={getStatusVariant(doc.status)}>
                     {getStatusIcon(doc.status)}
                     <span className="ml-1">{getStatusText(doc.status)}</span>
                   </Badge>
-                  
+
                   <Button
                     variant="ghost"
                     size="sm"

@@ -19,7 +19,7 @@ const Search = () => {
     culture?: string;
     operation?: string;
   }>();
-  
+
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   const [location, setLocation] = useState("");
   const [category, setCategory] = useState("Todas as categorias");
@@ -40,6 +40,28 @@ const Search = () => {
   };
 
   const [filters, setFilters] = useState<FilterValues>(defaultFilters);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const locationParam = params.get('location');
+    const categoryParam = params.get('categoria');
+
+    if (locationParam) {
+      setLocation(locationParam);
+    }
+
+    if (categoryParam) {
+      setCategory(categoryParam);
+    }
+
+    if (locationParam || categoryParam) {
+      setSearchFilters({
+        ...defaultFilters,
+        location: locationParam || "",
+        category: categoryParam || "Todas as categorias",
+      });
+    }
+  }, []);
 
   const handleSearch = () => {
     setSearchFilters({
@@ -76,7 +98,7 @@ const Search = () => {
                     value={location}
                     onChange={(e) => setLocation(e.target.value)}
                   />
-                  
+
                   <Select value={category} onValueChange={setCategory}>
                     <SelectTrigger>
                       <SelectValue />
@@ -124,9 +146,9 @@ const Search = () => {
                     <SearchIcon className="h-4 w-4 mr-2" />
                     Buscar
                   </Button>
-                  
-                  <Button 
-                    variant="outline" 
+
+                  <Button
+                    variant="outline"
                     onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
                   >
                     <Filter className="h-4 w-4 mr-2" />
@@ -140,6 +162,13 @@ const Search = () => {
                   isExpanded={showAdvancedFilters}
                   onToggle={() => setShowAdvancedFilters(!showAdvancedFilters)}
                 />
+
+                <div className="flex justify-end pt-4 border-t">
+                  <Button onClick={handleSearch} size="lg" className="bg-gradient-primary w-full md:w-auto">
+                    <SearchIcon className="h-4 w-4 mr-2" />
+                    Buscar Equipamentos
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           </div>

@@ -24,6 +24,7 @@ export interface Machine {
   verified: boolean;
   workWidth?: number;
   tankCapacity?: number;
+  anonymous?: boolean;
 }
 
 interface MachineCardProps {
@@ -37,17 +38,17 @@ export const MachineCard = ({ machine }: MachineCardProps) => {
   return (
     <Card className="group overflow-hidden hover:shadow-card transition-all duration-300 bg-gradient-card border-0">
       <div className="relative">
-        <img 
+        <img
           src={machine.image}
           alt={machine.name}
           className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
         />
-        <Badge 
+        <Badge
           className="absolute top-3 left-3 bg-primary text-primary-foreground"
         >
           {machine.category}
         </Badge>
-        <Badge 
+        <Badge
           variant="secondary"
           className="absolute top-3 right-3"
         >
@@ -92,7 +93,7 @@ export const MachineCard = ({ machine }: MachineCardProps) => {
                 <span>{machine.servicesCompleted} serviços</span>
               </div>
             </div>
-            
+
             <div className="flex items-center gap-4 text-sm">
               <div className="flex items-center gap-1 text-muted-foreground">
                 <BarChart3 className="h-4 w-4" />
@@ -124,24 +125,27 @@ export const MachineCard = ({ machine }: MachineCardProps) => {
           </div>
 
           {/* Owner (Hidden until hiring) */}
-          <div className="flex items-center gap-2 text-sm">
-            <Settings className="h-4 w-4 text-muted-foreground" />
-            <span className="text-muted-foreground">
-              {machine.verified ? (
-                <>
-                  <Verified className="inline h-4 w-4 text-primary mr-1" />
-                  Prestador verificado
-                </>
-              ) : (
-                "Prestador não verificado"
-              )} • Nome liberado após contratação
-            </span>
-          </div>
+          {/* Owner (Hidden until hiring) */}
+          {!machine.anonymous && (
+            <div className="flex items-center gap-2 text-sm">
+              <Settings className="h-4 w-4 text-muted-foreground" />
+              <span className="text-muted-foreground">
+                {machine.verified ? (
+                  <>
+                    <Verified className="inline h-4 w-4 text-primary mr-1" />
+                    Prestador verificado
+                  </>
+                ) : (
+                  "Prestador não verificado"
+                )} • Nome liberado após contratação
+              </span>
+            </div>
+          )}
 
           {/* Actions */}
           <div className="flex gap-3">
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               size="sm"
               className="flex-1"
               asChild
@@ -150,7 +154,7 @@ export const MachineCard = ({ machine }: MachineCardProps) => {
                 Ver Detalhes
               </Link>
             </Button>
-            <Button 
+            <Button
               size="sm"
               className="flex-1 bg-gradient-primary hover:shadow-hero transition-all duration-300"
               asChild

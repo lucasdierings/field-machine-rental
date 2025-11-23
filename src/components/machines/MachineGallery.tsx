@@ -4,10 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { 
-  Upload, 
-  X, 
-  Star, 
+import {
+  Upload,
+  X,
+  Star,
   Image as ImageIcon,
   Loader2
 } from "lucide-react";
@@ -27,11 +27,11 @@ interface MachineGalleryProps {
   readonly?: boolean;
 }
 
-export const MachineGallery = ({ 
-  machineId, 
-  images, 
-  onImagesChange, 
-  readonly = false 
+export const MachineGallery = ({
+  machineId,
+  images,
+  onImagesChange,
+  readonly = false
 }: MachineGalleryProps) => {
   const [uploading, setUploading] = useState(false);
   const [dragActive, setDragActive] = useState(false);
@@ -52,7 +52,7 @@ export const MachineGallery = ({
     e.preventDefault();
     e.stopPropagation();
     setDragActive(false);
-    
+
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       handleFiles(Array.from(e.dataTransfer.files));
     }
@@ -70,7 +70,7 @@ export const MachineGallery = ({
     // Validate file types
     const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
     const invalidFiles = files.filter(file => !validTypes.includes(file.type));
-    
+
     if (invalidFiles.length > 0) {
       toast({
         title: "Arquivos inválidos",
@@ -123,14 +123,16 @@ export const MachineGallery = ({
       }
 
       onImagesChange([...images, ...newImages]);
-      
+
       toast({
         title: "Upload concluído",
         description: `${files.length} imagem(ns) adicionada(s) com sucesso`,
       });
 
     } catch (error: any) {
-      console.error('Upload error:', error);
+      if (import.meta.env.DEV) {
+        console.error('Upload error:', error);
+      }
       toast({
         title: "Erro no upload",
         description: error.message || "Falha ao enviar imagens",
@@ -150,7 +152,7 @@ export const MachineGallery = ({
     }));
 
     onImagesChange(updatedImages);
-    
+
     toast({
       title: "Capa definida",
       description: "Imagem definida como capa da máquina",
@@ -166,7 +168,7 @@ export const MachineGallery = ({
         // Extract file path from URL
         const url = new URL(imageToDelete.url);
         const filePath = url.pathname.split('/storage/v1/object/public/public-machines/')[1];
-        
+
         if (filePath) {
           await supabase.storage
             .from('public-machines')
@@ -175,21 +177,23 @@ export const MachineGallery = ({
       }
 
       const updatedImages = images.filter(img => img.id !== imageId);
-      
+
       // If deleted image was cover, set first remaining image as cover
       if (imageToDelete?.isCover && updatedImages.length > 0) {
         updatedImages[0].isCover = true;
       }
 
       onImagesChange(updatedImages);
-      
+
       toast({
         title: "Imagem removida",
         description: "Imagem excluída com sucesso",
       });
 
     } catch (error: any) {
-      console.error('Delete error:', error);
+      if (import.meta.env.DEV) {
+        console.error('Delete error:', error);
+      }
       toast({
         title: "Erro ao excluir",
         description: error.message || "Falha ao excluir imagem",
@@ -212,11 +216,10 @@ export const MachineGallery = ({
       {!readonly && (
         <>
           <div
-            className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
-              dragActive 
-                ? 'border-primary bg-primary/10' 
+            className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${dragActive
+                ? 'border-primary bg-primary/10'
                 : 'border-muted-foreground/25 hover:border-primary/50'
-            }`}
+              }`}
             onDragEnter={handleDrag}
             onDragLeave={handleDrag}
             onDragOver={handleDrag}
@@ -230,7 +233,7 @@ export const MachineGallery = ({
               onChange={handleFileInput}
               className="hidden"
             />
-            
+
             {uploading ? (
               <div className="flex flex-col items-center">
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -247,9 +250,9 @@ export const MachineGallery = ({
                 <p className="text-xs text-muted-foreground mb-4">
                   JPG, PNG, WEBP até 5MB cada
                 </p>
-                <Button 
+                <Button
                   type="button"
-                  variant="outline" 
+                  variant="outline"
                   onClick={() => fileInputRef.current?.click()}
                 >
                   Selecionar Arquivos
@@ -264,17 +267,17 @@ export const MachineGallery = ({
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
           {images.map((image) => (
             <Card key={image.id} className="relative overflow-hidden group">
-              <AspectRatio ratio={4/3}>
+              <AspectRatio ratio={4 / 3}>
                 <img
                   src={image.url}
                   alt={image.fileName}
                   className="object-cover w-full h-full"
                 />
               </AspectRatio>
-              
+
               {image.isCover && (
-                <Badge 
-                  className="absolute top-2 left-2" 
+                <Badge
+                  className="absolute top-2 left-2"
                   variant="secondary"
                 >
                   <Star className="w-3 h-3 mr-1" />

@@ -31,7 +31,7 @@ export const useUserRole = () => {
     try {
       setLoading(true);
       const { data: { session } } = await supabase.auth.getSession();
-      
+
       if (!session?.user) {
         setRole(null);
         setUserId(null);
@@ -48,7 +48,9 @@ export const useUserRole = () => {
         .eq('user_id', session.user.id);
 
       if (error) {
-        console.error('Error fetching user role:', error);
+        if (import.meta.env.DEV) {
+          console.error('Error fetching user role:', error);
+        }
         setRole(null);
         return;
       }
@@ -67,7 +69,9 @@ export const useUserRole = () => {
         setRole(null);
       }
     } catch (err) {
-      console.error('Failed to fetch user role:', err);
+      if (import.meta.env.DEV) {
+        console.error('Failed to fetch user role:', err);
+      }
       setRole(null);
     } finally {
       setLoading(false);

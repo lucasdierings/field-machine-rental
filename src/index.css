@@ -8,51 +8,51 @@ All colors MUST be HSL - Green/Black/White theme with dark background
 
 @layer base {
   :root {
-    --background: 0 0% 7%;
-    --foreground: 0 0% 98%;
+    --background: 0 0% 100%;
+    --foreground: 240 10% 3.9%;
 
-    --card: 0 0% 18%;
-    --card-foreground: 0 0% 98%;
+    --card: 0 0% 100%;
+    --card-foreground: 240 10% 3.9%;
 
-    --popover: 0 0% 18%;
-    --popover-foreground: 0 0% 98%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 10% 3.9%;
 
-    /* Vibrant green as primary */
+    /* Vibrant green as primary - kept */
     --primary: 142 76% 45%;
     --primary-foreground: 0 0% 100%;
     --primary-glow: 142 80% 55%;
 
-    /* Dark secondary */
-    --secondary: 0 0% 15%;
-    --secondary-foreground: 0 0% 98%;
+    /* Light secondary */
+    --secondary: 240 4.8% 95.9%;
+    --secondary-foreground: 240 5.9% 10%;
 
-    --muted: 0 0% 15%;
-    --muted-foreground: 0 0% 65%;
+    --muted: 240 4.8% 95.9%;
+    --muted-foreground: 240 3.8% 46.1%;
     
     --success: 142 76% 45%;
     --warning: 38 92% 50%;
 
     /* Accent green */
-    --accent: 142 70% 50%;
-    --accent-foreground: 0 0% 100%;
+    --accent: 240 4.8% 95.9%;
+    --accent-foreground: 240 5.9% 10%;
 
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 100%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
 
-    --border: 0 0% 25%;
-    --input: 0 0% 20%;
+    --border: 240 5.9% 90%;
+    --input: 240 5.9% 90%;
     --ring: 142 76% 45%;
 
-    /* Green/Black gradients */
+    /* Green/Black gradients - Adjusted for light theme */
     --gradient-primary: linear-gradient(135deg, hsl(142 76% 45%), hsl(142 80% 55%));
-    --gradient-hero: linear-gradient(135deg, hsl(0 0% 7%) 0%, hsl(142 76% 45%) 100%);
-    --gradient-card: linear-gradient(145deg, hsl(0 0% 10%) 0%, hsl(0 0% 13%) 100%);
+    --gradient-hero: linear-gradient(135deg, hsl(0 0% 100%) 0%, hsl(142 76% 95%) 100%);
+    --gradient-card: linear-gradient(145deg, hsl(0 0% 100%) 0%, hsl(0 0% 98%) 100%);
     --gradient-accent: linear-gradient(90deg, hsl(142 80% 55%), hsl(142 76% 45%));
 
     /* Enhanced shadows with green glow */
-    --shadow-card: 0 4px 25px -5px hsl(142 76% 45% / 0.2);
-    --shadow-hero: 0 20px 60px -15px hsl(142 76% 45% / 0.4);
-    --shadow-glow: 0 0 40px hsl(142 80% 55% / 0.3);
+    --shadow-card: 0 4px 25px -5px hsl(142 76% 45% / 0.1);
+    --shadow-hero: 0 20px 60px -15px hsl(142 76% 45% / 0.2);
+    --shadow-glow: 0 0 40px hsl(142 80% 55% / 0.2);
 
     /* Transitions */
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);

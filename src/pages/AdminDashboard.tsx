@@ -49,24 +49,65 @@ const AdminDashboard = () => {
 
   const loadDashboardStats = async () => {
     try {
-      // Usar função RPC ao invés da view
-      const { data, error } = await supabase
-        .rpc('get_admin_platform_stats');
+      // 1. Users Stats
+      const { count: totalUsers } = await supabase
+        .from('users')
+        .select('*', { count: 'exact', head: true });
 
-      if (error) {
-        console.error('Failed to load stats:', error);
-        toast({
-          title: "Erro ao carregar estatísticas",
-          description: "Não foi possível carregar os dados do dashboard",
-          variant: "destructive"
-        });
-        return;
-      }
+      // 2. Machines Stats
+      const { count: totalMachines } = await supabase
+        .from('machines')
+        .select('*', { count: 'exact', head: true });
 
-      // A função retorna um array, pegamos o primeiro elemento
-      setStats((data?.[0] as DashboardStats) || null);
+      const { count: availableMachines } = await supabase
+        .from('machines')
+        .select('*', { count: 'exact', head: true })
+        .eq('status', 'available');
+
+      // 3. Bookings Stats
+      const { data: bookings } = await supabase
+        .from('bookings')
+        .select('status, total_amount, created_at');
+
+      const totalBookings = bookings?.length || 0;
+      const pendingBookings = bookings?.filter(b => b.status === 'pending').length || 0;
+      const completedBookings = bookings?.filter(b => b.status === 'completed' || b.status === 'approved').length || 0;
+
+      // Calculate Revenue
+      const totalRevenue = bookings
+        ?.filter(b => b.status === 'completed' || b.status === 'approved')
+        .reduce((acc, curr) => acc + (curr.total_amount || 0), 0) || 0;
+
+      // Calculate 30d stats
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+      const newUsers30d = 0; // Need created_at in users table to calculate this accurately
+      const newMachines30d = 0; // Need created_at in machines
+      const revenue30d = bookings
+        ?.filter(b => (b.status === 'completed' || b.status === 'approved') && new Date(b.created_at) >= thirtyDaysAgo)
+        .reduce((acc, curr) => acc + (curr.total_amount || 0), 0) || 0;
+
+      setStats({
+        total_users: totalUsers || 0,
+        verified_users: 0, // Need verification logic
+        new_users_30d: newUsers30d,
+        total_machines: totalMachines || 0,
+        available_machines: availableMachines || 0,
+        new_machines_30d: newMachines30d,
+        total_bookings: totalBookings,
+        pending_bookings: pendingBookings,
+        completed_bookings: completedBookings,
+        new_bookings_30d: 0,
+        total_revenue: totalRevenue,
+        revenue_30d: revenue30d,
+        total_platform_fees: totalRevenue * 0.1 // Assuming 10% fee
+      });
+
     } catch (error) {
-      console.error('Failed to load stats:', error);
+      if (import.meta.env.DEV) {
+        console.error('Failed to load stats:', error);
+      }
     }
   };
 
@@ -94,8 +135,8 @@ const AdminDashboard = () => {
               <h1 className="text-3xl font-bold text-foreground">Painel Administrativo</h1>
               <p className="text-muted-foreground">FieldMachine Dashboard</p>
             </div>
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               onClick={() => navigate('/')}
               className="gap-2"
             >

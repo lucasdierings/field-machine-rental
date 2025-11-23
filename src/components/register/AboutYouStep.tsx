@@ -18,7 +18,7 @@ interface AboutYouStepProps {
 }
 
 const CROPS_OPTIONS = [
-  'Soja', 'Milho', 'Algodão', 'Cana-de-açúcar', 'Café', 'Arroz', 'Feijão', 
+  'Soja', 'Milho', 'Algodão', 'Cana-de-açúcar', 'Café', 'Arroz', 'Feijão',
   'Trigo', 'Pastagem', 'Eucalipto', 'Amendoim', 'Sorgo', 'Girassol'
 ];
 
@@ -51,246 +51,226 @@ export const AboutYouStep = ({ formData, errors, onUpdate, onNext, onPrev }: Abo
 
   const addCrop = (crop: string) => {
     if (crop && !formData.mainCrops?.includes(crop)) {
-      onUpdate({ 
-        mainCrops: [...(formData.mainCrops || []), crop] 
+      onUpdate({
+        mainCrops: [...(formData.mainCrops || []), crop]
       });
     }
     setNewCrop('');
   };
 
   const removeCrop = (cropToRemove: string) => {
-    onUpdate({ 
+    onUpdate({
       mainCrops: formData.mainCrops?.filter(crop => crop !== cropToRemove) || []
     });
   };
 
-  if (formData.userType === 'producer') {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-4">
-        <Card className="w-full max-w-2xl shadow-card">
-          <CardHeader className="text-center">
-            <CardTitle className="text-3xl">Sobre Sua Produção</CardTitle>
-            <p className="text-muted-foreground">
-              Conte-nos mais sobre sua propriedade
-            </p>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="space-y-4">
-              {/* Tamanho da propriedade */}
-              <div className="space-y-2">
-                <Label htmlFor="propertySize">
-                  Tamanho da Propriedade (hectares) *
-                </Label>
-                <Input
-                  id="propertySize"
-                  type="number"
-                  value={formData.propertySize || ''}
-                  onChange={(e) => onUpdate({ propertySize: Number(e.target.value) })}
-                  placeholder="Ex: 150"
-                  className={errors.propertySize ? 'border-destructive' : ''}
-                />
-                {errors.propertySize && (
-                  <p className="text-sm text-destructive">{errors.propertySize}</p>
-                )}
-              </div>
-
-              {/* Principais culturas */}
-              <div className="space-y-2">
-                <Label>
-                  Principais Culturas *
-                </Label>
-                <Select onValueChange={addCrop}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione as culturas..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {CROPS_OPTIONS.map((crop) => (
-                      <SelectItem key={crop} value={crop}>
-                        {crop}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                
-                {formData.mainCrops && formData.mainCrops.length > 0 && (
-                  <div className="flex flex-wrap gap-2 mt-2">
-                    {formData.mainCrops.map((crop) => (
-                      <Badge key={crop} variant="secondary" className="flex items-center gap-1">
-                        {crop}
-                        <X 
-                          className="w-3 h-3 cursor-pointer" 
-                          onClick={() => removeCrop(crop)}
-                        />
-                      </Badge>
-                    ))}
-                  </div>
-                )}
-                {errors.mainCrops && (
-                  <p className="text-sm text-destructive">{errors.mainCrops}</p>
-                )}
-              </div>
-
-              {/* Frequência de contratação */}
-              <div className="space-y-2">
-                <Label>
-                  Frequência de Contratação Esperada
-                </Label>
-                <Select 
-                  value={formData.rentalFrequency} 
-                  onValueChange={(value) => onUpdate({ rentalFrequency: value })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {FREQUENCY_OPTIONS.map((option) => (
-                      <SelectItem key={option.value} value={option.value}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Como conheceu */}
-              <div className="space-y-2">
-                <Label>
-                  Como conheceu a FieldMachine?
-                </Label>
-                <Select 
-                  value={formData.howFoundUs} 
-                  onValueChange={(value) => onUpdate({ howFoundUs: value })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {HOW_FOUND_OPTIONS.map((option) => (
-                      <SelectItem key={option.value} value={option.value}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div className="flex justify-between pt-6">
-              <Button variant="outline" onClick={onPrev}>
-                Voltar
-              </Button>
-              <Button onClick={onNext} className="bg-gradient-primary">
-                Continuar
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+  const renderProducerFields = () => (
+    <div className="space-y-4">
+      <div className="flex items-center gap-2 mb-4">
+        <div className="h-8 w-1 bg-primary rounded-full"></div>
+        <h3 className="text-xl font-semibold">Dados da Produção</h3>
       </div>
-    );
-  }
 
-  // Proprietário
+      {/* Tamanho da propriedade */}
+      <div className="space-y-2">
+        <Label htmlFor="propertySize">
+          Tamanho da Propriedade (hectares) *
+        </Label>
+        <Input
+          id="propertySize"
+          type="number"
+          value={formData.propertySize || ''}
+          onChange={(e) => onUpdate({ propertySize: Number(e.target.value) })}
+          placeholder="Ex: 150"
+          className={errors.propertySize ? 'border-destructive' : ''}
+        />
+        {errors.propertySize && (
+          <p className="text-sm text-destructive">{errors.propertySize}</p>
+        )}
+      </div>
+
+      {/* Principais culturas */}
+      <div className="space-y-2">
+        <Label>
+          Principais Culturas *
+        </Label>
+        <Select onValueChange={addCrop}>
+          <SelectTrigger>
+            <SelectValue placeholder="Selecione as culturas..." />
+          </SelectTrigger>
+          <SelectContent>
+            {CROPS_OPTIONS.map((crop) => (
+              <SelectItem key={crop} value={crop}>
+                {crop}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        {formData.mainCrops && formData.mainCrops.length > 0 && (
+          <div className="flex flex-wrap gap-2 mt-2">
+            {formData.mainCrops.map((crop) => (
+              <Badge key={crop} variant="secondary" className="flex items-center gap-1">
+                {crop}
+                <X
+                  className="w-3 h-3 cursor-pointer"
+                  onClick={() => removeCrop(crop)}
+                />
+              </Badge>
+            ))}
+          </div>
+        )}
+        {errors.mainCrops && (
+          <p className="text-sm text-destructive">{errors.mainCrops}</p>
+        )}
+      </div>
+
+      {/* Frequência de contratação */}
+      <div className="space-y-2">
+        <Label>
+          Frequência de Contratação Esperada
+        </Label>
+        <Select
+          value={formData.rentalFrequency}
+          onValueChange={(value) => onUpdate({ rentalFrequency: value })}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="Selecione..." />
+          </SelectTrigger>
+          <SelectContent>
+            {FREQUENCY_OPTIONS.map((option) => (
+              <SelectItem key={option.value} value={option.value}>
+                {option.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+    </div>
+  );
+
+  const renderOwnerFields = () => (
+    <div className="space-y-4">
+      <div className="flex items-center gap-2 mb-4">
+        <div className="h-8 w-1 bg-accent rounded-full"></div>
+        <h3 className="text-xl font-semibold">Dados do Prestador</h3>
+      </div>
+
+      {/* Número de máquinas */}
+      <div className="space-y-2">
+        <Label htmlFor="machinesCount">
+          Quantas máquinas você possui? *
+        </Label>
+        <Input
+          id="machinesCount"
+          type="number"
+          value={formData.machinesCount || ''}
+          onChange={(e) => onUpdate({ machinesCount: Number(e.target.value) })}
+          placeholder="Ex: 5"
+          className={errors.machinesCount ? 'border-destructive' : ''}
+        />
+        {errors.machinesCount && (
+          <p className="text-sm text-destructive">{errors.machinesCount}</p>
+        )}
+      </div>
+
+      {/* Experiência */}
+      <div className="space-y-2">
+        <Label>
+          Experiência com Prestação de Serviços
+        </Label>
+        <Select
+          value={formData.rentalExperience}
+          onValueChange={(value) => onUpdate({ rentalExperience: value })}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="Selecione..." />
+          </SelectTrigger>
+          <SelectContent>
+            {EXPERIENCE_OPTIONS.map((option) => (
+              <SelectItem key={option.value} value={option.value}>
+                {option.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* Disponibilidade para entrega */}
+      <div className="flex items-center space-x-2">
+        <Checkbox
+          id="deliveryAvailable"
+          checked={formData.deliveryAvailable}
+          onCheckedChange={(checked) => onUpdate({ deliveryAvailable: !!checked })}
+        />
+        <Label htmlFor="deliveryAvailable">
+          Disponibilidade para entrega nas propriedades
+        </Label>
+      </div>
+
+      {/* Conta bancária */}
+      <div className="space-y-2">
+        <Label htmlFor="bankAccount">
+          Conta Bancária para Recebimentos
+        </Label>
+        <Input
+          id="bankAccount"
+          value={formData.bankAccount || ''}
+          onChange={(e) => onUpdate({ bankAccount: e.target.value })}
+          placeholder="Banco, agência e conta (será validado posteriormente)"
+        />
+        <p className="text-xs text-muted-foreground">
+          Essas informações serão verificadas em nosso processo de validação
+        </p>
+      </div>
+    </div>
+  );
+
+  const renderCommonFields = () => (
+    <div className="space-y-2 pt-4 border-t">
+      <Label>
+        Como conheceu a FieldMachine?
+      </Label>
+      <Select
+        value={formData.howFoundUs}
+        onValueChange={(value) => onUpdate({ howFoundUs: value })}
+      >
+        <SelectTrigger>
+          <SelectValue placeholder="Selecione..." />
+        </SelectTrigger>
+        <SelectContent>
+          {HOW_FOUND_OPTIONS.map((option) => (
+            <SelectItem key={option.value} value={option.value}>
+              {option.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
+  );
+
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
-      <Card className="w-full max-w-2xl shadow-card">
+      <Card className="w-full max-w-2xl shadow-card my-8">
         <CardHeader className="text-center">
-          <CardTitle className="text-3xl">Sobre Suas Máquinas</CardTitle>
+          <CardTitle className="text-3xl">Sobre Você</CardTitle>
           <p className="text-muted-foreground">
-            Conte-nos sobre seu negócio
+            {formData.userType === 'both'
+              ? 'Conte-nos sobre sua produção e seus serviços'
+              : formData.userType === 'producer'
+                ? 'Conte-nos mais sobre sua propriedade'
+                : 'Conte-nos sobre seu negócio'
+            }
           </p>
         </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="space-y-4">
-            {/* Número de máquinas */}
-            <div className="space-y-2">
-              <Label htmlFor="machinesCount">
-                Quantas máquinas você possui? *
-              </Label>
-              <Input
-                id="machinesCount"
-                type="number"
-                value={formData.machinesCount || ''}
-                onChange={(e) => onUpdate({ machinesCount: Number(e.target.value) })}
-                placeholder="Ex: 5"
-                className={errors.machinesCount ? 'border-destructive' : ''}
-              />
-              {errors.machinesCount && (
-                <p className="text-sm text-destructive">{errors.machinesCount}</p>
-              )}
-            </div>
+        <CardContent className="space-y-8">
+          {(formData.userType === 'producer' || formData.userType === 'both') && renderProducerFields()}
 
-            {/* Experiência */}
-            <div className="space-y-2">
-              <Label>
-                Experiência com Prestação de Serviços
-              </Label>
-              <Select 
-                value={formData.rentalExperience} 
-                onValueChange={(value) => onUpdate({ rentalExperience: value })}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {EXPERIENCE_OPTIONS.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+          {formData.userType === 'both' && <div className="border-t border-dashed my-6"></div>}
 
-            {/* Disponibilidade para entrega */}
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="deliveryAvailable"
-                checked={formData.deliveryAvailable}
-                onCheckedChange={(checked) => onUpdate({ deliveryAvailable: !!checked })}
-              />
-              <Label htmlFor="deliveryAvailable">
-                Disponibilidade para entrega nas propriedades
-              </Label>
-            </div>
+          {(formData.userType === 'owner' || formData.userType === 'both') && renderOwnerFields()}
 
-            {/* Conta bancária */}
-            <div className="space-y-2">
-              <Label htmlFor="bankAccount">
-                Conta Bancária para Recebimentos
-              </Label>
-              <Input
-                id="bankAccount"
-                value={formData.bankAccount || ''}
-                onChange={(e) => onUpdate({ bankAccount: e.target.value })}
-                placeholder="Banco, agência e conta (será validado posteriormente)"
-              />
-              <p className="text-xs text-muted-foreground">
-                Essas informações serão verificadas em nosso processo de validação
-              </p>
-            </div>
-
-            {/* Como conheceu */}
-            <div className="space-y-2">
-              <Label>
-                Como conheceu a FieldMachine?
-              </Label>
-              <Select 
-                value={formData.howFoundUs} 
-                onValueChange={(value) => onUpdate({ howFoundUs: value })}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {HOW_FOUND_OPTIONS.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
+          {renderCommonFields()}
 
           <div className="flex justify-between pt-6">
             <Button variant="outline" onClick={onPrev}>

@@ -40,7 +40,7 @@ export default function Dashboard() {
         .select("*")
         .eq("auth_user_id", user.id)
         .single();
-      
+
       setUserProfile(profile);
 
       // Load user machines
@@ -48,7 +48,7 @@ export default function Dashboard() {
         .from("machines")
         .select("*")
         .eq("owner_id", user.id);
-      
+
       setUserMachines(machines || []);
 
       // Load bookings
@@ -61,7 +61,7 @@ export default function Dashboard() {
           owner:user_profiles!bookings_owner_id_fkey(full_name)
         `)
         .or(`renter_id.eq.${user.id},owner_id.eq.${user.id}`);
-      
+
       setBookings(userBookings || []);
 
       // Load alerts
@@ -69,11 +69,13 @@ export default function Dashboard() {
         .from("alerts")
         .select("*")
         .eq("user_id", user.id);
-      
+
       setAlerts(userAlerts || []);
 
     } catch (error) {
-      console.error("Error loading dashboard data:", error);
+      if (import.meta.env.DEV) {
+        console.error("Error loading dashboard data:", error);
+      }
       toast({
         title: "Erro ao carregar dados",
         description: "Tente recarregar a página",
@@ -98,7 +100,7 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      
+
       <main className="pt-16 pb-8">
         <div className="container mx-auto px-4">
           <div className="mb-8">
@@ -180,21 +182,21 @@ export default function Dashboard() {
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-3">
-                    <Button 
+                    <Button
                       onClick={() => navigate("/add-machine")}
                       className="w-full justify-start"
                     >
                       <Plus className="mr-2 h-4 w-4" />
                       Cadastrar Nova Máquina
                     </Button>
-                    <Button 
+                    <Button
                       variant="outline"
                       onClick={() => navigate("/search")}
                       className="w-full justify-start"
                     >
                       Buscar Máquinas
                     </Button>
-                    <Button 
+                    <Button
                       variant="outline"
                       onClick={() => navigate("/alerts")}
                       className="w-full justify-start"
@@ -202,7 +204,7 @@ export default function Dashboard() {
                       <Bell className="mr-2 h-4 w-4" />
                       Configurar Alertas
                     </Button>
-                    <Button 
+                    <Button
                       variant="outline"
                       onClick={() => navigate("/dashboard/documentos")}
                       className="w-full justify-start"
@@ -277,11 +279,10 @@ export default function Dashboard() {
                           </div>
                           <div className="flex justify-between">
                             <span className="text-sm">Status:</span>
-                            <span className={`text-sm font-medium ${
-                              machine.status === 'available' 
-                                ? 'text-green-600' 
+                            <span className={`text-sm font-medium ${machine.status === 'available'
+                                ? 'text-green-600'
                                 : 'text-yellow-600'
-                            }`}>
+                              }`}>
                               {machine.status === 'available' ? 'Disponível' : 'Ocupado'}
                             </span>
                           </div>
@@ -345,7 +346,7 @@ export default function Dashboard() {
                           </div>
                           <div>
                             <p className="text-sm font-medium">
-                              {new Date(booking.start_date).toLocaleDateString()} - 
+                              {new Date(booking.start_date).toLocaleDateString()} -
                               {new Date(booking.end_date).toLocaleDateString()}
                             </p>
                             <p className="text-xs text-muted-foreground">Período</p>
@@ -357,13 +358,12 @@ export default function Dashboard() {
                             <p className="text-xs text-muted-foreground">Valor Total</p>
                           </div>
                           <div>
-                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                              booking.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                              booking.status === 'confirmed' ? 'bg-blue-100 text-blue-800' :
-                              booking.status === 'in_progress' ? 'bg-purple-100 text-purple-800' :
-                              booking.status === 'completed' ? 'bg-green-100 text-green-800' :
-                              'bg-red-100 text-red-800'
-                            }`}>
+                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${booking.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                                booking.status === 'confirmed' ? 'bg-blue-100 text-blue-800' :
+                                  booking.status === 'in_progress' ? 'bg-purple-100 text-purple-800' :
+                                    booking.status === 'completed' ? 'bg-green-100 text-green-800' :
+                                      'bg-red-100 text-red-800'
+                              }`}>
                               {booking.status === 'pending' && 'Pendente'}
                               {booking.status === 'confirmed' && 'Confirmado'}
                               {booking.status === 'in_progress' && 'Em Andamento'}
@@ -450,9 +450,9 @@ export default function Dashboard() {
                     <div>
                       <label className="text-sm font-medium">Tipo de Usuário</label>
                       <p className="text-sm text-muted-foreground">
-                        {userProfile?.user_type === 'producer' ? 'Produtor' : 
-                         userProfile?.user_type === 'owner' ? 'Proprietário' : 
-                         'Não definido'}
+                        {userProfile?.user_type === 'producer' ? 'Produtor' :
+                          userProfile?.user_type === 'owner' ? 'Proprietário' :
+                            'Não definido'}
                       </p>
                     </div>
                   </div>

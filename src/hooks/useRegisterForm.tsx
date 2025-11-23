@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import { z } from 'zod';
 
-export type UserType = 'producer' | 'owner';
+export type UserType = 'producer' | 'owner' | 'both';
 
 export interface RegisterFormData {
   // Step 1: Tipo de usuário
   userType: UserType | null;
-  
+
   // Step 2: Dados básicos
   fullName: string;
   cpfCnpj: string;
@@ -15,7 +15,7 @@ export interface RegisterFormData {
   password: string;
   confirmPassword: string;
   hasWhatsapp: boolean;
-  
+
   // Step 3: Localização
   cep: string;
   address: string;
@@ -23,19 +23,19 @@ export interface RegisterFormData {
   state: string;
   reference: string;
   radius: number;
-  
+
   // Step 4: Sobre você (Produtor)
   propertySize?: number;
   mainCrops?: string[];
   rentalFrequency?: string;
   howFoundUs?: string;
-  
+
   // Step 4: Sobre você (Proprietário)
   machinesCount?: number;
   rentalExperience?: string;
   deliveryAvailable?: boolean;
   bankAccount?: string;
-  
+
   // Step 5: Verificação
   emailVerified: boolean;
   phoneVerified: boolean;
@@ -113,14 +113,19 @@ export const useRegisterForm = () => {
           locationSchema.parse(formData);
           break;
         case 4:
-          if (formData.userType === 'producer') {
+          const isProducer = formData.userType === 'producer' || formData.userType === 'both';
+          const isOwner = formData.userType === 'owner' || formData.userType === 'both';
+
+          if (isProducer) {
             if (!formData.propertySize || formData.propertySize < 1) {
               newErrors.propertySize = 'Tamanho da propriedade é obrigatório';
             }
             if (!formData.mainCrops || formData.mainCrops.length === 0) {
               newErrors.mainCrops = 'Selecione pelo menos uma cultura';
             }
-          } else if (formData.userType === 'owner') {
+          }
+
+          if (isOwner) {
             if (!formData.machinesCount || formData.machinesCount < 1) {
               newErrors.machinesCount = 'Número de máquinas é obrigatório';
             }

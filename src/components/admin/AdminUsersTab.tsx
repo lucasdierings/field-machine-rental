@@ -39,7 +39,7 @@ const AdminUsersTab = () => {
   const loadUsers = async () => {
     try {
       setLoading(true);
-      
+
       let query = supabase
         .from('users')
         .select('*', { count: 'exact' });
@@ -60,7 +60,7 @@ const AdminUsersTab = () => {
       // Pagination
       const from = (currentPage - 1) * usersPerPage;
       const to = from + usersPerPage - 1;
-      
+
       query = query
         .range(from, to)
         .order('created_at', { ascending: false });
@@ -72,7 +72,9 @@ const AdminUsersTab = () => {
       setUsers(data || []);
       setTotalUsers(count || 0);
     } catch (error) {
-      console.error('Failed to load users:', error);
+      if (import.meta.env.DEV) {
+        console.error('Failed to load users:', error);
+      }
       toast({
         title: "Erro",
         description: "Falha ao carregar usuários.",
@@ -99,7 +101,9 @@ const AdminUsersTab = () => {
 
       loadUsers();
     } catch (error) {
-      console.error('Failed to update user:', error);
+      if (import.meta.env.DEV) {
+        console.error('Failed to update user:', error);
+      }
       toast({
         title: "Erro",
         description: "Falha ao atualizar usuário.",
@@ -130,7 +134,9 @@ const AdminUsersTab = () => {
         description: "Usuários exportados com sucesso.",
       });
     } catch (error) {
-      console.error('Failed to export users:', error);
+      if (import.meta.env.DEV) {
+        console.error('Failed to export users:', error);
+      }
       toast({
         title: "Erro",
         description: "Falha ao exportar usuários.",
@@ -182,7 +188,7 @@ const AdminUsersTab = () => {
                 className="pl-9 w-[300px]"
               />
             </div>
-            
+
             <Select value={filterType} onValueChange={setFilterType}>
               <SelectTrigger className="w-[150px]">
                 <Filter className="h-4 w-4" />
@@ -277,8 +283,8 @@ const AdminUsersTab = () => {
                         <Button variant="ghost" size="sm">
                           <Eye className="h-4 w-4" />
                         </Button>
-                        <Button 
-                          variant="ghost" 
+                        <Button
+                          variant="ghost"
                           size="sm"
                           onClick={() => toggleUserVerification(user.id, user.verified)}
                         >

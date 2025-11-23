@@ -14,7 +14,7 @@ import { Loader2, Upload, X, Image as ImageIcon } from "lucide-react";
 
 const categories = [
   "Tratores",
-  "Colheitadeiras", 
+  "Colheitadeiras",
   "Pulverizadores",
   "Plantadeiras",
   "Implementos",
@@ -23,7 +23,7 @@ const categories = [
 
 const brands = [
   "John Deere",
-  "New Holland", 
+  "New Holland",
   "Case IH",
   "Massey Ferguson",
   "Valtra",
@@ -61,7 +61,7 @@ export default function AddMachine() {
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
-    
+
     if (selectedImages.length + files.length > 3) {
       toast({
         title: "Limite de imagens",
@@ -75,7 +75,7 @@ export default function AddMachine() {
     const validFiles = files.filter(file => {
       const isImage = file.type.startsWith('image/');
       const isValidSize = file.size <= 5 * 1024 * 1024; // 5MB
-      
+
       if (!isImage) {
         toast({
           title: "Arquivo inválido",
@@ -90,13 +90,13 @@ export default function AddMachine() {
           variant: "destructive"
         });
       }
-      
+
       return isImage && isValidSize;
     });
 
     if (validFiles.length > 0) {
       setSelectedImages(prev => [...prev, ...validFiles]);
-      
+
       // Criar previews
       validFiles.forEach(file => {
         const reader = new FileReader();
@@ -115,7 +115,7 @@ export default function AddMachine() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // Validação de campos obrigatórios
     if (!formData.name || !formData.category || !formData.brand) {
       toast({
@@ -149,7 +149,7 @@ export default function AddMachine() {
 
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      
+
       if (!user) {
         toast({
           title: "Erro de autenticação",
@@ -173,8 +173,8 @@ export default function AddMachine() {
           description: "Complete seu cadastro antes de cadastrar máquinas.",
           variant: "destructive",
           action: (
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               size="sm"
               onClick={() => navigate("/dashboard/perfil")}
             >
@@ -185,6 +185,51 @@ export default function AddMachine() {
         return;
       }
 
+      // Buscar ou criar o registro do usuário na tabela public.users
+      let { data: publicUser, error: userError } = await supabase
+        .from("users")
+        .select("id, email, full_name")
+        .eq("auth_user_id", user.id)
+        .maybeSingle();
+
+      // Se o usuário não existe em public.users, criar o registro
+      if (!publicUser) {
+        const { data: newUser, error: insertError } = await supabase
+          .from("users")
+          .insert({
+            id: user.id,
+            auth_user_id: user.id,
+            email: user.email || '',
+            full_name: user.user_metadata?.full_name || user.email || 'Usuário',
+            user_type: user.user_metadata?.user_type || 'owner'
+          })
+          .select("id, email, full_name")
+          .single();
+
+        if (insertError) {
+          console.error("Erro ao criar usuário público:", insertError);
+          toast({
+            title: "Erro de cadastro",
+            description: "Não foi possível criar seu cadastro de usuário. Entre em contato com o suporte.",
+            variant: "destructive"
+          });
+          return;
+        }
+
+        publicUser = newUser;
+      }
+
+      if (!publicUser) {
+        toast({
+          title: "Erro de cadastro",
+          description: "Não foi possível identificar seu cadastro de usuário. Entre em contato com o suporte.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      const ownerId = publicUser.id;
+
       const machineData = {
         name: formData.name,
         category: formData.category,
@@ -194,7 +239,7 @@ export default function AddMachine() {
         location: formData.location,
         radius_km: formData.radius_km,
         specifications: formData.specifications,
-        owner_id: user.id,
+        owner_id: ownerId,
         price_hour: formData.price_hour ? parseFloat(formData.price_hour) : null,
         price_day: formData.price_day ? parseFloat(formData.price_day) : null,
         price_hectare: formData.price_hectare ? parseFloat(formData.price_hectare) : null,
@@ -214,17 +259,19 @@ export default function AddMachine() {
       // Upload das imagens se houver
       if (selectedImages.length > 0) {
         setUploadingImages(true);
-        
+
         for (let i = 0; i < selectedImages.length; i++) {
           const file = selectedImages[i];
           const fileName = `${data.id}/${Date.now()}_${i}.${file.name.split('.').pop()}`;
-          
+
           const { error: uploadError } = await supabase.storage
             .from('machine-images')
             .upload(fileName, file);
 
           if (uploadError) {
-            console.error('Erro no upload:', uploadError);
+            if (import.meta.env.DEV) {
+              console.error('Erro no upload:', uploadError);
+            }
             continue;
           }
 
@@ -242,7 +289,7 @@ export default function AddMachine() {
               order_index: i
             });
         }
-        
+
         setUploadingImages(false);
       }
 
@@ -254,11 +301,11 @@ export default function AddMachine() {
       navigate("/dashboard");
     } catch (error: any) {
       let errorMessage = "Erro ao cadastrar máquina. Tente novamente.";
-      
+
       if (error.code === "23505") {
         errorMessage = "Já existe uma máquina cadastrada com esses dados.";
       }
-      
+
       toast({
         title: "Erro no cadastro",
         description: errorMessage,
@@ -287,7 +334,7 @@ export default function AddMachine() {
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      
+
       <main className="pt-16 pb-8">
         <div className="container mx-auto px-4 max-w-2xl">
           {/* Alerta informativo sobre requisitos */}

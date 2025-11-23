@@ -26,7 +26,7 @@ const Documents = () => {
   const loadDocuments = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      
+
       if (!user) {
         navigate("/login");
         return;
@@ -129,16 +129,12 @@ const Documents = () => {
 
       if (uploadError) throw uploadError;
 
-      // Obter URL pública
-      const { data: { publicUrl } } = supabase.storage
-        .from('user-documents')
-        .getPublicUrl(fileName);
-
-      // Inserir registro na tabela
+      // Inserir registro na tabela user_documents
+      // Usar diretamente o user.id do auth (não precisa buscar em public.users)
       const { error: dbError } = await supabase
         .from('user_documents')
         .insert({
-          user_id: user.id,
+          user_id: user.id,  // ID do auth.users
           document_type: selectedDocType,
           document_url: fileName
         });

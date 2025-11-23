@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import { 
+import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -63,7 +63,9 @@ const DocumentApprovalComponent = () => {
 
       setDocuments(data || []);
     } catch (error) {
-      console.error('Erro ao carregar documentos:', error);
+      if (import.meta.env.DEV) {
+        console.error('Erro ao carregar documentos:', error);
+      }
       toast({
         title: "Erro ao carregar documentos",
         description: "Não foi possível carregar os documentos pendentes",
@@ -77,7 +79,7 @@ const DocumentApprovalComponent = () => {
   const handleApprove = async (documentId: string) => {
     try {
       setProcessingId(documentId);
-      
+
       const { error } = await supabase.rpc('admin_approve_document', {
         document_id: documentId
       });
@@ -92,7 +94,9 @@ const DocumentApprovalComponent = () => {
       // Recarregar a lista
       await loadPendingDocuments();
     } catch (error) {
-      console.error('Erro ao aprovar documento:', error);
+      if (import.meta.env.DEV) {
+        console.error('Erro ao aprovar documento:', error);
+      }
       toast({
         title: "Erro ao aprovar",
         description: "Não foi possível aprovar o documento",
@@ -121,7 +125,7 @@ const DocumentApprovalComponent = () => {
 
     try {
       setProcessingId(selectedDocument.id);
-      
+
       const { error } = await supabase.rpc('admin_reject_document', {
         document_id: selectedDocument.id,
         reason: rejectionReason.trim()
@@ -141,7 +145,9 @@ const DocumentApprovalComponent = () => {
       // Recarregar a lista
       await loadPendingDocuments();
     } catch (error) {
-      console.error('Erro ao rejeitar documento:', error);
+      if (import.meta.env.DEV) {
+        console.error('Erro ao rejeitar documento:', error);
+      }
       toast({
         title: "Erro ao rejeitar",
         description: "Não foi possível rejeitar o documento",

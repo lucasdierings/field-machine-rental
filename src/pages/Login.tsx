@@ -20,11 +20,19 @@ export default function Login() {
     password: "",
     rememberMe: false
   });
-  
+
   const { toast } = useToast();
   const navigate = useNavigate();
   const location = useLocation();
   const from = location.state?.from?.pathname || "/";
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        navigate("/dashboard", { replace: true });
+      }
+    });
+  }, [navigate]);
 
   const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -55,17 +63,31 @@ export default function Login() {
           title: "Login realizado!",
           description: "Bem-vindo de volta ao FieldMachine",
         });
-        
-        // Verificar se o usuário é admin
+
+        // Verificar roles do usuário
         const { data: userRoles } = await supabase
           .from('user_roles')
           .select('role')
           .eq('user_id', data.user.id);
 
-        const isAdmin = userRoles?.some(r => r.role === 'admin');
-        
-        // Redirecionar para página apropriada
-        navigate(isAdmin ? "/admin-dashboard" : "/dashboard", { replace: true });
+        const roles = userRoles?.map(r => r.role) || [];
+        const isAdmin = roles.includes('admin');
+        const isOwner = roles.includes('owner'); // Prestador de serviço
+        const isRenter = roles.includes('renter'); // Produtor
+
+        // Lógica de redirecionamento
+        if (isAdmin) {
+          navigate("/admin", { replace: true });
+        } else if (isOwner) {
+          // Se for prestador (ou ambos), vai para o dashboard
+          navigate("/dashboard", { replace: true });
+        } else if (isRenter) {
+          // Se for apenas produtor, vai para a busca
+          navigate("/buscar", { replace: true });
+        } else {
+          // Fallback
+          navigate("/dashboard", { replace: true });
+        }
       }
     } catch (error: any) {
       toast({
@@ -110,7 +132,7 @@ export default function Login() {
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
-      
+
       <main className="flex-1 flex items-center justify-center px-4 py-12">
         <Card className="w-full max-w-md">
           <CardHeader className="space-y-1">
@@ -121,7 +143,7 @@ export default function Login() {
               Acesse o FieldMachine para continuar
             </CardDescription>
           </CardHeader>
-          
+
           <CardContent className="space-y-6">
             <form onSubmit={handleEmailLogin} className="space-y-4">
               <div className="space-y-2">
@@ -135,7 +157,7 @@ export default function Login() {
                   required
                 />
               </div>
-              
+
               <div className="space-y-2">
                 <Label htmlFor="password">Senha</Label>
                 <div className="relative">
@@ -174,18 +196,18 @@ export default function Login() {
                     Lembrar de mim
                   </Label>
                 </div>
-                
-                <Link 
-                  to="/recuperar-senha" 
+
+                <Link
+                  to="/recuperar-senha"
                   className="text-sm text-primary hover:underline"
                 >
                   Esqueceu a senha?
                 </Link>
               </div>
 
-              <Button 
-                type="submit" 
-                className="w-full" 
+              <Button
+                type="submit"
+                className="w-full"
                 disabled={loading}
               >
                 {loading ? (
@@ -247,7 +269,7 @@ export default function Login() {
           </CardContent>
         </Card>
       </main>
-      
+
       <Footer />
     </div>
   );

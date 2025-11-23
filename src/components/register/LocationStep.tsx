@@ -34,7 +34,7 @@ export const LocationStep = ({ formData, errors, onUpdate, onNext, onPrev }: Loc
       try {
         const response = await fetch(`https://viacep.com.br/ws/${numbers}/json/`);
         const data = await response.json();
-        
+
         if (!data.erro) {
           onUpdate({
             address: data.logradouro,
@@ -43,7 +43,9 @@ export const LocationStep = ({ formData, errors, onUpdate, onNext, onPrev }: Loc
           });
         }
       } catch (error) {
-        console.error('Erro ao buscar CEP:', error);
+        if (import.meta.env.DEV) {
+          console.error('Erro ao buscar CEP:', error);
+        }
       } finally {
         setIsLoadingCep(false);
       }

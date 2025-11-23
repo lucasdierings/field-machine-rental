@@ -33,6 +33,13 @@ const AdminAnalyticsTab = () => {
   const [loading, setLoading] = useState(true);
   const [timeRange, setTimeRange] = useState('7d');
 
+  const [metrics, setMetrics] = useState({
+    uniqueVisitors: 0,
+    totalPageViews: 0,
+    totalSearches: 0,
+    totalEvents: 0
+  });
+
   useEffect(() => {
     loadAnalyticsData();
   }, [timeRange]);
@@ -40,28 +47,45 @@ const AdminAnalyticsTab = () => {
   const loadAnalyticsData = async () => {
     try {
       setLoading(true);
-      
+
       // Calculate date range
       const now = new Date();
       const daysAgo = timeRange === '7d' ? 7 : timeRange === '30d' ? 30 : 1;
       const startDate = new Date(now);
       startDate.setDate(startDate.getDate() - daysAgo);
 
-      // Get recent analytics events
-      const { data: recentEvents, error: eventsError } = await supabase
+      // Get all analytics events for the period (not just recent 50 for metrics)
+      const { data: allEvents, error: eventsError } = await supabase
         .from('analytics')
         .select('*')
         .gte('created_at', startDate.toISOString())
-        .order('created_at', { ascending: false })
-        .limit(50);
+        .order('created_at', { ascending: false });
 
       if (eventsError) throw eventsError;
 
-      setAnalyticsData(recentEvents || []);
+      const events = allEvents || [];
+      setAnalyticsData(events.slice(0, 50)); // Show only recent 50 in table
+
+      // Calculate Metrics
+      const uniqueIPs = new Set(events.map(e => e.ip_address).filter(Boolean));
+      const uniqueUsers = new Set(events.map(e => e.user_id).filter(Boolean)); // If user_id exists
+      // Combine or just use IPs for now as proxy for visitors if user_id is null
+      const uniqueVisitors = uniqueIPs.size;
+
+      const totalPageViews = events.filter(e => e.event_type === 'page_view').length;
+      const totalSearches = events.filter(e => e.event_type === 'search_performed').length;
+      const totalEvents = events.length;
+
+      setMetrics({
+        uniqueVisitors,
+        totalPageViews,
+        totalSearches,
+        totalEvents
+      });
 
       // Get page views summary
       const pageViewsMap = new Map<string, number>();
-      recentEvents?.forEach(event => {
+      events.forEach(event => {
         if (event.page_url) {
           const current = pageViewsMap.get(event.page_url) || 0;
           pageViewsMap.set(event.page_url, current + 1);
@@ -77,7 +101,7 @@ const AdminAnalyticsTab = () => {
 
       // Get event summary
       const eventMap = new Map<string, number>();
-      recentEvents?.forEach(event => {
+      events.forEach(event => {
         const current = eventMap.get(event.event_type) || 0;
         eventMap.set(event.event_type, current + 1);
       });
@@ -89,48 +113,12 @@ const AdminAnalyticsTab = () => {
       setEventSummary(eventSummaryData);
 
     } catch (error) {
-      console.error('Failed to load analytics:', error);
+      if (import.meta.env.DEV) {
+        console.error('Failed to load analytics:', error);
+      }
     } finally {
       setLoading(false);
     }
-  };
-
-  const formatDate = (date: string) => {
-    return new Date(date).toLocaleString('pt-BR');
-  };
-
-  const getEventIcon = (eventType: string) => {
-    switch (eventType) {
-      case 'page_view':
-        return <Eye className="h-4 w-4" />;
-      case 'search_performed':
-        return <Activity className="h-4 w-4" />;
-      case 'button_click':
-        return <Mouse className="h-4 w-4" />;
-      default:
-        return <Activity className="h-4 w-4" />;
-    }
-  };
-
-  const getEventBadgeColor = (eventType: string) => {
-    switch (eventType) {
-      case 'page_view':
-        return 'default';
-      case 'search_performed':
-        return 'secondary';
-      case 'button_click':
-        return 'outline';
-      default:
-        return 'outline';
-    }
-  };
-
-  // Mock metrics (would need actual calculation from real data)
-  const metrics = {
-    uniqueVisitors: 1247,
-    totalPageViews: 3891,
-    bounceRate: 42.3,
-    avgSessionTime: '3m 24s',
   };
 
   return (
@@ -180,26 +168,26 @@ const AdminAnalyticsTab = () => {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Taxa de Rejeição</CardTitle>
+            <CardTitle className="text-sm font-medium">Buscas Realizadas</CardTitle>
             <Activity className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{metrics.bounceRate}%</div>
+            <div className="text-2xl font-bold">{metrics.totalSearches}</div>
             <p className="text-xs text-muted-foreground">
-              Visitantes com 1 página
+              Buscas por máquinas
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Tempo Médio</CardTitle>
+            <CardTitle className="text-sm font-medium">Eventos Totais</CardTitle>
             <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{metrics.avgSessionTime}</div>
+            <div className="text-2xl font-bold">{metrics.totalEvents}</div>
             <p className="text-xs text-muted-foreground">
-              Duração da sessão
+              Interações registradas
             </p>
           </CardContent>
         </Card>
@@ -310,8 +298,8 @@ const AdminAnalyticsTab = () => {
                   analyticsData.map((event) => (
                     <TableRow key={event.id}>
                       <TableCell>
-                        <Badge 
-                          variant={getEventBadgeColor(event.event_type) as any} 
+                        <Badge
+                          variant={getEventBadgeColor(event.event_type) as any}
                           className="gap-1"
                         >
                           {getEventIcon(event.event_type)}

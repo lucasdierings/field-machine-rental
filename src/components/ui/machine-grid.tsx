@@ -3,136 +3,6 @@ import { useState, useEffect } from "react";
 import { type FilterValues } from "@/components/ui/advanced-filters";
 import { supabase } from "@/integrations/supabase/client";
 
-// Mock data - em uma aplicação real viria de uma API
-const mockMachines: Machine[] = [
-  {
-    id: "1",
-    name: "Trator New Holland T7.260",
-    brand: "New Holland",
-    year: 2022,
-    power: "260 CV",
-    category: "Tratores",
-    location: "Sorriso, MT",
-    rating: 4.8,
-    reviews: 24,
-    rate: 850,
-    image: "https://images.unsplash.com/photo-1625246333195-78d9c38ad449?w=400&h=300&fit=crop",
-    availability: "Disponível",
-    owner: "Fazenda Santa Rita",
-    servicesCompleted: 127,
-    chargeType: "hora",
-    comments: ["Excelente máquina, sempre pontual nos serviços", "Muito profissional"],
-    verified: true,
-    workWidth: 12,
-    tankCapacity: 3000
-  },
-  {
-    id: "2", 
-    name: "Pulverizador Jacto Uniport 3030",
-    brand: "Jacto",
-    year: 2021,
-    power: "380 CV",
-    category: "Pulverizadores",
-    location: "Primavera do Leste, MT",
-    rating: 4.9,
-    reviews: 31,
-    rate: 180,
-    image: "https://images.unsplash.com/photo-1574263867128-a3d5c1b1debc?w=400&h=300&fit=crop",
-    availability: "Disponível",
-    owner: "AgroTech Equipamentos",
-    servicesCompleted: 89,
-    chargeType: "hectare",
-    comments: ["Aplicação perfeita, recomendo", "Equipamento top de linha"],
-    verified: true,
-    workWidth: 18,
-    tankCapacity: 3500
-  },
-  {
-    id: "3",
-    name: "Colheitadeira Case IH 9240",
-    brand: "Case IH", 
-    year: 2023,
-    power: "435 CV",
-    category: "Colheitadeiras",
-    location: "Rio Verde, GO",
-    rating: 4.7,
-    reviews: 18,
-    rate: 320,
-    image: "https://images.unsplash.com/photo-1581578949510-fa7315c4c350?w=400&h=300&fit=crop",
-    availability: "Disponível",
-    owner: "Grupo Agro Cerrado",
-    servicesCompleted: 45,
-    chargeType: "hectare",
-    comments: ["Colheita rápida e eficiente"],
-    verified: true,
-    workWidth: 9,
-    tankCapacity: 8000
-  },
-  {
-    id: "4",
-    name: "Caminhão Scania R 450",
-    brand: "Scania",
-    year: 2020,
-    power: "450 CV",
-    category: "Caminhões",
-    location: "Cuiabá, MT",
-    rating: 4.6,
-    reviews: 42,
-    rate: 750,
-    image: "https://images.unsplash.com/photo-1605548146838-9f863b57b5ad?w=400&h=300&fit=crop",
-    availability: "Ocupado até 15/12",
-    owner: "Transportes Agro Sul",
-    servicesCompleted: 203,
-    chargeType: "hora",
-    comments: ["Motorista experiente, entrega no prazo", "Caminhão em excelente estado"],
-    verified: false,
-    workWidth: 0,
-    tankCapacity: 0
-  },
-  {
-    id: "5",
-    name: "Trator John Deere 6155R",
-    brand: "John Deere",
-    year: 2021,
-    power: "155 CV",
-    category: "Tratores", 
-    location: "Campo Grande, MS",
-    rating: 4.8,
-    reviews: 27,
-    rate: 620,
-    image: "https://images.unsplash.com/photo-1625246333195-78d9c38ad449?w=400&h=300&fit=crop",
-    availability: "Disponível",
-    owner: "Fazenda Boa Vista",
-    servicesCompleted: 156,
-    chargeType: "hora",
-    comments: ["Serviço de qualidade, pontual"],
-    verified: true,
-    workWidth: 8,
-    tankCapacity: 2500
-  },
-  {
-    id: "6",
-    name: "Pulverizador Montana Parruda 3027",
-    brand: "Montana",
-    year: 2022,
-    power: "350 CV",
-    category: "Pulverizadores",
-    location: "Sapezal, MT",
-    rating: 4.9,
-    reviews: 15,
-    rate: 165,
-    image: "https://images.unsplash.com/photo-1574263867128-a3d5c1b1debc?w=400&h=300&fit=crop",
-    availability: "Disponível", 
-    owner: "Soja Tech Ltda",
-    servicesCompleted: 73,
-    chargeType: "hectare",
-    comments: ["Aplicação uniforme, resultado excelente"],
-    verified: true,
-    workWidth: 24,
-    tankCapacity: 4000
-  }
-];
-
 interface MachineGridProps {
   searchFilters?: FilterValues & {
     location?: string;
@@ -159,7 +29,7 @@ export const MachineGrid = ({ searchFilters }: MachineGridProps) => {
       // Extrair categoria da URL
       const params = new URLSearchParams(window.location.search);
       const categoryParam = params.get('categoria');
-      
+
       let query = supabase
         .from("machines")
         .select("*")
@@ -175,7 +45,7 @@ export const MachineGrid = ({ searchFilters }: MachineGridProps) => {
           'implementos': 'Implementos',
           'transporte-de-cargas': 'Transporte de Cargas'
         };
-        
+
         const category = categoryMap[categoryParam];
         if (category) {
           query = query.eq('category', category);
@@ -185,9 +55,11 @@ export const MachineGrid = ({ searchFilters }: MachineGridProps) => {
       const { data: machines, error } = await query;
 
       if (error) {
-        console.error("Error loading machines:", error);
-        setAllMachines(mockMachines.filter(m => m.availability === "Disponível"));
-        setFilteredMachines(mockMachines.filter(m => m.availability === "Disponível"));
+        if (import.meta.env.DEV) {
+          console.error("Error loading machines:", error);
+        }
+        setAllMachines([]);
+        setFilteredMachines([]);
       } else {
         // Transform database machines to match interface
         const transformedMachines = machines.map(machine => ({
@@ -197,8 +69,8 @@ export const MachineGrid = ({ searchFilters }: MachineGridProps) => {
           year: machine.year || new Date().getFullYear(),
           power: "N/A",
           category: machine.category,
-          location: typeof machine.location === 'object' && machine.location !== null && 'city' in machine.location 
-            ? `${machine.location.city}, ${machine.location.state}` 
+          location: typeof machine.location === 'object' && machine.location !== null && 'city' in machine.location
+            ? `${machine.location.city}, ${machine.location.state}`
             : "Localização não informada",
           rating: 0,
           reviews: 0,
@@ -211,15 +83,18 @@ export const MachineGrid = ({ searchFilters }: MachineGridProps) => {
           comments: [],
           verified: false,
           workWidth: 0,
-          tankCapacity: 0
+          tankCapacity: 0,
+          anonymous: true
         }));
         setAllMachines(transformedMachines);
         setFilteredMachines(transformedMachines);
       }
     } catch (error) {
-      console.error("Error loading machines:", error);
-      setAllMachines(mockMachines.filter(m => m.availability === "Disponível"));
-      setFilteredMachines(mockMachines.filter(m => m.availability === "Disponível"));
+      if (import.meta.env.DEV) {
+        console.error("Error loading machines:", error);
+      }
+      setAllMachines([]);
+      setFilteredMachines([]);
     } finally {
       setLoading(false);
     }
@@ -337,13 +212,13 @@ export const MachineGrid = ({ searchFilters }: MachineGridProps) => {
           </div>
         )}
 
-        {filteredMachines.length === 0 && (
+        {!loading && filteredMachines.length === 0 && (
           <div className="text-center py-12">
             <div className="text-muted-foreground text-lg mb-2">
-              Nenhuma máquina encontrada
+              Não há máquinas disponíveis no momento
             </div>
             <p className="text-sm text-muted-foreground">
-              Tente ajustar seus filtros para encontrar mais opções
+              Tente ajustar seus filtros ou volte mais tarde
             </p>
           </div>
         )}
