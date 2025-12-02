@@ -104,10 +104,15 @@ export default function AddMachine() {
           specifications: machine.specifications || {}
         });
 
-        if (machine.images && machine.images.length > 0) {
-          setImagePreviewUrls(machine.images);
-          // Note: We can't set selectedImages (Files) from URLs, 
-          // so we'll need to handle existing images separately or just show previews
+        // Load images from machine_images table
+        const { data: machineImages } = await supabase
+          .from('machine_images')
+          .select('image_url')
+          .eq('machine_id', id)
+          .order('order_index');
+
+        if (machineImages && machineImages.length > 0) {
+          setImagePreviewUrls(machineImages.map(img => img.image_url));
         }
       }
     } catch (error: any) {
@@ -332,11 +337,9 @@ export default function AddMachine() {
           .order('order_index');
 
         if (imagesData) {
-          const urls = imagesData.map(img => img.image_url);
-          await supabase
-            .from('machines')
-            .update({ images: urls })
-            .eq('id', machineId);
+          // Images are stored in machine_images table, not in machines.images
+          // Just log success - the images are already associated via machine_id
+          console.log(`${imagesData.length} images associated with machine ${machineId}`);
         }
       }
 

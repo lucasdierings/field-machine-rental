@@ -83,7 +83,7 @@ const Register = () => {
       const { data, error } = await supabase.auth.verifyOtp({
         email: formData.email,
         token: code,
-        type: 'email'
+        type: 'signup' // Tipo correto para verificação de cadastro
       });
 
       if (error) throw error;
@@ -96,7 +96,6 @@ const Register = () => {
         });
       }
     } catch (error: any) {
-      console.error("Erro ao verificar email:", error);
       toast({
         title: "Código inválido",
         description: "Verifique o código e tente novamente.",

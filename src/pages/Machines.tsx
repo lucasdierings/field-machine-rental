@@ -32,6 +32,31 @@ export interface MachineData {
   created_at?: string;
 }
 
+export interface SearchFilters {
+  location?: string;
+  category?: string;
+  categories?: string[];
+  culture?: string;
+  operation?: string;
+  priceMin?: number;
+  priceMax?: number;
+  priceRange?: [number, number];
+  priceType?: string;
+  minYear?: number;
+  maxYear?: number;
+  yearRange?: [number, number];
+  withOperator?: boolean;
+  dateFrom?: Date;
+  dateTo?: Date;
+  distance?: number;
+  deliveryAvailable?: boolean;
+  powerRange?: string;
+  availability?: { immediate?: boolean };
+  rating?: number;
+  verifiedOnly?: boolean;
+  withInsurance?: boolean;
+}
+
 const Machines = () => {
   const navigate = useNavigate();
   const [machines, setMachines] = useState<DemoMachine[]>([]);

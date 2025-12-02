@@ -4,7 +4,51 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Activity, Eye, Mouse, Users, Clock } from 'lucide-react';
+import { Activity, Eye, Mouse, Users, Clock, Search, FileText, LogIn, UserPlus } from 'lucide-react';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
+
+// Helper functions
+const getEventIcon = (eventType: string) => {
+  switch (eventType) {
+    case 'page_view':
+      return <Eye className="h-4 w-4" />;
+    case 'search_performed':
+      return <Search className="h-4 w-4" />;
+    case 'machine_view':
+      return <FileText className="h-4 w-4" />;
+    case 'login':
+      return <LogIn className="h-4 w-4" />;
+    case 'signup':
+      return <UserPlus className="h-4 w-4" />;
+    default:
+      return <Activity className="h-4 w-4" />;
+  }
+};
+
+const getEventBadgeColor = (eventType: string): string => {
+  switch (eventType) {
+    case 'page_view':
+      return 'secondary';
+    case 'search_performed':
+      return 'default';
+    case 'machine_view':
+      return 'outline';
+    case 'login':
+    case 'signup':
+      return 'default';
+    default:
+      return 'secondary';
+  }
+};
+
+const formatDate = (dateString: string) => {
+  try {
+    return format(new Date(dateString), "dd/MM/yyyy HH:mm", { locale: ptBR });
+  } catch {
+    return dateString;
+  }
+};
 
 interface AnalyticsData {
   id: string;

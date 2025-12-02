@@ -157,6 +157,24 @@ export type Database = {
           },
         ]
       }
+      app_settings: {
+        Row: {
+          description: string | null
+          key: string
+          value: string
+        }
+        Insert: {
+          description?: string | null
+          key: string
+          value: string
+        }
+        Update: {
+          description?: string | null
+          key?: string
+          value?: string
+        }
+        Relationships: []
+      }
       blog_posts: {
         Row: {
           author_id: string | null
@@ -226,6 +244,9 @@ export type Database = {
           created_at: string | null
           delivery_address: Json | null
           delivery_cost: number | null
+          delivery_cost_tmp: number | null
+          delivery_fee: number | null
+          delivery_fee_tmp: number | null
           end_date: string
           id: string
           insurance_cost: number | null
@@ -233,16 +254,24 @@ export type Database = {
           negotiation_history: Json | null
           notes: string | null
           operator_cost: number | null
+          operator_cost_tmp: number | null
           operator_included: boolean | null
           owner_id: string | null
+          payment_id: string | null
+          payment_provider: string | null
           payment_status: string | null
+          payment_url: string | null
           platform_fee: number | null
+          platform_fee_tmp: number | null
           price_type: string | null
           quantity: number | null
           renter_id: string | null
           start_date: string
           status: string | null
+          total_amount: number | null
+          total_amount_tmp: number | null
           total_price: number | null
+          total_price_tmp: number | null
           updated_at: string | null
         }
         Insert: {
@@ -251,6 +280,9 @@ export type Database = {
           created_at?: string | null
           delivery_address?: Json | null
           delivery_cost?: number | null
+          delivery_cost_tmp?: number | null
+          delivery_fee?: number | null
+          delivery_fee_tmp?: number | null
           end_date: string
           id?: string
           insurance_cost?: number | null
@@ -258,16 +290,24 @@ export type Database = {
           negotiation_history?: Json | null
           notes?: string | null
           operator_cost?: number | null
+          operator_cost_tmp?: number | null
           operator_included?: boolean | null
           owner_id?: string | null
+          payment_id?: string | null
+          payment_provider?: string | null
           payment_status?: string | null
+          payment_url?: string | null
           platform_fee?: number | null
+          platform_fee_tmp?: number | null
           price_type?: string | null
           quantity?: number | null
           renter_id?: string | null
           start_date: string
           status?: string | null
+          total_amount?: number | null
+          total_amount_tmp?: number | null
           total_price?: number | null
+          total_price_tmp?: number | null
           updated_at?: string | null
         }
         Update: {
@@ -276,6 +316,9 @@ export type Database = {
           created_at?: string | null
           delivery_address?: Json | null
           delivery_cost?: number | null
+          delivery_cost_tmp?: number | null
+          delivery_fee?: number | null
+          delivery_fee_tmp?: number | null
           end_date?: string
           id?: string
           insurance_cost?: number | null
@@ -283,16 +326,24 @@ export type Database = {
           negotiation_history?: Json | null
           notes?: string | null
           operator_cost?: number | null
+          operator_cost_tmp?: number | null
           operator_included?: boolean | null
           owner_id?: string | null
+          payment_id?: string | null
+          payment_provider?: string | null
           payment_status?: string | null
+          payment_url?: string | null
           platform_fee?: number | null
+          platform_fee_tmp?: number | null
           price_type?: string | null
           quantity?: number | null
           renter_id?: string | null
           start_date?: string
           status?: string | null
+          total_amount?: number | null
+          total_amount_tmp?: number | null
           total_price?: number | null
+          total_price_tmp?: number | null
           updated_at?: string | null
         }
         Relationships: [
@@ -412,7 +463,6 @@ export type Database = {
           description: string | null
           has_munck: boolean | null
           id: string
-          images: string[] | null
           insurance_status: boolean | null
           load_capacity_kg: number | null
           location: Json | null
@@ -421,12 +471,18 @@ export type Database = {
           model: string | null
           name: string
           operator_cost_per_day: number | null
+          operator_cost_per_day_tmp: number | null
           owner_id: string | null
           price_day: number | null
+          price_day_tmp: number | null
           price_hectare: number | null
+          price_hectare_tmp: number | null
           price_hour: number | null
+          price_hour_tmp: number | null
           price_per_km: number | null
+          price_per_km_tmp: number | null
           price_per_ton: number | null
+          price_per_ton_tmp: number | null
           radius_km: number | null
           requires_operator: boolean | null
           specifications: Json | null
@@ -444,7 +500,6 @@ export type Database = {
           description?: string | null
           has_munck?: boolean | null
           id?: string
-          images?: string[] | null
           insurance_status?: boolean | null
           load_capacity_kg?: number | null
           location?: Json | null
@@ -453,12 +508,18 @@ export type Database = {
           model?: string | null
           name: string
           operator_cost_per_day?: number | null
+          operator_cost_per_day_tmp?: number | null
           owner_id?: string | null
           price_day?: number | null
+          price_day_tmp?: number | null
           price_hectare?: number | null
+          price_hectare_tmp?: number | null
           price_hour?: number | null
+          price_hour_tmp?: number | null
           price_per_km?: number | null
+          price_per_km_tmp?: number | null
           price_per_ton?: number | null
+          price_per_ton_tmp?: number | null
           radius_km?: number | null
           requires_operator?: boolean | null
           specifications?: Json | null
@@ -476,7 +537,6 @@ export type Database = {
           description?: string | null
           has_munck?: boolean | null
           id?: string
-          images?: string[] | null
           insurance_status?: boolean | null
           load_capacity_kg?: number | null
           location?: Json | null
@@ -485,12 +545,18 @@ export type Database = {
           model?: string | null
           name?: string
           operator_cost_per_day?: number | null
+          operator_cost_per_day_tmp?: number | null
           owner_id?: string | null
           price_day?: number | null
+          price_day_tmp?: number | null
           price_hectare?: number | null
+          price_hectare_tmp?: number | null
           price_hour?: number | null
+          price_hour_tmp?: number | null
           price_per_km?: number | null
+          price_per_km_tmp?: number | null
           price_per_ton?: number | null
+          price_per_ton_tmp?: number | null
           radius_km?: number | null
           requires_operator?: boolean | null
           specifications?: Json | null
@@ -647,6 +713,53 @@ export type Database = {
           },
         ]
       }
+      transactions: {
+        Row: {
+          amount: number
+          booking_id: string | null
+          created_at: string | null
+          id: string
+          metadata: Json | null
+          provider: string
+          provider_transaction_id: string | null
+          status: string
+          type: string
+          updated_at: string | null
+        }
+        Insert: {
+          amount: number
+          booking_id?: string | null
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+          provider: string
+          provider_transaction_id?: string | null
+          status: string
+          type: string
+          updated_at?: string | null
+        }
+        Update: {
+          amount?: number
+          booking_id?: string | null
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+          provider?: string
+          provider_transaction_id?: string | null
+          status?: string
+          type?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transactions_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_documents: {
         Row: {
           created_at: string | null
@@ -684,7 +797,15 @@ export type Database = {
           verified_at?: string | null
           verified_by?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "fk_user_documents_user"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_profiles: {
         Row: {
@@ -692,6 +813,7 @@ export type Database = {
           auth_user_id: string
           cpf_cnpj: string | null
           created_at: string
+          email: string | null
           full_name: string | null
           id: string
           phone: string | null
@@ -709,6 +831,7 @@ export type Database = {
           auth_user_id: string
           cpf_cnpj?: string | null
           created_at?: string
+          email?: string | null
           full_name?: string | null
           id?: string
           phone?: string | null
@@ -726,6 +849,7 @@ export type Database = {
           auth_user_id?: string
           cpf_cnpj?: string | null
           created_at?: string
+          email?: string | null
           full_name?: string | null
           id?: string
           phone?: string | null
@@ -764,7 +888,8 @@ export type Database = {
       users: {
         Row: {
           address: Json | null
-          auth_user_id: string | null
+          auth_user_id: string
+          avatar_url: string | null
           cpf_cnpj: string | null
           created_at: string | null
           email: string
@@ -780,7 +905,8 @@ export type Database = {
         }
         Insert: {
           address?: Json | null
-          auth_user_id?: string | null
+          auth_user_id: string
+          avatar_url?: string | null
           cpf_cnpj?: string | null
           created_at?: string | null
           email: string
@@ -796,7 +922,8 @@ export type Database = {
         }
         Update: {
           address?: Json | null
-          auth_user_id?: string | null
+          auth_user_id?: string
+          avatar_url?: string | null
           cpf_cnpj?: string | null
           created_at?: string | null
           email?: string
@@ -989,6 +1116,7 @@ export type Database = {
           verified: boolean
         }[]
       }
+      get_platform_fee_percentage: { Args: never; Returns: number }
       get_public_profile: {
         Args: { profile_user_id: string }
         Returns: {
@@ -1003,6 +1131,9 @@ export type Database = {
           verified: boolean
         }[]
       }
+      is_admin: { Args: never; Returns: boolean }
+      is_booking_owner: { Args: { b_id: string }; Returns: boolean }
+      is_valid_cpf: { Args: { "": string }; Returns: boolean }
       validate_cnpj: { Args: { cnpj: string }; Returns: boolean }
       validate_cpf: { Args: { cpf: string }; Returns: boolean }
       validate_cpf_cnpj: { Args: { doc: string }; Returns: boolean }
