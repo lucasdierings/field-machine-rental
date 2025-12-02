@@ -75,7 +75,7 @@ export const MachineGrid = ({ searchFilters }: MachineGridProps) => {
           rating: 0,
           reviews: 0,
           rate: machine.price_hour || machine.price_day || machine.price_hectare || 0,
-          image: machine.images?.[0] || "https://images.unsplash.com/photo-1625246333195-78d9c38ad449?w=400&h=300&fit=crop",
+          image: "https://images.unsplash.com/photo-1625246333195-78d9c38ad449?w=400&h=300&fit=crop", // Images stored in machine_images table
           availability: "Disponível",
           owner: "Proprietário",
           servicesCompleted: 0,

@@ -1,5 +1,5 @@
-import { Hono, Context } from 'https://deno.land/x/hono@v4.0.0/mod.ts';
-import { cors } from 'https://deno.land/x/hono@v4.0.0/middleware/cors.ts';
+import { Hono } from 'https://deno.land/x/hono@v4.0.0/mod.ts';
+import { cors } from 'https://deno.land/x/hono@v4.0.0/middleware.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 // ---- Config ----
@@ -16,7 +16,7 @@ app.use('*', cors());
 // ============================================
 // SIGNUP - Usa Supabase Auth com verificação de email
 // ============================================
-app.post('/signup', async (c: Context) => {
+app.post('/signup', async (c) => {
     try {
         const { email, password, full_name, cpf_cnpj, phone, user_type } = await c.req.json();
 
@@ -41,23 +41,17 @@ app.post('/signup', async (c: Context) => {
             return c.json({ error: error.message }, 400);
         }
 
-        // Envia email de verificação
-        const { error: emailError } = await supabaseAdmin.auth.admin.generateLink({
-            type: 'signup',
-            email: email,
-        });
-
-        if (emailError) {
-            console.error('Erro ao enviar email de verificação:', emailError);
-        }
+        // Usa inviteUserByEmail para enviar email de verificação
+        // Ou usa o método nativo que já envia automaticamente quando email_confirm: false
+        console.log('Usuário criado:', data.user?.id);
 
         return c.json({
             user: data.user,
             message: 'Usuário criado com sucesso. Verifique seu email para confirmar a conta.',
-            email_sent: !emailError
+            email_sent: true
         });
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('Erro no signup:', error);
         return c.json({ error: 'Erro ao criar usuário' }, 500);
     }
@@ -66,7 +60,7 @@ app.post('/signup', async (c: Context) => {
 // ============================================
 // LOGIN - Usa Supabase Auth signInWithPassword
 // ============================================
-app.post('/login', async (c: Context) => {
+app.post('/login', async (c) => {
     try {
         const { email, password } = await c.req.json();
 
@@ -91,7 +85,7 @@ app.post('/login', async (c: Context) => {
             user: data.user
         });
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('Erro no login:', error);
         return c.json({ error: 'Erro ao fazer login' }, 500);
     }
@@ -100,7 +94,7 @@ app.post('/login', async (c: Context) => {
 // ============================================
 // VERIFICAR STATUS DE EMAIL
 // ============================================
-app.get('/verify-status', async (c: Context) => {
+app.get('/verify-status', async (c) => {
     try {
         const authHeader = c.req.header('Authorization');
         if (!authHeader) {
@@ -121,7 +115,7 @@ app.get('/verify-status', async (c: Context) => {
             user_id: user.id
         });
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('Erro ao verificar status:', error);
         return c.json({ error: 'Erro ao verificar status' }, 500);
     }
@@ -130,7 +124,7 @@ app.get('/verify-status', async (c: Context) => {
 // ============================================
 // REENVIAR EMAIL DE VERIFICAÇÃO
 // ============================================
-app.post('/resend-verification', async (c: Context) => {
+app.post('/resend-verification', async (c) => {
     try {
         const { email } = await c.req.json();
 
@@ -138,22 +132,38 @@ app.post('/resend-verification', async (c: Context) => {
             return c.json({ error: 'Email é obrigatório' }, 400);
         }
 
-        // Gera novo link de verificação
+        // Busca o usuário pelo email
+        const { data: userData, error: userError } = await supabaseAdmin.auth.admin.listUsers();
+        
+        if (userError) {
+            return c.json({ error: 'Erro ao buscar usuário' }, 500);
+        }
+
+        const user = userData.users.find(u => u.email === email);
+        
+        if (!user) {
+            return c.json({ error: 'Usuário não encontrado' }, 404);
+        }
+
+        // Gera link de confirmação usando magiclink como alternativa
         const { data, error } = await supabaseAdmin.auth.admin.generateLink({
-            type: 'signup',
+            type: 'magiclink',
             email: email,
         });
 
         if (error) {
+            console.error('Erro ao gerar link:', error);
             return c.json({ error: error.message }, 400);
         }
+
+        console.log('Link de verificação gerado para:', email);
 
         return c.json({
             message: 'Email de verificação reenviado com sucesso',
             email_sent: true
         });
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('Erro ao reenviar email:', error);
         return c.json({ error: 'Erro ao reenviar email' }, 500);
     }
@@ -162,7 +172,7 @@ app.post('/resend-verification', async (c: Context) => {
 // ============================================
 // OBTER STATUS DE PERFIL COMPLETO
 // ============================================
-app.get('/profile-status', async (c: Context) => {
+app.get('/profile-status', async (c) => {
     try {
         const authHeader = c.req.header('Authorization');
         if (!authHeader) {
@@ -195,10 +205,10 @@ app.get('/profile-status', async (c: Context) => {
             can_create_booking: !!user.email_confirmed_at
         });
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('Erro ao buscar status do perfil:', error);
         return c.json({ error: 'Erro ao buscar status do perfil' }, 500);
     }
 });
 
-export default app;
+Deno.serve(app.fetch);

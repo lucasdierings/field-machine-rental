@@ -29,7 +29,7 @@ interface Machine {
     price_hour: number | null;
     price_hectare: number | null;
     location: any;
-    images: string[];
+    images?: string[];
 }
 
 const MyMachines = () => {
