@@ -973,16 +973,16 @@ export type Database = {
       }
       check_machine_availability:
         | {
+            Args: { end_dt: string; machine_uuid: string; start_dt: string }
+            Returns: boolean
+          }
+        | {
             Args: {
               p_booking_id?: string
               p_end_date: string
               p_machine_id: string
               p_start_date: string
             }
-            Returns: boolean
-          }
-        | {
-            Args: { end_dt: string; machine_uuid: string; start_dt: string }
             Returns: boolean
           }
       create_notification: {
