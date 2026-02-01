@@ -9,7 +9,7 @@ import { EnhancedFooter } from "@/components/ui/enhanced-footer";
 
 const Index = () => {
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background pb-16 md:pb-0">
       <Header />
       <main>
         <EnhancedHero />

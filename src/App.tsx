@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
 import { RoleProtectedRoute } from "./components/auth/RoleProtectedRoute";
+import { BottomNavigation } from "./components/ui/bottom-navigation";
 import Index from "./pages/Index";
 import Search from "./pages/Search";
 import Machines from "./pages/Machines";
@@ -115,6 +116,7 @@ const App = () => (
           <Route path="/test-connection" element={<SupabaseConnectionTest />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
+        <BottomNavigation />
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>

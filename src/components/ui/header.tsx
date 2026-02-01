@@ -1,16 +1,20 @@
 import { Button } from "@/components/ui/button";
-import { Menu, User, Heart, Bell } from "lucide-react";
+import { Heart, Bell } from "lucide-react";
 import { Link } from "react-router-dom";
 import { AuthButton } from "../auth/AuthButton";
+import { MobileMenu } from "./mobile-menu";
 
 export const Header = () => {
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border">
       <div className="container mx-auto px-4">
-        <div className="flex items-center justify-between h-16">
+        <div className="flex items-center justify-between h-14 md:h-16">
+          {/* Mobile Menu */}
+          <MobileMenu />
+
           {/* Logo */}
-          <div className="flex items-center space-x-4">
-            <Link to="/" className="font-bold text-2xl">
+          <div className="flex items-center">
+            <Link to="/" className="font-bold text-xl md:text-2xl">
               Field<span className="text-primary">Machine</span>
             </Link>
           </div>
@@ -32,7 +36,7 @@ export const Header = () => {
           </nav>
 
           {/* User Actions */}
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-2 md:space-x-3">
             <Button variant="ghost" size="sm" className="hidden md:flex" asChild>
               <Link to="/favoritos">
                 <Heart className="h-4 w-4 mr-2" />
@@ -48,11 +52,6 @@ export const Header = () => {
             </Button>
 
             <AuthButton />
-
-            {/* Mobile Menu */}
-            <Button variant="ghost" size="sm" className="md:hidden">
-              <Menu className="h-5 w-5" />
-            </Button>
           </div>
         </div>
       </div>

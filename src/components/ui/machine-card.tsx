@@ -32,8 +32,8 @@ interface MachineCardProps {
 }
 
 export const MachineCard = ({ machine }: MachineCardProps) => {
-  const platformFee = machine.rate * 0.02;
-  const totalPrice = machine.rate + platformFee;
+  // Sem taxa de plataforma por enquanto
+  const totalPrice = machine.rate;
 
   return (
     <Card className="group overflow-hidden hover:shadow-card transition-all duration-300 bg-gradient-card border-0">
@@ -108,20 +108,15 @@ export const MachineCard = ({ machine }: MachineCardProps) => {
             )}
           </div>
 
-          {/* Pricing */}
+          {/* Pricing - Operador incluso */}
           <div className="space-y-2 p-3 bg-muted/30 rounded-lg">
-            <div className="flex justify-between text-sm">
+            <div className="flex justify-between font-bold text-lg">
               <span>Valor por {machine.chargeType}:</span>
-              <span>R$ {machine.rate.toLocaleString('pt-BR')}</span>
-            </div>
-            <div className="flex justify-between text-sm text-muted-foreground">
-              <span>Taxa da plataforma (2%):</span>
-              <span>R$ {platformFee.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
-            </div>
-            <div className="flex justify-between font-bold text-lg border-t pt-2">
-              <span>Total por {machine.chargeType}:</span>
               <span className="text-primary">R$ {totalPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
             </div>
+            <p className="text-xs text-muted-foreground text-center">
+              Operador incluso no valor
+            </p>
           </div>
 
           {/* Owner (Hidden until hiring) */}
