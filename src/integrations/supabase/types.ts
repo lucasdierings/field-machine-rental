@@ -652,6 +652,56 @@ export type Database = {
         }
         Relationships: []
       }
+      provider_availability: {
+        Row: {
+          booking_id: string | null
+          city: string
+          created_at: string | null
+          date: string
+          end_time: string
+          id: string
+          is_available: boolean | null
+          provider_id: string
+          start_time: string
+          state: string
+          updated_at: string | null
+        }
+        Insert: {
+          booking_id?: string | null
+          city: string
+          created_at?: string | null
+          date: string
+          end_time: string
+          id?: string
+          is_available?: boolean | null
+          provider_id: string
+          start_time: string
+          state?: string
+          updated_at?: string | null
+        }
+        Update: {
+          booking_id?: string | null
+          city?: string
+          created_at?: string | null
+          date?: string
+          end_time?: string
+          id?: string
+          is_available?: boolean | null
+          provider_id?: string
+          start_time?: string
+          state?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "provider_availability_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       reviews: {
         Row: {
           booking_id: string | null
