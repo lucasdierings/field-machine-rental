@@ -1,73 +1,43 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
-import { MercadoPagoConfig, Payment } from 'https://esm.sh/mercadopago@2.0.8'
 
+/**
+ * Webhook handler para eventos da plataforma.
+ * Com o modelo peer-to-peer, este handler processa eventos de
+ * confirmação de serviço e avaliações, não mais pagamentos.
+ */
 serve(async (req: Request) => {
     try {
         const url = new URL(req.url)
-        const topic = url.searchParams.get('topic') || url.searchParams.get('type')
-        const id = url.searchParams.get('id') || url.searchParams.get('data.id')
+        const eventType = url.searchParams.get('type')
 
-        if (topic !== 'payment') {
-            return new Response('OK', { status: 200 })
-        }
-
-        if (!id) {
-            return new Response('Missing ID', { status: 400 })
-        }
-
-        // 1. Initialize Clients
         const supabase = createClient(
             Deno.env.get('SUPABASE_URL') ?? '',
             Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
         )
 
-        const client = new MercadoPagoConfig({
-            accessToken: Deno.env.get('MP_ACCESS_TOKEN') ?? ''
-        });
+        // Handle service completion notifications
+        if (eventType === 'service_completed') {
+            const { bookingId } = await req.json()
 
-        const payment = new Payment(client);
+            if (!bookingId) {
+                return new Response('Missing booking ID', { status: 400 })
+            }
 
-        // 2. Get Payment Details
-        const paymentData = await payment.get({ id });
-
-        const bookingId = paymentData.external_reference;
-        const status = paymentData.status;
-        const amount = paymentData.transaction_amount;
-
-        if (!bookingId) {
-            throw new Error('No booking ID in external_reference');
-        }
-
-        // 3. Record Transaction
-        await supabase.from('transactions').insert({
-            booking_id: bookingId,
-            amount: amount,
-            provider: 'mercadopago',
-            provider_transaction_id: String(id),
-            status: status,
-            type: 'payment',
-            metadata: paymentData
-        });
-
-        // 4. Update Booking Status if Approved
-        if (status === 'approved') {
+            // Update booking status to completed
             await supabase
                 .from('bookings')
                 .update({
-                    payment_status: 'paid',
-                    status: 'confirmed' // Auto-confirm booking upon payment
+                    status: 'completed'
                 })
-                .eq('id', bookingId);
-        } else if (status === 'rejected' || status === 'cancelled') {
-            await supabase
-                .from('bookings')
-                .update({
-                    payment_status: 'failed'
-                })
-                .eq('id', bookingId);
+                .eq('id', bookingId)
+
+            // TODO: Send notification to both parties to leave reviews
+
+            return new Response('OK', { status: 200 })
         }
 
+        // Default response for unknown event types
         return new Response('OK', { status: 200 })
 
     } catch (error: any) {

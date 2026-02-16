@@ -4,12 +4,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { Header } from "@/components/ui/header";
 import { Footer } from "@/components/ui/footer";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, MapPin, Star, Calendar, Ruler, Fuel, Settings, User, CheckCircle2, Share2, Heart } from "lucide-react";
+import { Loader2, MapPin, Star, Calendar, Ruler, Fuel, Settings, User, CheckCircle2, Share2, Heart, Handshake, MessageCircle } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { ReviewCard } from "@/components/ui/review-card";
 
 interface Machine {
     id: string;
@@ -32,19 +33,38 @@ interface Machine {
     };
 }
 
+interface Review {
+    id: string;
+    rating: number;
+    service_rating: number | null;
+    operator_rating: number | null;
+    machine_rating: number | null;
+    client_rating: number | null;
+    comment: string | null;
+    observations: string | null;
+    review_type: string;
+    created_at: string;
+    reviewer?: {
+        full_name: string;
+    };
+}
+
 const MachineDetails = () => {
     const { id } = useParams();
     const navigate = useNavigate();
     const { toast } = useToast();
     const [machine, setMachine] = useState<Machine | null>(null);
+    const [reviews, setReviews] = useState<Review[]>([]);
     const [loading, setLoading] = useState(true);
     const [selectedImage, setSelectedImage] = useState(0);
     const [startDate, setStartDate] = useState<string>("");
     const [quantity, setQuantity] = useState<number>(1);
     const [bookingLoading, setBookingLoading] = useState(false);
+    const [notes, setNotes] = useState("");
 
     useEffect(() => {
         loadMachine();
+        loadReviews();
     }, [id]);
 
     const loadMachine = async () => {
@@ -70,7 +90,7 @@ const MachineDetails = () => {
                 if (profile) {
                     ownerData = {
                         full_name: profile.full_name,
-                        avatar_url: "" // user_profiles doesn't have avatar_url yet
+                        avatar_url: ""
                     };
                 }
             }
@@ -92,6 +112,32 @@ const MachineDetails = () => {
         }
     };
 
+    const loadReviews = async () => {
+        try {
+            if (!id) return;
+
+            // Load reviews for bookings related to this machine
+            const { data: reviewsData } = await supabase
+                .from('reviews')
+                .select(`
+                    *,
+                    booking:bookings!reviews_booking_id_fkey(machine_id)
+                `)
+                .order('created_at', { ascending: false })
+                .limit(10);
+
+            if (reviewsData) {
+                // Filter reviews for this machine's bookings
+                const machineReviews = reviewsData.filter(
+                    (r: any) => r.booking?.machine_id === id
+                );
+                setReviews(machineReviews as any[]);
+            }
+        } catch (error) {
+            console.error("Erro ao carregar avaliações:", error);
+        }
+    };
+
     if (loading) {
         return (
             <div className="min-h-screen flex items-center justify-center">
@@ -102,13 +148,13 @@ const MachineDetails = () => {
 
     if (!machine) return null;
 
-    // Calcular total
     const price = machine.price_hour || machine.price_hectare || machine.price_day || 0;
     const unit = machine.price_hour ? 'hora' : machine.price_hectare ? 'hectare' : 'dia';
     const total = price * quantity;
-    const platformFee = total * 0.01; // 1% taxa (interno)
 
-    const [notes, setNotes] = useState("");
+    const avgRating = reviews.length > 0
+        ? reviews.reduce((acc, r) => acc + (r.rating || 0), 0) / reviews.length
+        : 0;
 
     const handleBooking = async () => {
         if (!startDate) {
@@ -127,7 +173,7 @@ const MachineDetails = () => {
             if (!user) {
                 toast({
                     title: "Login necessário",
-                    description: "Faça login para reservar.",
+                    description: "Faça login para solicitar.",
                     variant: "destructive"
                 });
                 navigate('/login');
@@ -143,23 +189,24 @@ const MachineDetails = () => {
                     end_date: startDate,
                     quantity: quantity,
                     total_amount: total,
-                    platform_fee: platformFee,
+                    platform_fee: 0,
                     notes: notes,
-                    status: 'pending'
+                    status: 'pending',
+                    payment_status: 'peer_to_peer'
                 });
 
             if (error) throw error;
 
             toast({
-                title: "Reserva solicitada!",
-                description: "O proprietário será notificado.",
+                title: "Solicitação enviada!",
+                description: "O proprietário será notificado. Vocês combinarão os detalhes e o pagamento diretamente.",
             });
 
             navigate('/dashboard');
 
         } catch (error: any) {
             toast({
-                title: "Erro na reserva",
+                title: "Erro na solicitação",
                 description: error.message,
                 variant: "destructive"
             });
@@ -173,21 +220,22 @@ const MachineDetails = () => {
         : "https://images.unsplash.com/photo-1625246333195-78d9c38ad449?w=1200&h=600&fit=crop";
 
     return (
-        <div className="min-h-screen bg-background">
+        <div className="min-h-screen bg-background pb-16 md:pb-0">
             <Header />
 
-            <main className="pt-24 pb-16 container mx-auto px-4">
-                {/* ... (Header and Gallery remain same) ... */}
+            <main className="pt-20 md:pt-24 pb-16 container mx-auto px-4">
                 {/* Header Section */}
-                <div className="mb-6">
-                    <h1 className="text-3xl font-bold mb-2">{machine.name}</h1>
-                    <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
+                <div className="mb-4 md:mb-6">
+                    <h1 className="text-2xl md:text-3xl font-bold mb-2">{machine.name}</h1>
+                    <div className="flex flex-wrap items-center gap-2 md:gap-4 text-sm text-muted-foreground">
                         <div className="flex items-center gap-1">
                             <Star className="h-4 w-4 fill-primary text-primary" />
-                            <span className="font-medium text-foreground">Novo</span>
-                            <span>(0 avaliações)</span>
+                            <span className="font-medium text-foreground">
+                                {avgRating > 0 ? avgRating.toFixed(1) : 'Novo'}
+                            </span>
+                            <span>({reviews.length} avaliações)</span>
                         </div>
-                        <span>•</span>
+                        <span className="hidden sm:inline">•</span>
                         <div className="flex items-center gap-1">
                             <MapPin className="h-4 w-4" />
                             {typeof machine.location === 'object' && machine.location?.city
@@ -195,25 +243,25 @@ const MachineDetails = () => {
                                 : 'Localização não informada'}
                         </div>
                         <div className="ml-auto flex gap-2">
-                            <Button variant="ghost" size="sm" className="gap-2">
+                            <Button variant="ghost" size="sm" className="gap-1 md:gap-2 h-8 md:h-9">
                                 <Share2 className="h-4 w-4" />
-                                Compartilhar
+                                <span className="hidden sm:inline">Compartilhar</span>
                             </Button>
-                            <Button variant="ghost" size="sm" className="gap-2">
+                            <Button variant="ghost" size="sm" className="gap-1 md:gap-2 h-8 md:h-9">
                                 <Heart className="h-4 w-4" />
-                                Salvar
+                                <span className="hidden sm:inline">Salvar</span>
                             </Button>
                         </div>
                     </div>
                 </div>
 
                 {/* Image Gallery */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8 h-[400px] md:h-[500px]">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-2 md:gap-4 mb-6 md:mb-8 h-[250px] sm:h-[350px] md:h-[500px]">
                     <div className="md:col-span-3 h-full relative group">
                         <img
                             src={mainImage}
                             alt={machine.name}
-                            className="w-full h-full object-cover rounded-l-xl cursor-pointer"
+                            className="w-full h-full object-cover rounded-xl md:rounded-l-xl md:rounded-r-none cursor-pointer"
                         />
                     </div>
                     <div className="hidden md:flex flex-col gap-4 h-full">
@@ -234,20 +282,37 @@ const MachineDetails = () => {
                     </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
+                {/* Mobile image thumbnails */}
+                {machine.images && machine.images.length > 1 && (
+                    <div className="flex md:hidden gap-2 mb-6 overflow-x-auto pb-2">
+                        {machine.images.map((img, idx) => (
+                            <button
+                                key={idx}
+                                onClick={() => setSelectedImage(idx)}
+                                className={`shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 ${
+                                    selectedImage === idx ? 'border-primary' : 'border-transparent'
+                                }`}
+                            >
+                                <img src={img} alt="" className="w-full h-full object-cover" />
+                            </button>
+                        ))}
+                    </div>
+                )}
+
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-12">
                     {/* Left Column: Details */}
-                    <div className="md:col-span-2 space-y-8">
+                    <div className="lg:col-span-2 space-y-6 md:space-y-8">
                         {/* Owner Info */}
                         <div className="flex items-center justify-between pb-6 border-b">
                             <div>
-                                <h2 className="text-xl font-semibold mb-1">
+                                <h2 className="text-lg md:text-xl font-semibold mb-1">
                                     Oferecido por {machine.owner?.full_name || 'Proprietário'}
                                 </h2>
-                                <p className="text-muted-foreground">
+                                <p className="text-sm md:text-base text-muted-foreground">
                                     {machine.brand} • {machine.model} • {machine.year}
                                 </p>
                             </div>
-                            <Avatar className="h-12 w-12">
+                            <Avatar className="h-10 w-10 md:h-12 md:w-12">
                                 <AvatarImage src={machine.owner?.avatar_url} />
                                 <AvatarFallback>{machine.owner?.full_name?.[0] || 'U'}</AvatarFallback>
                             </Avatar>
@@ -255,6 +320,15 @@ const MachineDetails = () => {
 
                         {/* Highlights */}
                         <div className="space-y-4 pb-6 border-b">
+                            <div className="flex gap-4">
+                                <Handshake className="h-6 w-6 text-primary shrink-0" />
+                                <div>
+                                    <h3 className="font-medium">Pagamento Direto</h3>
+                                    <p className="text-sm text-muted-foreground">
+                                        O valor é combinado entre vocês. Sem intermediários, sem taxas da plataforma.
+                                    </p>
+                                </div>
+                            </div>
                             <div className="flex gap-4">
                                 <CheckCircle2 className="h-6 w-6 text-primary shrink-0" />
                                 <div>
@@ -269,56 +343,96 @@ const MachineDetails = () => {
                                     <p className="text-sm text-muted-foreground">O proprietário disponibiliza operador para o serviço.</p>
                                 </div>
                             </div>
+                            <div className="flex gap-4">
+                                <Star className="h-6 w-6 text-primary shrink-0" />
+                                <div>
+                                    <h3 className="font-medium">Avaliações Completas</h3>
+                                    <p className="text-sm text-muted-foreground">
+                                        Após o serviço, ambas as partes avaliam: serviço, operador, máquina e cliente.
+                                    </p>
+                                </div>
+                            </div>
                         </div>
 
                         {/* Description */}
                         <div className="pb-6 border-b">
-                            <h2 className="text-xl font-semibold mb-4">Sobre este equipamento</h2>
-                            <p className="text-muted-foreground leading-relaxed whitespace-pre-line">
+                            <h2 className="text-lg md:text-xl font-semibold mb-4">Sobre este equipamento</h2>
+                            <p className="text-sm md:text-base text-muted-foreground leading-relaxed whitespace-pre-line">
                                 {machine.description || "Sem descrição detalhada."}
                             </p>
                         </div>
 
                         {/* Specifications */}
                         <div className="pb-6 border-b">
-                            <h2 className="text-xl font-semibold mb-4">Especificações Técnicas</h2>
-                            <div className="grid grid-cols-2 gap-4">
+                            <h2 className="text-lg md:text-xl font-semibold mb-4">Especificações Técnicas</h2>
+                            <div className="grid grid-cols-2 gap-3 md:gap-4">
                                 <div className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg">
-                                    <Settings className="h-5 w-5 text-primary" />
-                                    <div>
+                                    <Settings className="h-5 w-5 text-primary shrink-0" />
+                                    <div className="min-w-0">
                                         <p className="text-xs text-muted-foreground">Potência</p>
-                                        <p className="font-medium">{(machine.specifications as any)?.power || 'N/A'}</p>
+                                        <p className="font-medium text-sm md:text-base truncate">{(machine.specifications as any)?.power || 'N/A'}</p>
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg">
-                                    <Ruler className="h-5 w-5 text-primary" />
-                                    <div>
+                                    <Ruler className="h-5 w-5 text-primary shrink-0" />
+                                    <div className="min-w-0">
                                         <p className="text-xs text-muted-foreground">Largura de Trabalho</p>
-                                        <p className="font-medium">{(machine.specifications as any)?.workWidth || 'N/A'}</p>
+                                        <p className="font-medium text-sm md:text-base truncate">{(machine.specifications as any)?.workWidth || 'N/A'}</p>
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg">
-                                    <Fuel className="h-5 w-5 text-primary" />
-                                    <div>
+                                    <Fuel className="h-5 w-5 text-primary shrink-0" />
+                                    <div className="min-w-0">
                                         <p className="text-xs text-muted-foreground">Combustível</p>
-                                        <p className="font-medium">Diesel</p>
+                                        <p className="font-medium text-sm md:text-base">Diesel</p>
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg">
-                                    <Calendar className="h-5 w-5 text-primary" />
-                                    <div>
+                                    <Calendar className="h-5 w-5 text-primary shrink-0" />
+                                    <div className="min-w-0">
                                         <p className="text-xs text-muted-foreground">Ano</p>
-                                        <p className="font-medium">{machine.year}</p>
+                                        <p className="font-medium text-sm md:text-base">{machine.year}</p>
                                     </div>
                                 </div>
                             </div>
+                        </div>
+
+                        {/* Reviews Section */}
+                        <div className="pb-6">
+                            <div className="flex items-center justify-between mb-4">
+                                <h2 className="text-lg md:text-xl font-semibold flex items-center gap-2">
+                                    <Star className="h-5 w-5 text-primary" />
+                                    Avaliações
+                                    {reviews.length > 0 && (
+                                        <Badge variant="secondary" className="ml-2">
+                                            {avgRating.toFixed(1)} ({reviews.length})
+                                        </Badge>
+                                    )}
+                                </h2>
+                            </div>
+
+                            {reviews.length > 0 ? (
+                                <div className="space-y-4">
+                                    {reviews.map((review) => (
+                                        <ReviewCard key={review.id} review={review} />
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="text-center py-8 bg-muted/20 rounded-xl">
+                                    <Star className="h-10 w-10 text-muted-foreground/40 mx-auto mb-3" />
+                                    <p className="text-muted-foreground font-medium">Ainda sem avaliações</p>
+                                    <p className="text-sm text-muted-foreground mt-1">
+                                        As avaliações aparecerão após os primeiros serviços realizados.
+                                    </p>
+                                </div>
+                            )}
                         </div>
                     </div>
 
                     {/* Right Column: Booking Card */}
                     <div className="relative">
                         <Card className="sticky top-24 shadow-lg border-primary/20">
-                            <CardHeader>
+                            <CardHeader className="pb-3">
                                 <div className="flex items-baseline justify-between">
                                     <span className="text-2xl font-bold">
                                         R$ {price.toLocaleString('pt-BR')}
@@ -326,6 +440,12 @@ const MachineDetails = () => {
                                     <span className="text-muted-foreground">
                                         / {unit}
                                     </span>
+                                </div>
+                                <div className="flex items-center gap-2 mt-2">
+                                    <Badge variant="outline" className="text-xs gap-1 border-green-200 text-green-700 bg-green-50">
+                                        <Handshake className="h-3 w-3" />
+                                        Pagamento direto
+                                    </Badge>
                                 </div>
                             </CardHeader>
                             <CardContent className="space-y-4">
@@ -355,34 +475,46 @@ const MachineDetails = () => {
                                     <p className="text-xs font-semibold uppercase text-muted-foreground mb-1">Detalhes do Serviço / Proposta</p>
                                     <textarea
                                         className="w-full text-sm bg-transparent outline-none resize-none h-20"
-                                        placeholder="Descreva o local, tipo de serviço ou faça uma proposta..."
+                                        placeholder="Descreva o local, tipo de serviço ou faça uma proposta de valor..."
                                         value={notes}
                                         onChange={(e) => setNotes(e.target.value)}
                                     />
                                 </div>
 
                                 <Button
-                                    className="w-full bg-gradient-primary h-12 text-lg font-semibold"
+                                    className="w-full bg-gradient-primary h-12 text-base md:text-lg font-semibold"
                                     onClick={handleBooking}
                                     disabled={bookingLoading}
                                 >
-                                    {bookingLoading ? <Loader2 className="animate-spin mr-2" /> : "Solicitar Reserva"}
+                                    {bookingLoading ? (
+                                        <Loader2 className="animate-spin mr-2" />
+                                    ) : (
+                                        <MessageCircle className="mr-2 h-5 w-5" />
+                                    )}
+                                    Solicitar Serviço
                                 </Button>
 
-                                <p className="text-center text-xs text-muted-foreground">
-                                    Você não será cobrado ainda. O proprietário confirmará a disponibilidade e valores finais.
-                                </p>
+                                <div className="bg-muted/30 rounded-lg p-3 text-center">
+                                    <p className="text-xs text-muted-foreground">
+                                        <Handshake className="h-3.5 w-3.5 inline mr-1" />
+                                        O valor é referência. Vocês combinarão o preço final
+                                        e a forma de pagamento diretamente.
+                                    </p>
+                                </div>
 
-                                <div className="space-y-2 pt-4">
+                                <div className="space-y-2 pt-2">
                                     <div className="flex justify-between text-sm">
                                         <span className="underline">R$ {price.toLocaleString('pt-BR')} x {quantity} {unit}s</span>
                                         <span>R$ {(price * quantity).toLocaleString('pt-BR')}</span>
                                     </div>
                                     <Separator />
                                     <div className="flex justify-between font-bold pt-2">
-                                        <span>Total Estimado</span>
+                                        <span>Valor de Referência</span>
                                         <span>R$ {total.toLocaleString('pt-BR')}</span>
                                     </div>
+                                    <p className="text-xs text-muted-foreground text-center">
+                                        Sem taxas da plataforma
+                                    </p>
                                 </div>
                             </CardContent>
                         </Card>
