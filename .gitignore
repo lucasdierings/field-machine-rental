@@ -29,3 +29,5 @@ bun.lockb
 .env.*.local
 .env*.local
 
+
+supabase/.temp/
