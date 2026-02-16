@@ -1,73 +1,66 @@
-# Welcome to your Lovable project
+# Field Machine
 
-## Project info
+Plataforma de aluguel de máquinas agrícolas — conecta produtores rurais e proprietários de equipamentos.
 
-**URL**: https://lovable.dev/projects/53668a5f-d19e-46f6-a460-1a6139f5d60b
+## Tecnologias
 
-## How can I edit this code?
+- [Vite](https://vitejs.dev/) + [React](https://react.dev/) + [TypeScript](https://www.typescriptlang.org/)
+- [Tailwind CSS](https://tailwindcss.com/) + [shadcn/ui](https://ui.shadcn.com/)
+- [Supabase](https://supabase.com/) (banco de dados, autenticação, storage)
 
-There are several ways of editing your application.
+## Pré-requisitos
 
-**Use Lovable**
+- [Node.js](https://nodejs.org/) 18+ e npm
+- Conta no [Supabase](https://supabase.com/)
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/53668a5f-d19e-46f6-a460-1a6139f5d60b) and start prompting.
-
-Changes made via Lovable will be committed automatically to this repo.
-
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
+## Configuração local
 
 ```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+# 1. Clone o repositório
+git clone https://github.com/lucasdierings/field-machine-rental.git
+cd field-machine-rental
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+# 2. Instale as dependências
+npm install
 
-# Step 3: Install the necessary dependencies.
-npm i
+# 3. Configure as variáveis de ambiente
+cp .env.example .env.development
+# Edite .env.development com suas chaves do Supabase
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# 4. Inicie o servidor de desenvolvimento
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+O app estará disponível em `http://localhost:8080`.
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+## Variáveis de ambiente
 
-**Use GitHub Codespaces**
+```env
+VITE_SUPABASE_URL=https://seu-projeto.supabase.co
+VITE_SUPABASE_PUBLISHABLE_KEY=sua-chave-anonima
+```
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+## Scripts
 
-## What technologies are used for this project?
+```sh
+npm run dev      # Servidor de desenvolvimento
+npm run build    # Build de produção (saída em /dist)
+npm run preview  # Preview do build local
+npm run lint     # Linter
+```
 
-This project is built with:
+## Deploy
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+O projeto é hospedado no **Cloudflare Pages** com deploy automático a cada push na branch `main`.
 
-## How can I deploy this project?
+**Configurações de build:**
+- Build command: `npm run build`
+- Output directory: `dist`
 
-Simply open [Lovable](https://lovable.dev/projects/53668a5f-d19e-46f6-a460-1a6139f5d60b) and click on Share -> Publish.
+**Variáveis de ambiente necessárias no Cloudflare:**
+- `VITE_SUPABASE_URL`
+- `VITE_SUPABASE_PUBLISHABLE_KEY`
 
-## Can I connect a custom domain to my Lovable project?
+## Banco de dados
 
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+As migrações ficam em `supabase/migrations/`. Para aplicar no banco remoto, acesse o **SQL Editor** no Supabase Dashboard e execute os arquivos em ordem cronológica.
