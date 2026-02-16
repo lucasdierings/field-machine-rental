@@ -26,6 +26,7 @@ import Profile from "./pages/Profile";
 import Documents from "./pages/Documents";
 import MyMachines from "./pages/MyMachines";
 import MachineDetails from "./pages/MachineDetails";
+import ReviewBooking from "./pages/ReviewBooking";
 import SupabaseConnectionTest from "./components/SupabaseConnectionTest";
 
 const queryClient = new QueryClient();
@@ -97,6 +98,11 @@ const App = () => (
           <Route path="/dashboard/documentos" element={
             <ProtectedRoute>
               <Documents />
+            </ProtectedRoute>
+          } />
+          <Route path="/avaliar/:bookingId" element={
+            <ProtectedRoute>
+              <ReviewBooking />
             </ProtectedRoute>
           } />
           <Route path="/onboarding" element={

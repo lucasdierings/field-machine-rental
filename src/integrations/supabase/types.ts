@@ -705,39 +705,57 @@ export type Database = {
       reviews: {
         Row: {
           booking_id: string | null
+          client_rating: number | null
           comment: string | null
           communication_rating: number | null
           created_at: string | null
           equipment_rating: number | null
           id: string
+          machine_rating: number | null
+          observations: string | null
+          operator_rating: number | null
           punctuality_rating: number | null
           rating: number | null
+          review_type: string | null
           reviewed_id: string | null
           reviewer_id: string | null
+          service_rating: number | null
         }
         Insert: {
           booking_id?: string | null
+          client_rating?: number | null
           comment?: string | null
           communication_rating?: number | null
           created_at?: string | null
           equipment_rating?: number | null
           id?: string
+          machine_rating?: number | null
+          observations?: string | null
+          operator_rating?: number | null
           punctuality_rating?: number | null
           rating?: number | null
+          review_type?: string | null
           reviewed_id?: string | null
           reviewer_id?: string | null
+          service_rating?: number | null
         }
         Update: {
           booking_id?: string | null
+          client_rating?: number | null
           comment?: string | null
           communication_rating?: number | null
           created_at?: string | null
           equipment_rating?: number | null
           id?: string
+          machine_rating?: number | null
+          observations?: string | null
+          operator_rating?: number | null
           punctuality_rating?: number | null
           rating?: number | null
+          review_type?: string | null
           reviewed_id?: string | null
           reviewer_id?: string | null
+          service_rating?: number | null
         }
         Relationships: [
           {

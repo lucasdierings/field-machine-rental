@@ -55,24 +55,28 @@ export const EnhancedHero = () => {
         <div className="max-w-5xl mx-auto space-y-8">
           {/* Main Heading */}
           <div className="space-y-4">
-            <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight">
-              Prestação de Serviços Agrícolas com{" "}
-              <span className="text-primary-glow">Segurança no Paraná</span>
+            <h1 className="text-3xl md:text-5xl lg:text-7xl font-bold tracking-tight">
+              Serviços Agrícolas{" "}
+              <span className="text-primary-glow">Direto entre Produtores</span>
             </h1>
-            <p className="text-xl md:text-2xl font-light opacity-90 max-w-3xl mx-auto">
-              Economize até 40% conectando-se com proprietários verificados
+            <p className="text-lg md:text-2xl font-light opacity-90 max-w-3xl mx-auto">
+              Conecte-se com prestadores de serviço, combine valores e acerte direto — sem intermediários
             </p>
           </div>
 
           {/* Trust Badge */}
-          <div className="flex flex-wrap justify-center items-center gap-6 text-sm font-medium">
+          <div className="flex flex-wrap justify-center items-center gap-4 md:gap-6 text-sm font-medium">
             <div className="flex items-center gap-2">
               <CheckCircle className="h-5 w-5 text-green-400" />
-              <span>Seguro incluído</span>
+              <span>Sem taxas</span>
             </div>
             <div className="flex items-center gap-2">
               <CheckCircle className="h-5 w-5 text-green-400" />
-              <span>Proprietários verificados</span>
+              <span>Pagamento direto</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <CheckCircle className="h-5 w-5 text-green-400" />
+              <span>Avaliações completas</span>
             </div>
           </div>
 
@@ -145,33 +149,33 @@ export const EnhancedHero = () => {
           </div>
 
           {/* CTAs */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-center max-w-2xl mx-auto">
-            <Button 
-              variant="outline" 
+          <div className="flex flex-col sm:flex-row gap-3 md:gap-4 justify-center max-w-2xl mx-auto">
+            <Button
+              variant="outline"
               size="lg"
-              className="flex-1 h-12 border-white text-white hover:bg-white hover:text-primary backdrop-blur-sm bg-black/20"
+              className="flex-1 h-11 md:h-12 text-sm md:text-base border-white text-white hover:bg-white hover:text-primary backdrop-blur-sm bg-black/20"
               asChild
             >
               <Link to="/buscar">
-                Quero Contratar Serviços
+                Contratar Serviços
               </Link>
             </Button>
-            
-            <Button 
-              variant="outline" 
+
+            <Button
+              variant="outline"
               size="lg"
-              className="flex-1 h-12 border-white text-white hover:bg-white hover:text-primary backdrop-blur-sm bg-black/20"
+              className="flex-1 h-11 md:h-12 text-sm md:text-base border-white text-white hover:bg-white hover:text-primary backdrop-blur-sm bg-black/20"
               asChild
             >
               <Link to="/alugar-minha-maquina">
-                Quero Prestar Serviços
+                Prestar Serviços
               </Link>
             </Button>
-            
-            <Button 
-              variant="outline" 
+
+            <Button
+              variant="outline"
               size="lg"
-              className="flex-1 h-12 border-white text-white hover:bg-white hover:text-primary backdrop-blur-sm bg-black/20"
+              className="flex-1 h-11 md:h-12 text-sm md:text-base border-white text-white hover:bg-white hover:text-primary backdrop-blur-sm bg-black/20"
               asChild
             >
               <Link to="/cadastro">
