@@ -11,7 +11,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Upload, X, Image as ImageIcon } from "lucide-react";
-
+import { LocationSelector } from "@/components/ui/location-selector";
+import { MultiCitySelector } from "@/components/ui/multi-city-selector";
 const categories = [
   "Tratores",
   "Colheitadeiras",
@@ -59,7 +60,9 @@ export default function AddMachine() {
       address: ""
     },
     radius_km: 50,
-    specifications: {}
+    operator_type: "owner", // owner (próprio) or hired (contratado)
+    specifications: {},
+    service_cities: [] as string[]
   });
 
   useEffect(() => {
@@ -101,7 +104,9 @@ export default function AddMachine() {
           price_hectare: machine.price_hectare?.toString() || "",
           location: (locationData as { city: string; state: string; address: string }) || { city: "", state: "", address: "" },
           radius_km: machine.radius_km || 50,
-          specifications: machine.specifications || {}
+          operator_type: (machine as any).operator_type || "owner",
+          specifications: machine.specifications || {},
+          service_cities: (machine as any).service_cities || []
         });
 
         // Load images from machine_images table
@@ -268,7 +273,9 @@ export default function AddMachine() {
         price_hour: formData.price_hour ? parseFloat(formData.price_hour) : null,
         price_day: formData.price_day ? parseFloat(formData.price_day) : null,
         price_hectare: formData.price_hectare ? parseFloat(formData.price_hectare) : null,
-        status: "available"
+        operator_type: formData.operator_type,
+        status: "available",
+        service_cities: formData.service_cities
       };
 
       let machineId;
@@ -485,6 +492,22 @@ export default function AddMachine() {
                       onChange={(e) => handleChange('year', parseInt(e.target.value))}
                     />
                   </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="operator_type">Tipo de Operador *</Label>
+                    <Select
+                      value={formData.operator_type}
+                      onValueChange={(value) => handleChange('operator_type', value)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione quem opera" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="owner">O Próprio Dono</SelectItem>
+                        <SelectItem value="employee">Funcionário</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
 
                 <div>
@@ -531,48 +554,53 @@ export default function AddMachine() {
                 <div>
                   <h3 className="text-lg font-medium mb-4">Localização</h3>
                   <div className="grid md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="city">Cidade *</Label>
-                      <Input
-                        id="city"
-                        value={formData.location.city}
-                        onChange={(e) => handleChange('location.city', e.target.value)}
-                        placeholder="Ex: Sorriso"
-                        required
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="state">Estado *</Label>
-                      <Input
-                        id="state"
-                        value={formData.location.state}
-                        onChange={(e) => handleChange('location.state', e.target.value)}
-                        placeholder="Ex: MT"
-                        required
+                    <div className="md:col-span-2 space-y-2">
+                      <Label>Base da Máquina (Onde ela fica)</Label>
+                      <LocationSelector
+                        onLocationChange={(loc) => {
+                          handleChange('location.city', loc.city);
+                          handleChange('location.state', loc.state);
+                        }}
+                        initialData={{
+                          country: 'BRASIL',
+                          state: formData.location.state,
+                          city: formData.location.city
+                        }}
                       />
                     </div>
 
                     <div className="space-y-2 md:col-span-2">
-                      <Label htmlFor="address">Endereço Completo</Label>
+                      <Label htmlFor="address">Endereço / Ponto de Referência</Label>
                       <Textarea
                         id="address"
                         value={formData.location.address}
                         onChange={(e) => handleChange('location.address', e.target.value)}
-                        placeholder="Endereço completo para localização"
-                        rows={3}
+                        placeholder="Endereço onde a máquina está estacionada"
+                        rows={2}
                       />
                     </div>
 
-                    <div className="space-y-2">
-                      <Label htmlFor="radius">Raio de Atendimento (km)</Label>
+                    <div className="space-y-2 md:col-span-2">
+                      <Label htmlFor="radius">Raio de Atendimento (km do ponto base)</Label>
                       <Input
                         id="radius"
                         type="number"
                         min="1"
-                        max="500"
+                        max="1000"
                         value={formData.radius_km}
                         onChange={(e) => handleChange('radius_km', parseInt(e.target.value))}
+                        className="max-w-[200px]"
+                      />
+                    </div>
+
+                    <div className="md:col-span-2 space-y-2 border-t pt-4 mt-2">
+                      <Label>Cidades de Atuação Específicas (Opcional)</Label>
+                      <p className="text-sm text-muted-foreground mb-2">
+                        Além do raio, você pode listar cidades específicas onde aceita trabalhar.
+                      </p>
+                      <MultiCitySelector
+                        onCitiesChange={(cities) => handleChange('service_cities', cities)}
+                        initialCities={formData.service_cities}
                       />
                     </div>
                   </div>

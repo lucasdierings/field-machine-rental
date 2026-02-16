@@ -1,51 +1,60 @@
 import { Link } from "react-router-dom";
-import johnDeereTractor from "@/assets/john-deere-tractor-real.jpg";
+import johnDeereTractor from "@/assets/john-deere-tractor-real.jpg"; // Keep if exists, otherwise fallback to external URL in component
 import newHollandColheitadeira from "@/assets/new-holland-colheitadeira.jpg";
 import casePulverizador from "@/assets/case-pulverizador.jpg";
 import valtraPlantadeira from "@/assets/valtra-plantadeira.jpg";
 import implementosAgricolas from "@/assets/implementos-agricolas.jpg";
 import transporteCarga from "@/assets/transporte-carga.jpg";
 
+// Using Unsplash images for realistic look if local assets are missing/placeholders
+const tractorImg = "https://images.unsplash.com/photo-1592982537447-6f2a6a0c7c18?q=80&w=1000&auto=format&fit=crop";
+const harvesterImg = "https://images.unsplash.com/photo-1625246333195-78d9c38ad449?q=80&w=1000&auto=format&fit=crop";
+const sprayerImg = "https://images.unsplash.com/photo-1595841696677-6489ff3f8cd1?q=80&w=1000&auto=format&fit=crop";
+const planterImg = "https://images.unsplash.com/photo-1530267981375-f0de93ebf579?q=80&w=1000&auto=format&fit=crop"; // Generic farm field
+const backhoeImg = "https://images.unsplash.com/photo-1504307651254-35680f356dfd?q=80&w=1000&auto=format&fit=crop";
+const droneImg = "https://images.unsplash.com/photo-1508614589041-895b8c9d7418?q=80&w=1000&auto=format&fit=crop";
+
+
 const categories = [
   {
     title: "Tratores",
     description: "Potência e versatilidade para todas as operações",
-    image: johnDeereTractor,
-    brand: "John Deere",
+    image: tractorImg,
+    brand: "Varid",
     link: "/buscar?categoria=tratores"
   },
   {
-    title: "Colheitadeiras", 
+    title: "Colheitadeiras",
     description: "Eficiência na colheita de grãos",
-    image: newHollandColheitadeira,
+    image: harvesterImg,
     brand: "New Holland",
     link: "/buscar?categoria=colheitadeiras"
   },
   {
     title: "Pulverizadores",
     description: "Aplicação precisa de defensivos",
-    image: casePulverizador,
+    image: sprayerImg,
     brand: "Case IH",
     link: "/buscar?categoria=pulverizadores"
   },
   {
-    title: "Plantadeiras",
-    description: "Plantio uniforme e eficiente", 
-    image: valtraPlantadeira,
-    brand: "Valtra",
-    link: "/buscar?categoria=plantadeiras"
+    title: "Retroescavadeiras",
+    description: "Serviços de terraplanagem e escavação",
+    image: backhoeImg,
+    brand: "CAT / JCB",
+    link: "/buscar?categoria=retroescavadeiras"
   },
   {
-    title: "Implementos",
-    description: "Preparo do solo e cultivo",
-    image: implementosAgricolas,
-    brand: "Diversos",
-    link: "/buscar?categoria=implementos"
+    title: "Drones Agrícolas",
+    description: "Pulverização aérea e mapeamento",
+    image: droneImg,
+    brand: "DJI / XAG",
+    link: "/buscar?categoria=drones"
   },
   {
     title: "Transporte de Cargas",
     description: "Caminhões, carretas e bitrens",
-    image: transporteCarga,
+    image: "https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?q=80&w=1000&auto=format&fit=crop",
     brand: "Diversos",
     link: "/buscar?categoria=transporte-de-cargas"
   }

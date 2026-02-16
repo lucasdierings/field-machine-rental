@@ -8,14 +8,15 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, User, Phone, Mail, MapPin, CreditCard } from "lucide-react";
+import { LocationSelector } from "@/components/ui/location-selector";
+import { Loader2, User, Phone, Mail, MapPin, CreditCard, Upload } from "lucide-react";
 
 const Profile = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  
+
   const [formData, setFormData] = useState({
     full_name: "",
     phone: "",
@@ -23,8 +24,57 @@ const Profile = () => {
     cpf_cnpj: "",
     city: "",
     state: "",
-    cep: ""
+    cep: "",
+    profile_image: ""
   });
+  const [uploading, setUploading] = useState(false);
+
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    try {
+      if (!event.target.files || event.target.files.length === 0) {
+        return;
+      }
+
+      const file = event.target.files[0];
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Math.random()}.${fileExt}`;
+      const filePath = `${fileName}`;
+
+      setUploading(true);
+
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Usuário não autenticado");
+
+      // 1. Upload to 'avatars' bucket
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      // 2. Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(filePath);
+
+      // 3. Update local state
+      setFormData(prev => ({ ...prev, profile_image: publicUrl }));
+
+      toast({
+        title: "Foto carregada!",
+        description: "Lembre-se de salvar as alterações no final.",
+      });
+
+    } catch (error: any) {
+      toast({
+        title: "Erro no upload",
+        description: error.message,
+        variant: "destructive"
+      });
+    } finally {
+      setUploading(false);
+    }
+  };
 
   useEffect(() => {
     loadProfile();
@@ -33,7 +83,7 @@ const Profile = () => {
   const loadProfile = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      
+
       if (!user) {
         navigate("/login");
         return;
@@ -58,7 +108,8 @@ const Profile = () => {
           cpf_cnpj: profile.cpf_cnpj || "",
           city: address?.city || "",
           state: address?.state || "",
-          cep: address?.cep || ""
+          cep: address?.cep || "",
+          profile_image: profile.profile_image || ""
         });
       } else {
         setFormData(prev => ({ ...prev, email: user.email || "" }));
@@ -80,7 +131,7 @@ const Profile = () => {
 
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      
+
       if (!user) {
         throw new Error("Usuário não autenticado");
       }
@@ -98,8 +149,9 @@ const Profile = () => {
           full_name: formData.full_name,
           phone: formData.phone,
           cpf_cnpj: formData.cpf_cnpj,
-          address
-        });
+          address,
+          profile_image: formData.profile_image
+        }, { onConflict: 'auth_user_id' });
 
       if (error) throw error;
 
@@ -143,13 +195,48 @@ const Profile = () => {
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-6">
+
+                {/* Profile Image */}
+                <div className="flex flex-col items-center space-y-4">
+                  <div className="relative">
+                    <div className="h-32 w-32 rounded-full overflow-hidden border-2 border-primary bg-muted flex items-center justify-center">
+                      {formData.profile_image ? (
+                        <img
+                          src={formData.profile_image}
+                          alt="Avatar"
+                          className="h-full w-full object-cover"
+                        />
+                      ) : (
+                        <User className="h-16 w-16 text-muted-foreground" />
+                      )}
+                    </div>
+                    <label
+                      htmlFor="avatar-upload"
+                      className="absolute bottom-0 right-0 p-2 bg-primary text-primary-foreground rounded-full cursor-pointer hover:bg-primary/90 transition-colors shadow-sm"
+                    >
+                      <Upload className="h-4 w-4" />
+                    </label>
+                    <input
+                      id="avatar-upload"
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={handleImageUpload}
+                      disabled={uploading}
+                    />
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    {uploading ? "Enviando..." : "Clique na câmera para alterar sua foto"}
+                  </p>
+                </div>
+
                 {/* Dados Pessoais */}
                 <div className="space-y-4">
                   <h3 className="font-semibold flex items-center gap-2">
                     <User className="h-4 w-4" />
                     Dados Pessoais
                   </h3>
-                  
+
                   <div>
                     <Label htmlFor="full_name">Nome Completo *</Label>
                     <Input
@@ -180,7 +267,7 @@ const Profile = () => {
                     <Phone className="h-4 w-4" />
                     Contato
                   </h3>
-                  
+
                   <div>
                     <Label htmlFor="email">Email</Label>
                     <div className="flex items-center gap-2">
@@ -215,7 +302,7 @@ const Profile = () => {
                     <MapPin className="h-4 w-4" />
                     Localização
                   </h3>
-                  
+
                   <div>
                     <Label htmlFor="cep">CEP</Label>
                     <Input
@@ -226,26 +313,22 @@ const Profile = () => {
                     />
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="city">Cidade</Label>
-                      <Input
-                        id="city"
-                        value={formData.city}
-                        onChange={(e) => setFormData(prev => ({ ...prev, city: e.target.value }))}
-                      />
-                    </div>
-
-                    <div>
-                      <Label htmlFor="state">Estado</Label>
-                      <Input
-                        id="state"
-                        value={formData.state}
-                        onChange={(e) => setFormData(prev => ({ ...prev, state: e.target.value }))}
-                        maxLength={2}
-                        placeholder="SP"
-                      />
-                    </div>
+                  <div className="space-y-2">
+                    <Label>Localização</Label>
+                    <LocationSelector
+                      onLocationChange={(loc) => {
+                        setFormData(prev => ({
+                          ...prev,
+                          city: loc.city,
+                          state: loc.state
+                        }));
+                      }}
+                      initialData={{
+                        country: 'BRASIL',
+                        state: formData.state,
+                        city: formData.city
+                      }}
+                    />
                   </div>
                 </div>
 
@@ -254,8 +337,8 @@ const Profile = () => {
                     {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     Salvar Alterações
                   </Button>
-                  <Button 
-                    type="button" 
+                  <Button
+                    type="button"
                     variant="outline"
                     onClick={() => navigate("/dashboard")}
                   >

@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useRegisterForm } from "@/hooks/useRegisterForm";
 import { supabase } from "@/integrations/supabase/client";
-import { UserTypeSelection } from "@/components/register/UserTypeSelection";
+// import { UserTypeSelection } from "@/components/register/UserTypeSelection"; // Removed
 import { BasicDataStep } from "@/components/register/BasicDataStep";
 import { LocationStep } from "@/components/register/LocationStep";
 import { AboutYouStep } from "@/components/register/AboutYouStep";
@@ -28,16 +28,11 @@ const Register = () => {
   } = useRegisterForm();
 
   const stepTitles = [
-    "Tipo",
     "Dados",
     "Local",
     "Perfil",
     "Verificar"
   ];
-
-  const handleUserTypeSelect = (userType: 'producer' | 'owner') => {
-    updateFormData({ userType });
-  };
 
   // Criar conta com Supabase Auth
   const handleSignUp = async () => {
@@ -48,7 +43,7 @@ const Register = () => {
         options: {
           data: {
             full_name: formData.fullName,
-            user_type: formData.userType,
+            user_type: 'both', // Always both
             phone: formData.phone,
             cpf_cnpj: formData.cpfCnpj
           },
@@ -142,19 +137,11 @@ const Register = () => {
         throw new Error("Sessão não encontrada. Verifique seu email novamente.");
       }
 
-      if (!session.user.email_confirmed_at) {
-        throw new Error("Por favor, verifique seu email antes de continuar.");
-      }
+      // Check email confirmation if enforced by Supabase config
+      // if (!session.user.email_confirmed_at) ...
 
       const userId = session.user.id;
-
-      // Determina tipos de usuário
-      let userTypes: string[] = [];
-      if (formData.userType === 'both') {
-        userTypes = ['producer', 'owner'];
-      } else if (formData.userType) {
-        userTypes = [formData.userType];
-      }
+      const userTypes = ['producer', 'owner']; // Always both
 
       // Prepara dados do endereço (apenas se foram preenchidos)
       const addressData = formData.address ? {
@@ -175,9 +162,9 @@ const Register = () => {
           cpf_cnpj: formData.cpfCnpj,
           address: addressData,
           user_types: userTypes,
-          user_type: formData.userType === 'both' ? 'producer' : formData.userType,
+          user_type: 'producer', // Default legacy
           profile_completed: true,
-          profile_completion_step: 5,
+          profile_completion_step: 4, // Final Step
           verified: formData.documentsUploaded
         }, {
           onConflict: 'auth_user_id'
@@ -190,12 +177,8 @@ const Register = () => {
         description: "Bem-vindo ao FieldMachine.",
       });
 
-      // Redireciona baseado no tipo de usuário
-      if (formData.userType === 'producer') {
-        navigate("/search");
-      } else {
-        navigate("/add-machine");
-      }
+      // Redirect to main dashboard (as everyone can do everything)
+      navigate("/dashboard");
 
     } catch (error: any) {
       console.error("Erro na finalização:", error);
@@ -230,14 +213,6 @@ const Register = () => {
     switch (currentStep) {
       case 1:
         return (
-          <UserTypeSelection
-            selectedType={formData.userType}
-            onSelect={handleUserTypeSelect}
-            onNext={nextStep}
-          />
-        );
-      case 2:
-        return (
           <BasicDataStep
             formData={formData}
             errors={errors}
@@ -246,7 +221,7 @@ const Register = () => {
             onPrev={prevStep}
           />
         );
-      case 3:
+      case 2:
         return (
           <LocationStep
             formData={formData}
@@ -257,7 +232,7 @@ const Register = () => {
             onSkip={handleSkipStep}
           />
         );
-      case 4:
+      case 3:
         return (
           <AboutYouStep
             formData={formData}
@@ -268,7 +243,7 @@ const Register = () => {
             onSkip={handleSkipStep}
           />
         );
-      case 5:
+      case 4:
         return (
           <VerificationStep
             formData={formData}
@@ -286,11 +261,6 @@ const Register = () => {
     }
   };
 
-  // Step 1 não mostra header/footer nem indicador
-  if (currentStep === 1) {
-    return renderCurrentStep();
-  }
-
   return (
     <div className="min-h-screen bg-background">
       <Header />
@@ -298,7 +268,7 @@ const Register = () => {
         <div className="container mx-auto px-4">
           <StepIndicator
             currentStep={currentStep}
-            totalSteps={5}
+            totalSteps={4}
             stepTitles={stepTitles}
           />
           {renderCurrentStep()}

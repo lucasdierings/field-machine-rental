@@ -39,11 +39,10 @@ const InteractiveStars = ({
                     onClick={() => onChange(star)}
                 >
                     <Star
-                        className={`${sizeClass} transition-colors ${
-                            star <= (hover || value)
-                                ? "fill-yellow-400 text-yellow-400"
-                                : "fill-muted text-muted-foreground/30"
-                        }`}
+                        className={`${sizeClass} transition-colors ${star <= (hover || value)
+                            ? "fill-yellow-400 text-yellow-400"
+                            : "fill-muted text-muted-foreground/30"
+                            }`}
                     />
                 </button>
             ))}
@@ -97,6 +96,7 @@ export const ReviewForm = ({ bookingId, reviewedId, reviewType, onSuccess }: Rev
     const [operatorRating, setOperatorRating] = useState(0);
     const [machineRating, setMachineRating] = useState(0);
     const [clientRating, setClientRating] = useState(0);
+    const [platformRating, setPlatformRating] = useState(0);
     const [comment, setComment] = useState("");
     const [observations, setObservations] = useState("");
 
@@ -143,6 +143,7 @@ export const ReviewForm = ({ bookingId, reviewedId, reviewType, onSuccess }: Rev
                 reviewData.equipment_rating = machineRating || null;
                 reviewData.punctuality_rating = operatorRating || null;
                 reviewData.communication_rating = serviceRating || null;
+                reviewData.platform_rating = platformRating || null;
             }
 
             const { error } = await supabase
@@ -217,6 +218,13 @@ export const ReviewForm = ({ bookingId, reviewedId, reviewType, onSuccess }: Rev
                                 description="Condição e desempenho do equipamento"
                                 value={machineRating}
                                 onChange={setMachineRating}
+                            />
+                            <RatingCategory
+                                icon={Star}
+                                label="Plataforma"
+                                description="Sua experiência geral com o FieldMachine"
+                                value={platformRating}
+                                onChange={setPlatformRating}
                             />
                         </>
                     ) : (

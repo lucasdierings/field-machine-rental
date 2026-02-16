@@ -67,7 +67,7 @@ export const MachineGrid = ({ searchFilters }: MachineGridProps) => {
           name: machine.name,
           brand: machine.brand || "",
           year: machine.year || new Date().getFullYear(),
-          power: "N/A",
+          power: (machine.specifications as any)?.power || "N/A",
           category: machine.category,
           location: typeof machine.location === 'object' && machine.location !== null && 'city' in machine.location
             ? `${machine.location.city}, ${machine.location.state}`
@@ -82,7 +82,7 @@ export const MachineGrid = ({ searchFilters }: MachineGridProps) => {
           chargeType: machine.price_hour ? "hora" as const : machine.price_hectare ? "hectare" as const : "hora" as const,
           comments: [],
           verified: false,
-          workWidth: 0,
+          workWidth: (machine.specifications as any)?.workWidth ? parseFloat((machine.specifications as any).workWidth) : 0,
           tankCapacity: 0,
           anonymous: true
         }));
@@ -214,12 +214,47 @@ export const MachineGrid = ({ searchFilters }: MachineGridProps) => {
 
         {!loading && filteredMachines.length === 0 && (
           <div className="text-center py-12">
-            <div className="text-muted-foreground text-lg mb-2">
-              Não há máquinas disponíveis no momento
+            <div className="text-muted-foreground text-lg mb-4">
+              Não há máquinas disponíveis no momento para esta busca.
             </div>
-            <p className="text-sm text-muted-foreground">
-              Tente ajustar seus filtros ou volte mais tarde
+            <p className="text-sm text-muted-foreground mb-6">
+              Que tal criar um alerta? Avisaremos você assim que um equipamento compatível for cadastrado.
             </p>
+
+            <button
+              onClick={async () => {
+                const { data: { user } } = await supabase.auth.getUser();
+                let email = user?.email;
+
+                if (!user) {
+                  const input = window.prompt("Digite seu email para receber alertas:");
+                  if (!input) return;
+                  email = input;
+                }
+
+                // Get filters from props or current state
+                const category = searchFilters?.category || "Todas as categorias";
+                const location = searchFilters?.location || "Qualquer localização";
+
+                const { error } = await (supabase as any).from('search_alerts').insert({
+                  user_id: user?.id,
+                  email: email,
+                  location: location,
+                  category: category,
+                  radius_km: 50
+                });
+
+                if (error) {
+                  alert("Erro ao criar alerta. Tente novamente.");
+                } else {
+                  alert(`Alerta criado! Avisaremos você sobre ${category} em ${location}.`);
+                }
+              }}
+              className="px-6 py-2 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 transition-colors inline-flex items-center gap-2"
+            >
+              <span className="text-xl">🔔</span>
+              Criar Alerta de Disponibilidade
+            </button>
           </div>
         )}
 

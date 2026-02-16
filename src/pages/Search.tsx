@@ -7,9 +7,12 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search as SearchIcon, Filter } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import { Search as SearchIcon, Filter, Bell } from "lucide-react";
 
 const Search = () => {
+  const { toast } = useToast();
   const [searchFilters, setSearchFilters] = useState<FilterValues & {
     location?: string;
     startDate?: Date;
@@ -153,6 +156,38 @@ const Search = () => {
                   >
                     <Filter className="h-4 w-4 mr-2" />
                     Filtros Avançados
+                  </Button>
+
+                  <Button
+                    variant="outline"
+                    className="border-primary text-primary hover:bg-primary hover:text-white"
+                    onClick={async () => {
+                      const { data: { user } } = await supabase.auth.getUser();
+                      let email = user?.email;
+
+                      if (!user) {
+                        const input = window.prompt("Digite seu email para receber alertas desta busca:");
+                        if (!input) return;
+                        email = input;
+                      }
+
+                      const { error } = await (supabase as any).from('search_alerts').insert({
+                        user_id: user?.id,
+                        email: email,
+                        location: location,
+                        category: category,
+                        radius_km: 50
+                      });
+
+                      if (error) {
+                        toast({ title: "Erro", description: "Não foi possível criar o alerta.", variant: "destructive" });
+                      } else {
+                        toast({ title: "Alerta Criado!", description: `Você será notificado sobre ${category} em ${location}.` });
+                      }
+                    }}
+                  >
+                    <Bell className="h-4 w-4 mr-2" />
+                    Criar Alerta
                   </Button>
                 </div>
 

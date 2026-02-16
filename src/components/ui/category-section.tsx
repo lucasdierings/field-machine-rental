@@ -8,23 +8,23 @@ const categories = [
     name: "Tratores",
     icon: Tractor,
     description: "Tratores de alta potência para todas as necessidades",
-    count: "45+ disponíveis",
+    count: "35+ disponíveis",
     color: "from-green-500 to-green-600"
   },
   {
-    id: "pulverizadores", 
+    id: "pulverizadores",
     name: "Pulverizadores",
     icon: Droplets,
     description: "Equipamentos para aplicação de defensivos",
-    count: "28+ disponíveis",
+    count: "20+ disponíveis",
     color: "from-blue-500 to-blue-600"
   },
   {
     id: "colheitadeiras",
-    name: "Colheitadeiras", 
+    name: "Colheitadeiras",
     icon: Combine,
     description: "Máquinas para colheita eficiente",
-    count: "18+ disponíveis",
+    count: "15+ disponíveis",
     color: "from-yellow-500 to-orange-500"
   },
   {
@@ -32,7 +32,7 @@ const categories = [
     name: "Caminhões",
     icon: Truck,
     description: "Transporte e logística para sua safra",
-    count: "32+ disponíveis", 
+    count: "20+ disponíveis",
     color: "from-red-500 to-red-600"
   }
 ];
@@ -54,7 +54,7 @@ export const CategorySection = () => {
           {categories.map((category) => {
             const Icon = category.icon;
             return (
-              <Card 
+              <Card
                 key={category.id}
                 className="group hover:shadow-card transition-all duration-300 cursor-pointer border-0 bg-gradient-card"
               >
@@ -62,21 +62,21 @@ export const CategorySection = () => {
                   <div className={`w-20 h-20 bg-gradient-to-br ${category.color} rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300`}>
                     <Icon className="h-10 w-10 text-white" />
                   </div>
-                  
+
                   <h3 className="text-xl font-bold text-foreground mb-2">
                     {category.name}
                   </h3>
-                  
+
                   <p className="text-muted-foreground text-sm mb-3">
                     {category.description}
                   </p>
-                  
+
                   <p className="text-primary font-semibold text-sm mb-4">
                     {category.count}
                   </p>
 
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     size="sm"
                     className="w-full group-hover:bg-primary group-hover:text-primary-foreground transition-colors duration-300"
                   >
@@ -94,7 +94,7 @@ export const CategorySection = () => {
           <h3 className="text-2xl font-bold text-center text-foreground mb-8">
             Implementos Agrícolas
           </h3>
-          
+
           <div className="grid md:grid-cols-3 gap-6">
             <Card className="text-center p-6 bg-gradient-card border-0">
               <div className="w-16 h-16 bg-accent rounded-xl flex items-center justify-center mx-auto mb-4">

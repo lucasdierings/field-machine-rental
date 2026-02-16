@@ -6,14 +6,14 @@ import { Link } from "react-router-dom";
 import heroImage from "@/assets/hero-soybean-field.jpg";
 
 const cidadesParana = [
-  "Curitiba", "Londrina", "Maringá", "Ponta Grossa", "Cascavel", 
-  "São José dos Pinhais", "Foz do Iguaçu", "Colombo", "Guarapuava", 
+  "Curitiba", "Londrina", "Maringá", "Ponta Grossa", "Cascavel",
+  "São José dos Pinhais", "Foz do Iguaçu", "Colombo", "Guarapuava",
   "Paranaguá", "Araucária", "Toledo", "Apucarana", "Pinhais", "Campo Largo"
 ];
 
 const categorias = [
   "Todas as categorias",
-  "Trator", 
+  "Trator",
   "Colheitadeira",
   "Pulverizador",
   "Plantadeira",
@@ -25,7 +25,7 @@ export const EnhancedHero = () => {
   const [categoria, setCategoria] = useState("Todas as categorias");
   const [showSuggestions, setShowSuggestions] = useState(false);
 
-  const filteredCidades = cidadesParana.filter(c => 
+  const filteredCidades = cidadesParana.filter(c =>
     c.toLowerCase().includes(cidade.toLowerCase())
   );
 
@@ -33,7 +33,7 @@ export const EnhancedHero = () => {
     const searchParams = new URLSearchParams();
     if (cidade) searchParams.set("cidade", cidade);
     if (categoria !== "Todas as categorias") searchParams.set("categoria", categoria);
-    
+
     const queryString = searchParams.toString();
     window.location.href = `/buscar${queryString ? `?${queryString}` : ""}`;
   };
@@ -42,7 +42,7 @@ export const EnhancedHero = () => {
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
       {/* Background Image with Overlay */}
       <div className="absolute inset-0 z-0">
-        <img 
+        <img
           src={heroImage}
           alt="Campo de soja no Paraná - Aluguel de máquinas agrícolas"
           className="w-full h-full object-cover"
@@ -90,7 +90,7 @@ export const EnhancedHero = () => {
                     <MapPin className="h-4 w-4" />
                     Cidade no Paraná
                   </label>
-                  <Input 
+                  <Input
                     placeholder="Ex: Londrina, Cascavel..."
                     className="h-12 text-base"
                     value={cidade}
@@ -101,7 +101,7 @@ export const EnhancedHero = () => {
                     onFocus={() => setShowSuggestions(true)}
                     onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
                   />
-                  
+
                   {/* Autocomplete Suggestions */}
                   {showSuggestions && cidade && filteredCidades.length > 0 && (
                     <div className="absolute top-full left-0 right-0 bg-background border border-border rounded-md shadow-lg z-50 mt-1 max-h-48 overflow-y-auto">
@@ -120,12 +120,12 @@ export const EnhancedHero = () => {
                     </div>
                   )}
                 </div>
-                
+
                 <div>
                   <label className="text-sm font-medium text-foreground mb-2 block">
                     Categoria
                   </label>
-                  <select 
+                  <select
                     className="w-full h-12 px-3 rounded-md border border-input bg-background text-foreground text-base"
                     value={categoria}
                     onChange={(e) => setCategoria(e.target.value)}
@@ -137,8 +137,8 @@ export const EnhancedHero = () => {
                 </div>
               </div>
 
-              <Button 
-                size="lg" 
+              <Button
+                size="lg"
                 className="w-full h-14 text-lg font-semibold bg-[#10B981] hover:bg-[#059669] text-white transition-all duration-300"
                 onClick={handleSearch}
               >
@@ -150,16 +150,7 @@ export const EnhancedHero = () => {
 
           {/* CTAs */}
           <div className="flex flex-col sm:flex-row gap-3 md:gap-4 justify-center max-w-2xl mx-auto">
-            <Button
-              variant="outline"
-              size="lg"
-              className="flex-1 h-11 md:h-12 text-sm md:text-base border-white text-white hover:bg-white hover:text-primary backdrop-blur-sm bg-black/20"
-              asChild
-            >
-              <Link to="/buscar">
-                Contratar Serviços
-              </Link>
-            </Button>
+// Button removed as requested
 
             <Button
               variant="outline"

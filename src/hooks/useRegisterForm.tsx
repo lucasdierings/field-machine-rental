@@ -1,13 +1,10 @@
-import { useState } from 'react';
-import { z } from 'zod';
+import { useState } from "react";
+import { z } from "zod";
 
-export type UserType = 'producer' | 'owner' | 'both';
+export type UserType = "producer" | "owner" | "both";
 
 export interface RegisterFormData {
-  // Step 1: Tipo de usuário
-  userType: UserType | null;
-
-  // Step 2: Dados básicos
+  userType: UserType; // Still keep type for compatibility, but always 'both'
   fullName: string;
   cpfCnpj: string;
   email: string;
@@ -16,44 +13,34 @@ export interface RegisterFormData {
   confirmPassword: string;
   hasWhatsapp: boolean;
 
-  // Step 3: Localização
+  // Location
   cep: string;
   address: string;
   city: string;
   state: string;
   reference: string;
-  radius: number;
 
-  // Step 4: Sobre você (Produtor)
-  propertySize?: number;
+  // Optional profile fields (unified)
+  propertySize?: string; // Changed to string for input flexibility
   mainCrops?: string[];
-  rentalFrequency?: string;
-  howFoundUs?: string;
+  machinesCount?: string;
 
-  // Step 4: Sobre você (Proprietário)
-  machinesCount?: number;
-  rentalExperience?: string;
-  deliveryAvailable?: boolean;
-  bankAccount?: string;
-
-  // Step 5: Verificação
+  // Verification
   emailVerified: boolean;
-  phoneVerified: boolean;
-  emailCode: string;
-  phoneCode: string;
+  emailCode: string; // Only email code needed now
   documentsUploaded: boolean;
   termsAccepted: boolean;
 
-  // Rastreamento de conclusão de perfil
   profile_completion_step?: number;
 }
 
+// Schemas
 const basicDataSchema = z.object({
-  fullName: z.string().min(3, 'Nome deve ter pelo menos 3 caracteres'),
-  cpfCnpj: z.string().min(11, 'CPF/CNPJ inválido'),
-  email: z.string().email('Email inválido'),
-  phone: z.string().min(10, 'Telefone inválido'),
-  password: z.string().min(6, 'Senha deve ter pelo menos 6 caracteres'),
+  fullName: z.string().min(3, "Nome deve ter pelo menos 3 caracteres"),
+  cpfCnpj: z.string().min(11, "CPF/CNPJ inválido"),
+  email: z.string().email("Email inválido"),
+  phone: z.string().min(10, "Telefone inválido"),
+  password: z.string().min(6, "Senha deve ter pelo menos 6 caracteres"),
   confirmPassword: z.string(),
 }).refine((data) => data.password === data.confirmPassword, {
   message: "Senhas não coincidem",
@@ -61,34 +48,30 @@ const basicDataSchema = z.object({
 });
 
 const locationSchema = z.object({
-  cep: z.string().min(8, 'CEP deve ter 8 dígitos').max(9, 'CEP inválido'),
-  address: z.string().min(5, 'Endereço muito curto'),
-  city: z.string().min(2, 'Cidade inválida'),
-  state: z.string().length(2, 'Estado inválido'),
-  radius: z.number().min(1).max(500),
+  city: z.string().min(2, "Cidade obrigatória"),
+  state: z.string().min(2, "Estado obrigatório"),
 });
 
 export const useRegisterForm = () => {
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState<RegisterFormData>({
-    userType: null,
-    fullName: '',
-    cpfCnpj: '',
-    email: '',
-    phone: '',
-    password: '',
-    confirmPassword: '',
-    hasWhatsapp: false,
-    cep: '',
-    address: '',
-    city: '',
-    state: '',
-    reference: '',
-    radius: 50,
+    userType: "both",
+    fullName: "",
+    cpfCnpj: "",
+    email: "",
+    phone: "",
+    password: "",
+    confirmPassword: "",
+    hasWhatsapp: true,
+    cep: "",
+    address: "",
+    city: "",
+    state: "",
+    reference: "",
+    propertySize: "",
+    machinesCount: "",
     emailVerified: false,
-    phoneVerified: false,
-    emailCode: '',
-    phoneCode: '',
+    emailCode: "",
     documentsUploaded: false,
     termsAccepted: false,
   });
@@ -96,76 +79,56 @@ export const useRegisterForm = () => {
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const updateFormData = (updates: Partial<RegisterFormData>) => {
-    setFormData(prev => ({ ...prev, ...updates }));
+    setFormData((prev) => ({ ...prev, ...updates }));
+    // Clear errors for updated fields
+    const newErrors = { ...errors };
+    Object.keys(updates).forEach((key) => delete newErrors[key]);
+    setErrors(newErrors);
   };
 
-  const validateStep = (step: number): boolean => {
-    const newErrors: Record<string, string> = {};
-
+  const validateStep = (step: number = currentStep): boolean => {
     try {
-      switch (step) {
-        case 1:
-          if (!formData.userType) {
-            newErrors.userType = 'Selecione o tipo de usuário';
-          }
-          break;
-        case 2:
-          basicDataSchema.parse(formData);
-          break;
-        case 3:
-          locationSchema.parse(formData);
-          break;
-        case 4:
-          const isProducer = formData.userType === 'producer' || formData.userType === 'both';
-          const isOwner = formData.userType === 'owner' || formData.userType === 'both';
-
-          if (isProducer) {
-            if (!formData.propertySize || formData.propertySize < 1) {
-              newErrors.propertySize = 'Tamanho da propriedade é obrigatório';
-            }
-            if (!formData.mainCrops || formData.mainCrops.length === 0) {
-              newErrors.mainCrops = 'Selecione pelo menos uma cultura';
-            }
-          }
-
-          if (isOwner) {
-            if (!formData.machinesCount || formData.machinesCount < 1) {
-              newErrors.machinesCount = 'Número de máquinas é obrigatório';
-            }
-          }
-          break;
-        case 5:
-          if (!formData.termsAccepted) {
-            newErrors.termsAccepted = 'Aceite os termos para continuar';
-          }
-          break;
+      if (step === 1) {
+        basicDataSchema.parse(formData);
+      } else if (step === 2) {
+        locationSchema.parse(formData);
+      } else if (step === 3) {
+        // About You - Optional fields, no strict validation blocks
+      } else if (step === 4) {
+        if (!formData.emailVerified) {
+          // Verification happens via button interaction, not next step
+          // But if they try to finish...
+        }
       }
+
+      setErrors({});
+      return true;
     } catch (error) {
       if (error instanceof z.ZodError) {
+        const newErrors: Record<string, string> = {};
         error.errors.forEach((err) => {
           newErrors[err.path[0] as string] = err.message;
         });
+        setErrors(newErrors);
       }
+      return false;
     }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
   };
 
   const nextStep = () => {
-    if (validateStep(currentStep)) {
-      setCurrentStep(prev => Math.min(prev + 1, 5));
-      return true;
+    if (validateStep()) {
+      setCurrentStep((prev) => Math.min(prev + 1, 4));
     }
-    return false;
   };
 
   const prevStep = () => {
-    setCurrentStep(prev => Math.max(prev - 1, 1));
+    setCurrentStep((prev) => Math.max(prev - 1, 1));
   };
 
   const goToStep = (step: number) => {
-    setCurrentStep(step);
+    if (step < currentStep || validateStep(currentStep)) {
+      setCurrentStep(step);
+    }
   };
 
   return {
@@ -173,10 +136,8 @@ export const useRegisterForm = () => {
     formData,
     errors,
     updateFormData,
-    validateStep,
     nextStep,
     prevStep,
     goToStep,
-    setErrors,
   };
 };

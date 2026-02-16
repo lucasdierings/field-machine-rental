@@ -26,6 +26,7 @@ interface DashboardStats {
   total_revenue: number;
   revenue_30d: number;
   total_platform_fees: number;
+  search_alerts_count: number;
 }
 
 const AdminDashboard = () => {
@@ -92,6 +93,12 @@ const AdminDashboard = () => {
         ?.filter(b => (b.status === 'completed' || b.status === 'approved') && new Date(b.created_at) >= thirtyDaysAgo)
         .reduce((acc, curr) => acc + (curr.total_amount || 0), 0) || 0;
 
+      // 4. Search Alerts Stats
+      const { count: totalAlerts } = await (supabase as any)
+        .from('search_alerts')
+        .select('*', { count: 'exact', head: true });
+
+
       setStats({
         total_users: totalUsers || 0,
         verified_users: 0, // Need verification logic
@@ -105,7 +112,8 @@ const AdminDashboard = () => {
         new_bookings_30d: 0,
         total_revenue: totalRevenue,
         revenue_30d: revenue30d,
-        total_platform_fees: totalRevenue * 0.1 // Assuming 10% fee
+        total_platform_fees: totalRevenue * 0.1,
+        search_alerts_count: totalAlerts || 0
       });
 
     } catch (error) {
@@ -188,6 +196,19 @@ const AdminDashboard = () => {
                   <div className="text-2xl font-bold">{stats?.total_users || 0}</div>
                   <p className="text-xs text-green-600">
                     +{stats?.new_users_30d || 0} este mês
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card className="border-l-4 border-l-yellow-500">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Alertas de Busca</CardTitle>
+                  <Activity className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{(stats as any)?.search_alerts_count || 0}</div>
+                  <p className="text-xs text-muted-foreground">
+                    Usuários monitorando
                   </p>
                 </CardContent>
               </Card>

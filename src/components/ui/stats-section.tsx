@@ -1,16 +1,16 @@
 import { useEffect, useRef, useState } from "react";
 import CountUp from "react-countup";
 
-const stats = [
+const stats: { number: number; suffix: string; label: string; description: string; prefix?: string }[] = [
   {
-    number: 347,
-    suffix: "+",
+    number: 91,
+    suffix: "",
     label: "Máquinas disponíveis",
     description: "Equipamentos verificados"
   },
   {
-    number: 1847,
-    suffix: "+", 
+    number: 389,
+    suffix: "",
     label: "Produtores cadastrados",
     description: "Rede confiável"
   },
@@ -19,13 +19,6 @@ const stats = [
     suffix: "%",
     label: "Satisfação",
     description: "Clientes satisfeitos"
-  },
-  {
-    number: 2.7,
-    suffix: "M+",
-    prefix: "R$ ",
-    label: "Economizados",
-    description: "Para nossos usuários"
   }
 ];
 
@@ -61,7 +54,7 @@ export const StatsSection = () => {
             Milhares de produtores já confiam no FieldMachine para suas necessidades agrícolas
           </p>
         </div>
-        
+
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
           {stats.map((stat, index) => (
             <div key={index} className="text-center">

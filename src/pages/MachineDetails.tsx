@@ -27,6 +27,7 @@ interface Machine {
     description: string;
     specifications: any;
     owner_id: string;
+    operator_type?: string;
     owner?: {
         full_name: string;
         avatar_url: string;
@@ -59,8 +60,9 @@ const MachineDetails = () => {
     const [selectedImage, setSelectedImage] = useState(0);
     const [startDate, setStartDate] = useState<string>("");
     const [quantity, setQuantity] = useState<number>(1);
-    const [bookingLoading, setBookingLoading] = useState(false);
     const [notes, setNotes] = useState("");
+    const [bookingLoading, setBookingLoading] = useState(false);
+
 
     useEffect(() => {
         loadMachine();
@@ -95,8 +97,21 @@ const MachineDetails = () => {
                 }
             }
 
+            // Load images from machine_images table
+            const { data: machineImages } = await supabase
+                .from('machine_images')
+                .select('image_url')
+                .eq('machine_id', id)
+                .order('order_index');
+
+            const images = machineImages?.map(img => img.image_url) || [];
+
+            // Retrieve operator info if needed or just use what we have
+            // ...
+
             setMachine({
                 ...machineData,
+                images: images.length > 0 ? images : [],
                 owner: ownerData
             } as any);
         } catch (error: any) {
@@ -155,7 +170,6 @@ const MachineDetails = () => {
     const avgRating = reviews.length > 0
         ? reviews.reduce((acc, r) => acc + (r.rating || 0), 0) / reviews.length
         : 0;
-
     const handleBooking = async () => {
         if (!startDate) {
             toast({
@@ -289,9 +303,8 @@ const MachineDetails = () => {
                             <button
                                 key={idx}
                                 onClick={() => setSelectedImage(idx)}
-                                className={`shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 ${
-                                    selectedImage === idx ? 'border-primary' : 'border-transparent'
-                                }`}
+                                className={`shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 ${selectedImage === idx ? 'border-primary' : 'border-transparent'
+                                    }`}
                             >
                                 <img src={img} alt="" className="w-full h-full object-cover" />
                             </button>
@@ -339,8 +352,12 @@ const MachineDetails = () => {
                             <div className="flex gap-4">
                                 <User className="h-6 w-6 text-primary shrink-0" />
                                 <div>
-                                    <h3 className="font-medium">Operador Incluso</h3>
-                                    <p className="text-sm text-muted-foreground">O proprietário disponibiliza operador para o serviço.</p>
+                                    <h3 className="font-medium">Operador {machine.operator_type === 'hired' ? 'Contratado' : 'Próprio'}</h3>
+                                    <p className="text-sm text-muted-foreground">
+                                        {machine.operator_type === 'hired'
+                                            ? 'O serviço é realizado por um operador contratado pelo proprietário.'
+                                            : 'O próprio dono ou sua equipe realiza o serviço.'}
+                                    </p>
                                 </div>
                             </div>
                             <div className="flex gap-4">
