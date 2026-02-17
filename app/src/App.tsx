@@ -26,6 +26,7 @@ import Profile from "./pages/Profile";
 import Documents from "./pages/Documents";
 import MyMachines from "./pages/MyMachines";
 import MachineDetails from "./pages/MachineDetails";
+import Bookings from "./pages/Bookings";
 import ReviewBooking from "./pages/ReviewBooking";
 import Chat from "./pages/Chat";
 import ForgotPassword from "./pages/ForgotPassword";
@@ -110,6 +111,11 @@ const App = () => (
             <Route path="/dashboard" element={
               <ProtectedRoute>
                 <Dashboard />
+              </ProtectedRoute>
+            } />
+            <Route path="/dashboard/solicitacoes" element={
+              <ProtectedRoute>
+                <Bookings />
               </ProtectedRoute>
             } />
             <Route path="/add-machine" element={

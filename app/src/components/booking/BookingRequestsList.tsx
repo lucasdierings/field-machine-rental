@@ -55,7 +55,7 @@ const BILLING_TYPE_LABELS: Record<string, string> = {
     km: "km",
 };
 
-export const BookingRequestsList = ({ bookings, onUpdate }: BookingRequestsListProps) => {
+export const BookingRequestsList = ({ bookings, onUpdate, currentUserId }: BookingRequestsListProps) => {
     const { toast } = useToast();
     const navigate = useNavigate();
     const [processingId, setProcessingId] = useState<string | null>(null);
@@ -219,8 +219,8 @@ export const BookingRequestsList = ({ bookings, onUpdate }: BookingRequestsListP
                             key={tab.key}
                             onClick={() => setActiveTab(tab.key)}
                             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium whitespace-nowrap border transition-colors ${activeTab === tab.key
-                                    ? 'bg-primary text-primary-foreground border-primary'
-                                    : 'bg-background border-border hover:bg-muted'
+                                ? 'bg-primary text-primary-foreground border-primary'
+                                : 'bg-background border-border hover:bg-muted'
                                 }`}
                         >
                             <Icon className="w-3.5 h-3.5" />

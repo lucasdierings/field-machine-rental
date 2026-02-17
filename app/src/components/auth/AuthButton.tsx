@@ -154,7 +154,7 @@ export const AuthButton = () => {
           <Tractor className="mr-2 h-4 w-4" />
           <span>Minhas Máquinas</span>
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => navigate('/dashboard')}>
+        <DropdownMenuItem onClick={() => navigate('/dashboard/solicitacoes')}>
           <FileText className="mr-2 h-4 w-4" />
           <span>Solicitações</span>
         </DropdownMenuItem>
