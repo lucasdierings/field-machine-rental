@@ -51,6 +51,22 @@ export default function Login() {
             description: "Email ou senha incorretos",
             variant: "destructive",
           });
+        } else if (error.message.includes('Email not confirmed')) {
+          toast({
+            title: "Email não verificado",
+            description: "Você precisa confirmar seu email antes de entrar.",
+            variant: "destructive",
+            action: (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => navigate(`/verificar-email?email=${encodeURIComponent(formData.email)}`)}
+              >
+                Verificar Agora
+              </Button>
+            )
+          });
+          // Optional: Auto redirect after toast or just let user click
         } else {
           toast({
             title: "Erro no login",
@@ -83,7 +99,7 @@ export default function Login() {
           navigate("/dashboard", { replace: true });
         } else if (isRenter) {
           // Se for apenas produtor, vai para a busca
-          navigate("/buscar", { replace: true });
+          navigate("/servicos-agricolas", { replace: true });
         } else {
           // Fallback
           navigate("/dashboard", { replace: true });

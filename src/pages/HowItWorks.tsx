@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Search, Star, MessageCircle, Handshake, Users } from "lucide-react";
 import { Link } from "react-router-dom";
+import { SEO } from "@/components/SEO";
 
 const HowItWorks = () => {
   const steps = [
@@ -31,6 +32,11 @@ const HowItWorks = () => {
 
   return (
     <div className="min-h-screen bg-background pb-16 md:pb-0">
+      <SEO
+        title="Como Funciona o FieldMachine - Aluguel de Máquinas Sem Taxas"
+        description="Entenda como funciona o FieldMachine. Conectamos produtores e prestadores de serviços agrícolas sem cobrar taxas ou comissões."
+        canonical="/como-funciona"
+      />
       <Header />
       <main className="pt-16">
         {/* Hero Section */}
@@ -164,7 +170,7 @@ const HowItWorks = () => {
               </div>
 
               <Button size="lg" className="bg-gradient-primary w-full sm:w-auto" asChild>
-                <Link to="/buscar">Começar Agora</Link>
+                <Link to="/servicos-agricolas">Começar Agora</Link>
               </Button>
             </div>
           </div>

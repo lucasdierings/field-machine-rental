@@ -106,9 +106,9 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                         ) : (
                             <>
                                 <NavItem to="/dashboard" icon={LayoutDashboard} label="Dashboard" />
-                                <NavItem to="/buscar" icon={SearchIcon} label="Buscar Máquinas" />
+                                <NavItem to="/servicos-agricolas" icon={SearchIcon} label="Buscar Máquinas" />
                                 {(isOwner() || isAdmin()) && (
-                                    <NavItem to="/maquinas" icon={Tractor} label="Minhas Máquinas" />
+                                    <NavItem to="/minhas-maquinas" icon={Tractor} label="Minhas Máquinas" />
                                 )}
                                 <NavItem to="/dashboard/documentos" icon={FileText} label="Meus Documentos" />
                             </>

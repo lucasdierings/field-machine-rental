@@ -13,6 +13,7 @@ import { getUserLocation, sortByDistance, Coordinates } from "@/lib/geolocation"
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { ArrowUpDown } from "lucide-react";
+import { SEO } from "@/components/SEO";
 
 export interface MachineData {
   id: string;
@@ -192,6 +193,11 @@ const Machines = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEO
+        title="Prestadores de Serviços Agrícolas"
+        description="Encontre os melhores prestadores de serviços com maquinário agrícola na sua região. Aluguel de tratores, colheitadeiras e mais."
+        canonical="/prestadores"
+      />
       <Header />
       <main className="pt-16">
         <div className="container mx-auto px-4 py-6 max-w-7xl">

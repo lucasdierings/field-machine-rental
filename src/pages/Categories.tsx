@@ -2,10 +2,16 @@ import { Header } from "@/components/ui/header";
 import { Footer } from "@/components/ui/footer";
 import { CategorySection } from "@/components/ui/category-section";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { SEO } from "@/components/SEO";
 
 const Categories = () => {
   return (
     <div className="min-h-screen bg-background">
+      <SEO
+        title="Categorias de Serviços e Máquinas Agrícolas"
+        description="Explore todas as categorias de serviços e aluguel de máquinas agrícolas. Tratores, colheitadeiras, pulverizadores e muito mais."
+        canonical="/servicos"
+      />
       <Header />
       <main className="pt-16">
         {/* Page Header */}
@@ -35,8 +41,8 @@ const Categories = () => {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <p className="text-muted-foreground">
-                    Nossa plataforma organiza os equipamentos em categorias específicas para facilitar sua busca. 
-                    Cada categoria agrupa máquinas com funções similares, permitindo comparar modelos, 
+                    Nossa plataforma organiza os equipamentos em categorias específicas para facilitar sua busca.
+                    Cada categoria agrupa máquinas com funções similares, permitindo comparar modelos,
                     especificações e preços de forma mais eficiente.
                   </p>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">

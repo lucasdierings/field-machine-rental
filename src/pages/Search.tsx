@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useLocation, useParams } from "react-router-dom";
 import { Header } from "@/components/ui/header";
 import { Footer } from "@/components/ui/footer";
 import { MachineGrid } from "@/components/ui/machine-grid";
@@ -10,9 +11,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Search as SearchIcon, Filter, Bell } from "lucide-react";
+import { SEO } from "@/components/SEO";
 
 const Search = () => {
   const { toast } = useToast();
+  const { city } = useParams();
+  const locationObj = useLocation();
+
   const [searchFilters, setSearchFilters] = useState<FilterValues & {
     location?: string;
     startDate?: Date;
@@ -44,10 +49,66 @@ const Search = () => {
 
   const [filters, setFilters] = useState<FilterValues>(defaultFilters);
 
+  // SEO Logic
+  let seoTitle = "Busca de Serviços Agrícolas";
+  let seoDescription = "Encontre prestadores de serviços, aluguel de máquinas e soluções para sua lavoura.";
+  let canonicalUrl = "/servicos-agricolas";
+
+  if (city) {
+    const cityName = city.charAt(0).toUpperCase() + city.slice(1).replace(/-/g, ' ');
+    seoTitle = `Serviços Agrícolas em ${cityName}`;
+    seoDescription = `Encontre tratores, colheitadeiras e serviços rurais em ${cityName}. Conecte-se com prestadores locais.`;
+    canonicalUrl = `/servicos/${city}`;
+  } else if (locationObj.pathname.includes('/servicos/colheita')) {
+    seoTitle = "Serviços de Colheita - Locação de Colheitadeiras";
+    seoDescription = "Encontre colheitadeiras e serviços de colheita. Conecte-se com prestadores qualificados.";
+    canonicalUrl = "/servicos/colheita";
+  } else if (locationObj.pathname.includes('/servicos/plantio')) {
+    seoTitle = "Serviços de Plantio - Plantadeiras e Tratores";
+    canonicalUrl = "/servicos/plantio";
+  } else if (locationObj.pathname.includes('/servicos/pulverizacao')) {
+    seoTitle = "Serviços de Pulverização Agrícola";
+    canonicalUrl = "/servicos/pulverizacao";
+  } else if (locationObj.pathname.includes('/servicos/preparo-solo')) {
+    seoTitle = "Preparo de Solo - Tratores e Implementos";
+    canonicalUrl = "/servicos/preparo-solo";
+  } else if (locationObj.pathname.includes('/servicos/transporte')) {
+    seoTitle = "Transporte Agrícola e de Cargas";
+    canonicalUrl = "/servicos/transporte";
+  }
+
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const locationParam = params.get('location');
     const categoryParam = params.get('categoria');
+
+    // Handle City Landing Page
+    if (city) {
+      const cityName = city.replace(/-/g, ' ');
+      setLocation(cityName);
+      setSearchFilters(prev => ({ ...prev, location: cityName, ...defaultFilters }));
+    }
+
+    // Handle Category Landing Pages
+    if (locationObj.pathname.includes('/servicos/colheita')) {
+      setOperation("Colheita");
+      setCategory("Colheitadeiras");
+      setSearchFilters(prev => ({ ...defaultFilters, location: prev?.location, category: "Colheitadeiras", operation: "Colheita" }));
+    } else if (locationObj.pathname.includes('/servicos/plantio')) {
+      setOperation("Plantio");
+      setCategory("Plantadeiras");
+      setSearchFilters(prev => ({ ...defaultFilters, location: prev?.location, category: "Plantadeiras", operation: "Plantio" }));
+    } else if (locationObj.pathname.includes('/servicos/pulverizacao')) {
+      setOperation("Pulverização");
+      setCategory("Pulverizadores");
+      setSearchFilters(prev => ({ ...defaultFilters, location: prev?.location, category: "Pulverizadores", operation: "Pulverização" }));
+    } else if (locationObj.pathname.includes('/servicos/preparo-solo')) {
+      setOperation("Preparo do solo");
+      setSearchFilters(prev => ({ ...defaultFilters, location: prev?.location, operation: "Preparo do solo" }));
+    } else if (locationObj.pathname.includes('/servicos/transporte')) {
+      setCategory("Transporte de Cargas");
+      setSearchFilters(prev => ({ ...defaultFilters, location: prev?.location, category: "Transporte de Cargas" }));
+    }
 
     if (locationParam) {
       setLocation(locationParam);
@@ -58,13 +119,14 @@ const Search = () => {
     }
 
     if (locationParam || categoryParam) {
-      setSearchFilters({
+      setSearchFilters(prev => ({
         ...defaultFilters,
-        location: locationParam || "",
-        category: categoryParam || "Todas as categorias",
-      });
+        ...prev,
+        location: locationParam || prev?.location || "",
+        category: categoryParam || prev?.category || "Todas as categorias",
+      }));
     }
-  }, []);
+  }, [city, locationObj.pathname]);
 
   const handleSearch = () => {
     setSearchFilters({
@@ -82,6 +144,11 @@ const Search = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEO
+        title={seoTitle}
+        description={seoDescription}
+        canonical={canonicalUrl}
+      />
       <Header />
       <main className="pt-16">
         {/* Search Section */}

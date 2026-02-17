@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Plus, TrendingUp, TrendingDown, Tractor, ShoppingCart, BarChart3, Calendar } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { BookingRequestsList } from "@/components/booking/BookingRequestsList";
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -264,6 +265,18 @@ export default function Dashboard() {
                 </div>
               </CardContent>
             </Card>
+          </div>
+
+          {/* Pending Requests Section */}
+          <div className="mb-8">
+            <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
+              <ShoppingCart className="w-5 h-5 text-orange-500" />
+              Solicitações de Serviço
+            </h2>
+            <BookingRequestsList
+              bookings={bookings.filter((b: any) => b.status === 'pending' && b.owner_id === user?.id)}
+              onUpdate={loadUserData}
+            />
           </div>
 
           {/* Minhas Máquinas Section */}

@@ -235,7 +235,7 @@ const AdminMachinesTab = () => {
                                         <TableCell>
                                             <div className="flex items-center gap-2">
                                                 <Button variant="ghost" size="sm" asChild>
-                                                    <Link to={`/maquinas/${machine.id}`}>
+                                                    <Link to={`/prestador/${machine.id}`}>
                                                         <Eye className="h-4 w-4" />
                                                     </Link>
                                                 </Button>

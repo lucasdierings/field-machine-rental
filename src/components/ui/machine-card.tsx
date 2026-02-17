@@ -145,7 +145,7 @@ export const MachineCard = ({ machine }: MachineCardProps) => {
               className="flex-1"
               asChild
             >
-              <Link to={`/maquinas/${machine.id}`}>
+              <Link to={`/prestador/${machine.id}`}>
                 Ver Detalhes
               </Link>
             </Button>
@@ -154,7 +154,7 @@ export const MachineCard = ({ machine }: MachineCardProps) => {
               className="flex-1 bg-gradient-primary hover:shadow-hero transition-all duration-300"
               asChild
             >
-              <Link to={`/maquinas/${machine.id}`}>
+              <Link to={`/prestador/${machine.id}`}>
                 <Calendar className="mr-2 h-4 w-4" />
                 Reservar
               </Link>

@@ -7,10 +7,16 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Upload, DollarSign, Shield, Users } from "lucide-react";
+import { SEO } from "@/components/SEO";
 
 const RentMyMachine = () => {
   return (
     <div className="min-h-screen bg-background">
+      <SEO
+        title="Anunciar Serviços Agrícolas e Aluguel de Máquinas"
+        description="Anuncie seus serviços e máquinas agrícolas para milhares de produtores. Aumente sua renda prestando serviços rurais com segurança."
+        canonical="/oferecer-servicos"
+      />
       <Header />
       <main className="pt-16">
         {/* Hero Section */}
@@ -18,7 +24,7 @@ const RentMyMachine = () => {
           <div className="container mx-auto px-4 text-center">
             <h1 className="text-4xl md:text-5xl font-bold mb-6">Alugue Sua Máquina</h1>
             <p className="text-xl opacity-90 max-w-3xl mx-auto mb-8">
-              Transforme seus equipamentos agrícolas em fonte de renda. 
+              Transforme seus equipamentos agrícolas em fonte de renda.
               Cadastre suas máquinas e conecte-se com produtores da sua região.
             </p>
           </div>
@@ -29,7 +35,7 @@ const RentMyMachine = () => {
           <div className="container mx-auto px-4">
             <div className="max-w-4xl mx-auto">
               <h2 className="text-3xl font-bold text-center mb-12">Por que prestar serviços no FieldMachine?</h2>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
                 <Card className="text-center">
                   <CardContent className="p-8">
@@ -42,7 +48,7 @@ const RentMyMachine = () => {
                     </p>
                   </CardContent>
                 </Card>
-                
+
                 <Card className="text-center">
                   <CardContent className="p-8">
                     <div className="bg-primary/10 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -54,7 +60,7 @@ const RentMyMachine = () => {
                     </p>
                   </CardContent>
                 </Card>
-                
+
                 <Card className="text-center">
                   <CardContent className="p-8">
                     <div className="bg-primary/10 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -85,7 +91,7 @@ const RentMyMachine = () => {
                       <Label htmlFor="machine-name">Nome da Máquina *</Label>
                       <Input id="machine-name" placeholder="Ex: Trator New Holland T7" />
                     </div>
-                    
+
                     <div className="space-y-2">
                       <Label htmlFor="brand">Marca *</Label>
                       <Select>
@@ -118,7 +124,7 @@ const RentMyMachine = () => {
                         </SelectContent>
                       </Select>
                     </div>
-                    
+
                     <div className="space-y-2">
                       <Label htmlFor="year">Ano *</Label>
                       <Input id="year" placeholder="Ex: 2020" type="number" />
@@ -130,7 +136,7 @@ const RentMyMachine = () => {
                       <Label htmlFor="power">Potência (CV)</Label>
                       <Input id="power" placeholder="Ex: 180" type="number" />
                     </div>
-                    
+
                     <div className="space-y-2">
                       <Label htmlFor="location">Localização *</Label>
                       <Input id="location" placeholder="Cidade, Estado" />
@@ -144,8 +150,8 @@ const RentMyMachine = () => {
 
                   <div className="space-y-2">
                     <Label htmlFor="description">Descrição do Equipamento</Label>
-                    <Textarea 
-                      id="description" 
+                    <Textarea
+                      id="description"
                       placeholder="Descreva o estado, características especiais e informações importantes sobre sua máquina"
                       rows={4}
                     />
@@ -182,7 +188,7 @@ const RentMyMachine = () => {
           <div className="container mx-auto px-4">
             <div className="max-w-4xl mx-auto">
               <h2 className="text-3xl font-bold text-center mb-12">Histórias de Sucesso</h2>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <Card>
                   <CardContent className="p-6">
@@ -196,12 +202,12 @@ const RentMyMachine = () => {
                       </div>
                     </div>
                     <p className="text-muted-foreground">
-                      "Em 6 meses no FieldMachine já gerei R$ 45.000 alugando meu trator. 
+                      "Em 6 meses no FieldMachine já gerei R$ 45.000 alugando meu trator.
                       A plataforma é segura e os pagamentos sempre em dia."
                     </p>
                   </CardContent>
                 </Card>
-                
+
                 <Card>
                   <CardContent className="p-6">
                     <div className="flex items-center gap-4 mb-4">
@@ -214,7 +220,7 @@ const RentMyMachine = () => {
                       </div>
                     </div>
                     <p className="text-muted-foreground">
-                      "Consegui maximizar o uso da minha colheitadeira. Agora ela trabalha 
+                      "Consegui maximizar o uso da minha colheitadeira. Agora ela trabalha
                       o ano todo e paga as próprias parcelas!"
                     </p>
                   </CardContent>

@@ -35,7 +35,7 @@ export const EnhancedHero = () => {
     if (categoria !== "Todas as categorias") searchParams.set("categoria", categoria);
 
     const queryString = searchParams.toString();
-    window.location.href = `/buscar${queryString ? `?${queryString}` : ""}`;
+    window.location.href = `/servicos-agricolas${queryString ? `?${queryString}` : ""}`;
   };
 
   return (
@@ -158,7 +158,7 @@ export const EnhancedHero = () => {
               className="flex-1 h-11 md:h-12 text-sm md:text-base border-white text-white hover:bg-white hover:text-primary backdrop-blur-sm bg-black/20"
               asChild
             >
-              <Link to="/alugar-minha-maquina">
+              <Link to="/oferecer-servicos">
                 Prestar Serviços
               </Link>
             </Button>

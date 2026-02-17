@@ -27,11 +27,11 @@ const Favorites = () => {
                     <Heart className="h-16 w-16 mx-auto text-muted-foreground mb-6" />
                     <h2 className="text-2xl font-semibold mb-4">Nenhum favorito ainda</h2>
                     <p className="text-muted-foreground mb-8 max-w-md mx-auto">
-                      Comece a favoritar equipamentos para vê-los aqui. 
+                      Comece a favoritar equipamentos para vê-los aqui.
                       Clique no ícone de coração nos equipamentos que mais gostar.
                     </p>
                     <Button asChild className="bg-gradient-primary">
-                      <Link to="/buscar">
+                      <Link to="/servicos-agricolas">
                         <Search className="h-4 w-4 mr-2" />
                         Explorar Equipamentos
                       </Link>

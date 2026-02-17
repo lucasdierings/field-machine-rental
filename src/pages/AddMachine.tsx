@@ -13,6 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Loader2, Upload, X, Image as ImageIcon } from "lucide-react";
 import { LocationSelector } from "@/components/ui/location-selector";
 import { MultiCitySelector } from "@/components/ui/multi-city-selector";
+
 const categories = [
   "Tratores",
   "Colheitadeiras",
@@ -34,13 +35,23 @@ const brands = [
   "Mercedes-Benz"
 ];
 
+interface MachineImageState {
+  id?: string;
+  url: string;
+  file?: File;
+  isNew: boolean;
+}
+
 export default function AddMachine() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [uploadingImages, setUploadingImages] = useState(false);
-  const [selectedImages, setSelectedImages] = useState<File[]>([]);
-  const [imagePreviewUrls, setImagePreviewUrls] = useState<string[]>([]);
+
+  // New Image State Management
+  const [machineImages, setMachineImages] = useState<MachineImageState[]>([]);
+  const [deletedImageIds, setDeletedImageIds] = useState<string[]>([]);
+
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { id } = useParams();
   const isEditing = !!id;
@@ -109,15 +120,19 @@ export default function AddMachine() {
           service_cities: (machine as any).service_cities || []
         });
 
-        // Load images from machine_images table
-        const { data: machineImages } = await supabase
+        // Load images using new structure
+        const { data: dbImages } = await supabase
           .from('machine_images')
-          .select('image_url')
+          .select('id, image_url')
           .eq('machine_id', id)
           .order('order_index');
 
-        if (machineImages && machineImages.length > 0) {
-          setImagePreviewUrls(machineImages.map(img => img.image_url));
+        if (dbImages) {
+          setMachineImages(dbImages.map(img => ({
+            id: img.id,
+            url: img.image_url,
+            isNew: false
+          })));
         }
       }
     } catch (error: any) {
@@ -135,7 +150,7 @@ export default function AddMachine() {
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
 
-    if (selectedImages.length + files.length > 3) {
+    if (machineImages.length + files.length > 3) {
       toast({
         title: "Limite de imagens",
         description: "Você pode enviar no máximo 3 fotos",
@@ -168,22 +183,28 @@ export default function AddMachine() {
     });
 
     if (validFiles.length > 0) {
-      setSelectedImages(prev => [...prev, ...validFiles]);
+      const newImages = validFiles.map(file => ({
+        url: URL.createObjectURL(file), // Create local preview
+        file,
+        isNew: true
+      }));
 
-      // Criar previews
-      validFiles.forEach(file => {
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          setImagePreviewUrls(prev => [...prev, reader.result as string]);
-        };
-        reader.readAsDataURL(file);
-      });
+      setMachineImages(prev => [...prev, ...newImages]);
     }
+
+    // Clear input
+    if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
   const removeImage = (index: number) => {
-    setSelectedImages(prev => prev.filter((_, i) => i !== index));
-    setImagePreviewUrls(prev => prev.filter((_, i) => i !== index));
+    const imageToRemove = machineImages[index];
+
+    // If it's an existing image (from DB), track its ID for deletion
+    if (!imageToRemove.isNew && imageToRemove.id) {
+      setDeletedImageIds(prev => [...prev, imageToRemove.id!]);
+    }
+
+    setMachineImages(prev => prev.filter((_, i) => i !== index));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -278,7 +299,7 @@ export default function AddMachine() {
         service_cities: formData.service_cities
       };
 
-      let machineId;
+      let machineId: string | undefined;
 
       if (isEditing) {
         const { error } = await supabase
@@ -299,30 +320,42 @@ export default function AddMachine() {
         machineId = data.id;
       }
 
-      // Upload das imagens se houver
-      if (selectedImages.length > 0) {
-        setUploadingImages(true);
+      if (!machineId) throw new Error("ID da máquina não encontrado");
 
-        for (let i = 0; i < selectedImages.length; i++) {
-          const file = selectedImages[i];
-          const fileName = `${machineId}/${Date.now()}_${i}.${file.name.split('.').pop()}`;
+      // Handle Image Updates
+      setUploadingImages(true);
+
+      // 1. Delete removed images from DB
+      if (deletedImageIds.length > 0) {
+        await supabase
+          .from('machine_images')
+          .delete()
+          .in('id', deletedImageIds);
+        // Note: We are not deleting from storage here to keep it simple, but we could if we tracked file paths.
+      }
+
+      // 2. Process all current images (Upload new ones, update order for all)
+      for (let i = 0; i < machineImages.length; i++) {
+        const img = machineImages[i];
+
+        if (img.isNew && img.file) {
+          // Upload new image
+          const fileName = `${machineId}/${Date.now()}_${i}.${img.file.name.split('.').pop()}`;
 
           const { error: uploadError } = await supabase.storage
             .from('machine-images')
-            .upload(fileName, file);
+            .upload(fileName, img.file);
 
           if (uploadError) {
-            if (import.meta.env.DEV) {
-              console.error('Erro no upload:', uploadError);
-            }
+            console.error('Error uploading:', uploadError);
             continue;
           }
 
-          // Inserir registro na tabela machine_images
           const { data: { publicUrl } } = supabase.storage
             .from('machine-images')
             .getPublicUrl(fileName);
 
+          // Insert new image record
           await supabase
             .from('machine_images')
             .insert({
@@ -331,24 +364,21 @@ export default function AddMachine() {
               is_primary: i === 0,
               order_index: i
             });
-        }
 
-        setUploadingImages(false);
-
-        // Atualizar o array de imagens na tabela machines
-        const imageUrls = [];
-        const { data: imagesData } = await supabase
-          .from('machine_images')
-          .select('image_url')
-          .eq('machine_id', machineId)
-          .order('order_index');
-
-        if (imagesData) {
-          // Images are stored in machine_images table, not in machines.images
-          // Just log success - the images are already associated via machine_id
-          console.log(`${imagesData.length} images associated with machine ${machineId}`);
+        } else if (!img.isNew && img.id) {
+          // Update existing image order/primary status if needed
+          // We always update to ensure order is correct
+          await supabase
+            .from('machine_images')
+            .update({
+              is_primary: i === 0,
+              order_index: i
+            })
+            .eq('id', img.id);
         }
       }
+
+      setUploadingImages(false);
 
       toast({
         title: isEditing ? "Máquina atualizada!" : "Máquina cadastrada!",
@@ -370,6 +400,7 @@ export default function AddMachine() {
       });
     } finally {
       setLoading(false);
+      setUploadingImages(false);
     }
   };
 
@@ -441,7 +472,7 @@ export default function AddMachine() {
 
                   <div className="space-y-2">
                     <Label htmlFor="category">Categoria *</Label>
-                    <Select onValueChange={(value) => handleChange('category', value)}>
+                    <Select onValueChange={(value) => handleChange('category', value)} value={formData.category}>
                       <SelectTrigger>
                         <SelectValue placeholder="Selecione a categoria" />
                       </SelectTrigger>
@@ -457,7 +488,7 @@ export default function AddMachine() {
 
                   <div className="space-y-2">
                     <Label htmlFor="brand">Marca *</Label>
-                    <Select onValueChange={(value) => handleChange('brand', value)}>
+                    <Select onValueChange={(value) => handleChange('brand', value)} value={formData.brand}>
                       <SelectTrigger>
                         <SelectValue placeholder="Selecione a marca" />
                       </SelectTrigger>
@@ -623,23 +654,23 @@ export default function AddMachine() {
                         type="button"
                         variant="outline"
                         onClick={() => fileInputRef.current?.click()}
-                        disabled={selectedImages.length >= 3}
+                        disabled={machineImages.length >= 3}
                         className="w-full"
                       >
                         <Upload className="mr-2 h-4 w-4" />
-                        Selecionar Fotos ({selectedImages.length}/3)
+                        Selecionar Fotos ({machineImages.length}/3)
                       </Button>
                       <p className="text-xs text-muted-foreground mt-2 text-center">
                         Envie até 3 fotos da máquina (máx. 5MB cada)
                       </p>
                     </div>
 
-                    {imagePreviewUrls.length > 0 && (
+                    {machineImages.length > 0 && (
                       <div className="grid grid-cols-3 gap-4">
-                        {imagePreviewUrls.map((url, index) => (
+                        {machineImages.map((img, index) => (
                           <div key={index} className="relative group">
                             <img
-                              src={url}
+                              src={img.url}
                               alt={`Preview ${index + 1}`}
                               className="w-full h-32 object-cover rounded-lg"
                             />
@@ -684,7 +715,7 @@ export default function AddMachine() {
                         {uploadingImages ? 'Enviando fotos...' : 'Cadastrando...'}
                       </>
                     ) : (
-                      'Cadastrar Máquina'
+                      'Salvar'
                     )}
                   </Button>
                 </div>
