@@ -64,12 +64,12 @@ const ReviewBooking = () => {
 
             if (error) throw error;
 
-            // Step 2: fetch renter and owner profiles separately
-            const profileIds = [bookingData.renter_id, bookingData.owner_id].filter(Boolean);
+            // Step 2: fetch renter and owner profiles (including .id — PK used in reviews FK)
+            const profileAuthIds = [bookingData.renter_id, bookingData.owner_id].filter(Boolean);
             const { data: profiles } = await supabase
                 .from('user_profiles')
-                .select('auth_user_id, full_name')
-                .in('auth_user_id', profileIds);
+                .select('id, auth_user_id, full_name')
+                .in('auth_user_id', profileAuthIds);
 
             const profileMap = Object.fromEntries((profiles || []).map((p: any) => [p.auth_user_id, p]));
 
@@ -80,11 +80,18 @@ const ReviewBooking = () => {
             } as any);
 
             // Check if user already reviewed this booking
+            // reviewer_id FK → user_profiles.id, so look up current user's profile id
+            const { data: myProfile } = await supabase
+                .from('user_profiles')
+                .select('id')
+                .eq('auth_user_id', user.id)
+                .single();
+
             const { data: existingReview } = await supabase
                 .from('reviews')
                 .select('id')
                 .eq('booking_id', bookingId)
-                .eq('reviewer_id', user.id)
+                .eq('reviewer_id', myProfile?.id || '')
                 .maybeSingle();
 
             if (existingReview) {
@@ -115,7 +122,9 @@ const ReviewBooking = () => {
     const isRenter = currentUserId === booking.renter_id;
     const isOwner = currentUserId === booking.owner_id;
     const reviewType = isOwner ? "owner_reviews_client" as const : "client_reviews_owner" as const;
-    const reviewedId = isOwner ? booking.renter_id : booking.owner_id;
+    // reviewed_id FK → user_profiles.id (PK), so use the profile id loaded from user_profiles
+    const reviewedProfile = isOwner ? (booking as any).renter : (booking as any).owner;
+    const reviewedId = reviewedProfile?.id || (isOwner ? booking.renter_id : booking.owner_id);
 
     const machineName = (booking as any).machines?.name || "Máquina";
     const machineCategory = (booking as any).machines?.category || "";

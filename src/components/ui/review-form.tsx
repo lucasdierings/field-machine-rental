@@ -125,9 +125,21 @@ export const ReviewForm = ({ bookingId, reviewedId, reviewType, onSuccess }: Rev
                 return;
             }
 
+            // reviews.reviewer_id FK → public.users.id (profile PK, not auth.uid())
+            const { data: myProfile } = await supabase
+                .from('user_profiles')
+                .select('id')
+                .eq('auth_user_id', user.id)
+                .single();
+
+            if (!myProfile) {
+                toast({ title: "Perfil não encontrado", variant: "destructive" });
+                return;
+            }
+
             const reviewData: any = {
                 booking_id: bookingId,
-                reviewer_id: user.id,
+                reviewer_id: myProfile.id,
                 reviewed_id: reviewedId,
                 review_type: reviewType,
                 rating,
