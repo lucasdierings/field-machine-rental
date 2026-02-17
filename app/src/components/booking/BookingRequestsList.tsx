@@ -1,15 +1,16 @@
-import { useState } from "react";
+import { useState, memo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import {
     Loader2, CheckCircle, XCircle, Calendar, User, Truck,
-    Clock, Star, MessageCircle, CheckCircle2, AlertCircle
+    Clock, Star, MessageCircle, CheckCircle2, AlertCircle, ShieldCheck, ShieldAlert
 } from "lucide-react";
 import { CompleteServiceModal } from "./CompleteServiceModal";
 
@@ -30,7 +31,7 @@ interface Booking {
     owner_id: string;
     machines?: { name: string; category: string; brand?: string };
     machine?: { name: string; category: string };
-    renter?: { full_name: string; phone?: string; avatar_url?: string };
+    renter?: { full_name: string; phone?: string; avatar_url?: string; verified?: boolean };
 }
 
 interface BookingRequestsListProps {
@@ -58,13 +59,14 @@ const BILLING_TYPE_LABELS: Record<string, string> = {
 export const BookingRequestsList = ({ bookings, onUpdate, currentUserId }: BookingRequestsListProps) => {
     const { toast } = useToast();
     const navigate = useNavigate();
+    const { profile } = useAuth();
     const [processingId, setProcessingId] = useState<string | null>(null);
     const [activeTab, setActiveTab] = useState<string>('pending');
     const [completeModalOpen, setCompleteModalOpen] = useState(false);
     const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
     const [completingLoading, setCompletingLoading] = useState(false);
 
-    const handleAction = async (bookingId: string, action: 'confirm' | 'reject') => {
+    const handleAction = useCallback(async (bookingId: string, action: 'confirm' | 'reject') => {
         setProcessingId(bookingId);
         try {
             const statusMap: Record<string, string> = {
@@ -95,14 +97,14 @@ export const BookingRequestsList = ({ bookings, onUpdate, currentUserId }: Booki
         } finally {
             setProcessingId(null);
         }
-    };
+    }, [onUpdate, toast]);
 
-    const handleOpenCompleteModal = (booking: Booking) => {
+    const handleOpenCompleteModal = useCallback((booking: Booking) => {
         setSelectedBooking(booking);
         setCompleteModalOpen(true);
-    };
+    }, []);
 
-    const handleCompleteService = async (data: {
+    const handleCompleteService = useCallback(async (data: {
         negotiatedPrice: number;
         billingType: string;
         billingQuantity: number;
@@ -138,7 +140,7 @@ export const BookingRequestsList = ({ bookings, onUpdate, currentUserId }: Booki
                         billing_type: data.billingType,
                         billing_quantity: data.billingQuantity,
                         unit_price: data.negotiatedPrice / data.billingQuantity,
-                        machine_name: getMachineName(selectedBooking),
+                        machine_name: getMachineNameUtil(selectedBooking),
                         owner_id: selectedBooking.owner_id,
                         renter_id: selectedBooking.renter_id,
                     },
@@ -167,10 +169,7 @@ export const BookingRequestsList = ({ bookings, onUpdate, currentUserId }: Booki
         } finally {
             setCompletingLoading(false);
         }
-    };
-
-    const getMachineName = (b: Booking) => b.machines?.name || b.machine?.name || 'Máquina';
-    const getAmount = (b: Booking) => b.negotiated_price || b.total_amount || b.total_price || 0;
+    }, [selectedBooking, navigate, toast]);
 
     const countByStatus = STATUS_TABS.reduce((acc, tab) => {
         acc[tab.key] = bookings.filter(b => b.status === tab.key).length;
@@ -178,20 +177,6 @@ export const BookingRequestsList = ({ bookings, onUpdate, currentUserId }: Booki
     }, {} as Record<string, number>);
 
     const filtered = bookings.filter(b => b.status === activeTab);
-
-    const statusBadgeClass = (status: string) => {
-        if (status === 'pending') return 'bg-yellow-50 text-yellow-700 border-yellow-200';
-        if (status === 'confirmed') return 'bg-blue-50 text-blue-700 border-blue-200';
-        if (status === 'completed') return 'bg-green-50 text-green-700 border-green-200';
-        return 'bg-red-50 text-red-700 border-red-200';
-    };
-
-    const statusLabel = (status: string) => {
-        if (status === 'pending') return 'Pendente';
-        if (status === 'confirmed') return 'Confirmada';
-        if (status === 'completed') return 'Concluída';
-        return 'Rejeitada';
-    };
 
     if (bookings.length === 0) {
         return (
@@ -248,14 +233,75 @@ export const BookingRequestsList = ({ bookings, onUpdate, currentUserId }: Booki
                 </Card>
             ) : (
                 filtered.map((booking) => (
-                    <Card key={booking.id} className="overflow-hidden">
+                    <BookingCard
+                        key={booking.id}
+                        booking={booking}
+                        processingId={processingId}
+                        profileName={profile?.full_name}
+                        onAction={handleAction}
+                        onOpenCompleteModal={handleOpenCompleteModal}
+                        onNavigate={navigate}
+                    />
+                ))
+            )}
+
+            {/* Complete Service Modal */}
+            {selectedBooking && (
+                <CompleteServiceModal
+                    open={completeModalOpen}
+                    onOpenChange={(open) => {
+                        setCompleteModalOpen(open);
+                        if (!open) setSelectedBooking(null);
+                    }}
+                    onConfirm={handleCompleteService}
+                    bookingId={selectedBooking.id}
+                    machineName={getMachineNameUtil(selectedBooking)}
+                    estimatedAmount={selectedBooking.total_amount || selectedBooking.total_price || 0}
+                    loading={completingLoading}
+                />
+            )}
+        </div>
+    );
+};
+
+// ─── BookingCard ─────────────────────────────────────────────────────────────
+
+interface BookingCardProps {
+    booking: Booking;
+    processingId: string | null;
+    profileName?: string;
+    onAction: (bookingId: string, action: 'confirm' | 'reject') => void;
+    onOpenCompleteModal: (booking: Booking) => void;
+    onNavigate: (path: string) => void;
+}
+
+const getMachineNameUtil = (b: Booking) => b.machines?.name || b.machine?.name || 'Máquina';
+const getAmountUtil = (b: Booking) => b.negotiated_price || b.total_amount || b.total_price || 0;
+
+const statusBadgeClassUtil = (status: string) => {
+    if (status === 'pending') return 'bg-yellow-50 text-yellow-700 border-yellow-200';
+    if (status === 'confirmed') return 'bg-blue-50 text-blue-700 border-blue-200';
+    if (status === 'completed') return 'bg-green-50 text-green-700 border-green-200';
+    return 'bg-red-50 text-red-700 border-red-200';
+};
+
+const statusLabelUtil = (status: string) => {
+    if (status === 'pending') return 'Pendente';
+    if (status === 'confirmed') return 'Confirmada';
+    if (status === 'completed') return 'Concluída';
+    return 'Rejeitada';
+};
+
+const BookingCard = memo(({ booking, processingId, profileName, onAction, onOpenCompleteModal, onNavigate }: BookingCardProps) => {
+    return (
+                    <Card className="overflow-hidden">
                         <CardHeader className="bg-muted/30 pb-3">
                             <div className="flex justify-between items-start">
                                 <div>
                                     <CardTitle className="text-base font-semibold flex items-center gap-2">
-                                        {getMachineName(booking)}
-                                        <Badge variant="outline" className={`font-normal text-xs ${statusBadgeClass(booking.status)}`}>
-                                            {statusLabel(booking.status)}
+                                        {getMachineNameUtil(booking)}
+                                        <Badge variant="outline" className={`font-normal text-xs ${statusBadgeClassUtil(booking.status)}`}>
+                                            {statusLabelUtil(booking.status)}
                                         </Badge>
                                     </CardTitle>
                                     <CardDescription className="text-xs mt-1">
@@ -264,7 +310,7 @@ export const BookingRequestsList = ({ bookings, onUpdate, currentUserId }: Booki
                                 </div>
                                 <div className="text-right">
                                     <p className="font-bold text-lg text-primary">
-                                        R$ {getAmount(booking).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                                        R$ {getAmountUtil(booking).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                                     </p>
                                     <p className="text-xs text-muted-foreground">
                                         {booking.status === 'completed'
@@ -281,7 +327,20 @@ export const BookingRequestsList = ({ bookings, onUpdate, currentUserId }: Booki
                                     <User className="w-5 h-5 text-muted-foreground shrink-0 mt-0.5" />
                                     <div>
                                         <p className="text-sm font-medium">Solicitante</p>
-                                        <p className="text-sm text-foreground">{booking.renter?.full_name || 'Usuário do FieldMachine'}</p>
+                                        <div className="flex items-center gap-2">
+                                            <p className="text-sm text-foreground">{booking.renter?.full_name || 'Usuário do FieldMachine'}</p>
+                                            {booking.renter?.verified ? (
+                                                <Badge variant="default" className="gap-1 bg-green-600 hover:bg-green-700 text-[10px] px-1.5 py-0 h-5">
+                                                    <ShieldCheck className="h-3 w-3" />
+                                                    Verificado
+                                                </Badge>
+                                            ) : (
+                                                <Badge variant="outline" className="gap-1 text-[10px] px-1.5 py-0 h-5 border-amber-300 text-amber-700 bg-amber-50">
+                                                    <ShieldAlert className="h-3 w-3" />
+                                                    Não Verificado
+                                                </Badge>
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
                                 <div className="flex items-start gap-3">
@@ -326,23 +385,32 @@ export const BookingRequestsList = ({ bookings, onUpdate, currentUserId }: Booki
                                 <Button
                                     variant="outline"
                                     className="w-full"
-                                    onClick={() => navigate(`/chat/${booking.renter_id}?booking=${booking.id}`)}
+                                    onClick={() => onNavigate(`/chat/${booking.renter_id}?booking=${booking.id}`)}
                                 >
                                     <MessageCircle className="w-4 h-4 mr-2" />
                                     Chat com Solicitante
                                 </Button>
 
                                 {/* WhatsApp */}
-                                {booking.renter?.phone && (
-                                    <Button
-                                        variant="outline"
-                                        className="w-full text-green-600 border-green-200 hover:bg-green-50"
-                                        onClick={() => window.open(`https://wa.me/55${booking.renter!.phone!.replace(/\D/g, '')}`, '_blank')}
-                                    >
-                                        <span className="mr-2">📱</span>
-                                        WhatsApp do Solicitante
-                                    </Button>
-                                )}
+                                {booking.renter?.phone && (() => {
+                                    const machineName = booking.machines?.name || booking.machine?.name || 'a máquina';
+                                    const userName = profileName || 'o prestador';
+                                    const bookingDate = format(new Date(booking.created_at), "dd/MM/yyyy", { locale: ptBR });
+                                    const message = encodeURIComponent(
+                                        `Olá! Sou ${userName}, da plataforma FieldMachine. Estou entrando em contato sobre sua solicitação de serviço com ${machineName}, feita em ${bookingDate}. 🌾`
+                                    );
+                                    const phone = booking.renter!.phone!.replace(/\D/g, '');
+                                    return (
+                                        <Button
+                                            variant="outline"
+                                            className="w-full text-green-600 border-green-200 hover:bg-green-50"
+                                            onClick={() => window.open(`https://wa.me/55${phone}?text=${message}`, '_blank')}
+                                        >
+                                            <span className="mr-2">📱</span>
+                                            WhatsApp do Solicitante
+                                        </Button>
+                                    );
+                                })()}
 
                                 {/* Pending actions */}
                                 {booking.status === 'pending' && (
@@ -350,7 +418,7 @@ export const BookingRequestsList = ({ bookings, onUpdate, currentUserId }: Booki
                                         <Button
                                             variant="outline"
                                             className="flex-1 border-red-200 text-red-700 hover:bg-red-50"
-                                            onClick={() => handleAction(booking.id, 'reject')}
+                                            onClick={() => onAction(booking.id, 'reject')}
                                             disabled={!!processingId}
                                         >
                                             {processingId === booking.id
@@ -360,7 +428,7 @@ export const BookingRequestsList = ({ bookings, onUpdate, currentUserId }: Booki
                                         </Button>
                                         <Button
                                             className="flex-1 bg-green-600 hover:bg-green-700 text-white"
-                                            onClick={() => handleAction(booking.id, 'confirm')}
+                                            onClick={() => onAction(booking.id, 'confirm')}
                                             disabled={!!processingId}
                                         >
                                             {processingId === booking.id
@@ -375,7 +443,7 @@ export const BookingRequestsList = ({ bookings, onUpdate, currentUserId }: Booki
                                 {booking.status === 'confirmed' && (
                                     <Button
                                         className="w-full bg-blue-600 hover:bg-blue-700 text-white mt-1"
-                                        onClick={() => handleOpenCompleteModal(booking)}
+                                        onClick={() => onOpenCompleteModal(booking)}
                                         disabled={!!processingId}
                                     >
                                         <CheckCircle2 className="w-4 h-4 mr-2" />
@@ -388,7 +456,7 @@ export const BookingRequestsList = ({ bookings, onUpdate, currentUserId }: Booki
                                     <Button
                                         variant="outline"
                                         className="w-full border-yellow-300 text-yellow-700 hover:bg-yellow-50 mt-1"
-                                        onClick={() => navigate(`/avaliar/${booking.id}`)}
+                                        onClick={() => onNavigate(`/avaliar/${booking.id}`)}
                                     >
                                         <Star className="w-4 h-4 mr-2" />
                                         Avaliar Cliente
@@ -397,24 +465,6 @@ export const BookingRequestsList = ({ bookings, onUpdate, currentUserId }: Booki
                             </div>
                         </CardContent>
                     </Card>
-                ))
-            )}
-
-            {/* Complete Service Modal */}
-            {selectedBooking && (
-                <CompleteServiceModal
-                    open={completeModalOpen}
-                    onOpenChange={(open) => {
-                        setCompleteModalOpen(open);
-                        if (!open) setSelectedBooking(null);
-                    }}
-                    onConfirm={handleCompleteService}
-                    bookingId={selectedBooking.id}
-                    machineName={getMachineName(selectedBooking)}
-                    estimatedAmount={selectedBooking.total_amount || selectedBooking.total_price || 0}
-                    loading={completingLoading}
-                />
-            )}
-        </div>
     );
-};
+});
+BookingCard.displayName = 'BookingCard';

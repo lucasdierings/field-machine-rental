@@ -1,6 +1,7 @@
-import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useMemo } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 import { Header } from "@/components/ui/header";
 import { Footer } from "@/components/ui/footer";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,28 +10,13 @@ import { Loader2, FileText, Calendar, Clock } from "lucide-react";
 import { BookingRequestsList } from "@/components/booking/BookingRequestsList";
 
 const Bookings = () => {
-    const navigate = useNavigate();
-    const [loading, setLoading] = useState(true);
-    const [user, setUser] = useState<any>(null);
-    const [bookings, setBookings] = useState<any[]>([]);
-    const [refreshTrigger, setRefreshTrigger] = useState(0);
+    const queryClient = useQueryClient();
+    const { userId } = useAuth();
 
-    useEffect(() => {
-        loadUserAndBookings();
-    }, [refreshTrigger]);
-
-    const loadUserAndBookings = async () => {
-        try {
-            const { data: { user } } = await supabase.auth.getUser();
-
-            if (!user) {
-                navigate("/login");
-                return;
-            }
-
-            setUser(user);
-
-            // Step 1: Fetch bookings (FK renter_id/owner_id → auth.users, not user_profiles)
+    const { data: bookings = [], isLoading } = useQuery({
+        queryKey: ['bookings', userId],
+        queryFn: async () => {
+            // Step 1: Fetch bookings
             const { data: rawBookings, error } = await supabase
                 .from('bookings')
                 .select(`
@@ -41,7 +27,7 @@ const Bookings = () => {
             brand
           )
         `)
-                .or(`renter_id.eq.${user.id},owner_id.eq.${user.id}`)
+                .or(`renter_id.eq.${userId},owner_id.eq.${userId}`)
                 .order('created_at', { ascending: false });
 
             if (error) throw error;
@@ -53,45 +39,38 @@ const Bookings = () => {
                 ...bookingsList.map((b: any) => b.owner_id),
             ].filter(Boolean))];
 
-            let profileMap: Record<string, { full_name: string; phone?: string; avatar_url?: string }> = {};
+            let profileMap: Record<string, { full_name: string; phone?: string; avatar_url?: string; verified?: boolean }> = {};
             if (userIds.length > 0) {
                 const { data: profiles } = await supabase
                     .from('user_profiles')
-                    .select('auth_user_id, full_name, phone, avatar_url')
+                    .select('auth_user_id, full_name, phone, avatar_url, verified')
                     .in('auth_user_id', userIds);
                 profileMap = Object.fromEntries((profiles || []).map((p: any) => [p.auth_user_id, p]));
             }
 
             // Step 3: Merge profiles into bookings
-            const bookingsData = bookingsList.map((b: any) => ({
+            return bookingsList.map((b: any) => ({
                 ...b,
                 renter: profileMap[b.renter_id] || null,
                 owner: profileMap[b.owner_id] || null,
             }));
-
-            setBookings(bookingsData);
-        } catch (error) {
-            console.error("Erro ao carregar dados:", error);
-            // Don't redirect on error, just log it
-        } finally {
-            setLoading(false);
-        }
-    };
+        },
+        enabled: !!userId,
+    });
 
     const handleUpdate = () => {
-        setRefreshTrigger(prev => prev + 1);
+        queryClient.invalidateQueries({ queryKey: ['bookings', userId] });
     };
 
     // Filter bookings based on active tab logic passed to components
-    const getFilteredBookings = (status?: string) => {
-        if (!status || status === 'all') return bookings;
-        if (status === 'pending') return bookings.filter(b => b.status === 'pending');
-        if (status === 'confirmed') return bookings.filter(b => b.status === 'confirmed');
-        if (status === 'completed') return bookings.filter(b => b.status === 'completed');
-        return bookings;
-    };
+    const filteredBookings = useMemo(() => ({
+        all: bookings,
+        pending: bookings.filter((b: any) => b.status === 'pending'),
+        confirmed: bookings.filter((b: any) => b.status === 'confirmed'),
+        completed: bookings.filter((b: any) => b.status === 'completed'),
+    }), [bookings]);
 
-    if (loading) {
+    if (isLoading) {
         return (
             <div className="min-h-screen flex items-center justify-center">
                 <Loader2 className="h-8 w-8 animate-spin" />
@@ -144,9 +123,9 @@ const Bookings = () => {
                                 </CardHeader>
                                 <CardContent>
                                     <BookingRequestsList
-                                        bookings={bookings}
+                                        bookings={filteredBookings.all}
                                         onUpdate={handleUpdate}
-                                        currentUserId={user?.id}
+                                        currentUserId={userId}
                                     />
                                 </CardContent>
                             </Card>
@@ -162,9 +141,9 @@ const Bookings = () => {
                                 </CardHeader>
                                 <CardContent>
                                     <BookingRequestsList
-                                        bookings={getFilteredBookings('pending')}
+                                        bookings={filteredBookings.pending}
                                         onUpdate={handleUpdate}
-                                        currentUserId={user?.id}
+                                        currentUserId={userId}
                                     />
                                 </CardContent>
                             </Card>
@@ -180,9 +159,9 @@ const Bookings = () => {
                                 </CardHeader>
                                 <CardContent>
                                     <BookingRequestsList
-                                        bookings={getFilteredBookings('confirmed')}
+                                        bookings={filteredBookings.confirmed}
                                         onUpdate={handleUpdate}
-                                        currentUserId={user?.id}
+                                        currentUserId={userId}
                                     />
                                 </CardContent>
                             </Card>
@@ -198,9 +177,9 @@ const Bookings = () => {
                                 </CardHeader>
                                 <CardContent>
                                     <BookingRequestsList
-                                        bookings={getFilteredBookings('completed')}
+                                        bookings={filteredBookings.completed}
                                         onUpdate={handleUpdate}
-                                        currentUserId={user?.id}
+                                        currentUserId={userId}
                                     />
                                 </CardContent>
                             </Card>

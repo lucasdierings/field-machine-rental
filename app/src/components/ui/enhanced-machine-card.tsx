@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { Card, CardContent } from './card';
 import { Button } from './button';
 import { Badge } from './badge';
@@ -12,7 +13,7 @@ interface EnhancedMachineCardProps {
     onViewDetails?: () => void;
 }
 
-export function EnhancedMachineCard({
+export const EnhancedMachineCard = memo(function EnhancedMachineCard({
     machine,
     distance,
     onViewDetails
@@ -163,4 +164,6 @@ export function EnhancedMachineCard({
             </CardContent>
         </Card>
     );
-}
+});
+
+EnhancedMachineCard.displayName = 'EnhancedMachineCard';

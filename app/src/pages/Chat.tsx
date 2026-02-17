@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useParams, useSearchParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 import { Header } from "@/components/ui/header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -32,8 +33,8 @@ export default function Chat() {
     const bookingId = searchParams.get("booking");
     const navigate = useNavigate();
     const { toast } = useToast();
+    const { userId: currentUserId } = useAuth();
 
-    const [currentUserId, setCurrentUserId] = useState<string | null>(null);
     const [otherUser, setOtherUser] = useState<UserProfile | null>(null);
     const [messages, setMessages] = useState<Message[]>([]);
     const [newMessage, setNewMessage] = useState("");
@@ -42,8 +43,12 @@ export default function Chat() {
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
+        if (!currentUserId) {
+            navigate("/login");
+            return;
+        }
         initChat();
-    }, [otherUserId]);
+    }, [otherUserId, currentUserId]);
 
     useEffect(() => {
         scrollToBottom();
@@ -55,11 +60,7 @@ export default function Chat() {
 
     const initChat = async () => {
         try {
-            const { data: { user } } = await supabase.auth.getUser();
-            if (!user) { navigate("/login"); return; }
-            setCurrentUserId(user.id);
-
-            if (!otherUserId) return;
+            if (!currentUserId || !otherUserId) return;
 
             // Load the other user's profile
             const { data: profile } = await supabase
@@ -71,26 +72,26 @@ export default function Chat() {
             setOtherUser(profile);
 
             // Load existing messages between the two users
-            await loadMessages(user.id, otherUserId);
+            await loadMessages(currentUserId, otherUserId);
 
             // Mark received messages as read
             await supabase
                 .from("messages")
                 .update({ read: true, read_at: new Date().toISOString() })
                 .eq("sender_id", otherUserId)
-                .eq("receiver_id", user.id)
+                .eq("receiver_id", currentUserId)
                 .eq("read", false);
 
             // Subscribe to new messages in real time
             const channel = supabase
-                .channel(`chat-${user.id}-${otherUserId}`)
+                .channel(`chat-${currentUserId}-${otherUserId}`)
                 .on(
                     "postgres_changes",
                     {
                         event: "INSERT",
                         schema: "public",
                         table: "messages",
-                        filter: `receiver_id=eq.${user.id}`,
+                        filter: `receiver_id=eq.${currentUserId}`,
                     },
                     (payload) => {
                         const msg = payload.new as Message;

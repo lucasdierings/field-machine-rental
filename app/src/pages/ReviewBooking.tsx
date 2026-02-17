@@ -1,12 +1,12 @@
-import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { useQuery } from "@tanstack/react-query";
 import { Header } from "@/components/ui/header";
 import { Footer } from "@/components/ui/footer";
 import { ReviewForm } from "@/components/ui/review-form";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { useToast } from "@/hooks/use-toast";
 import { Loader2, Tractor, Calendar, Star } from "lucide-react";
 
 interface Booking {
@@ -34,28 +34,18 @@ interface Booking {
 const ReviewBooking = () => {
     const { bookingId } = useParams();
     const navigate = useNavigate();
-    const { toast } = useToast();
-    const [booking, setBooking] = useState<Booking | null>(null);
-    const [loading, setLoading] = useState(true);
-    const [currentUserId, setCurrentUserId] = useState<string | null>(null);
-    const [alreadyReviewed, setAlreadyReviewed] = useState(false);
+    const { userId: currentUserId } = useAuth();
 
-    useEffect(() => {
-        loadBooking();
-    }, [bookingId]);
-
-    const loadBooking = async () => {
-        try {
-            const { data: { user } } = await supabase.auth.getUser();
-            if (!user) {
+    const { data, isLoading } = useQuery({
+        queryKey: ['review-booking', bookingId, currentUserId],
+        queryFn: async () => {
+            if (!currentUserId) {
                 navigate('/login');
-                return;
+                return null;
             }
-            setCurrentUserId(user.id);
+            if (!bookingId) return null;
 
-            if (!bookingId) return;
-
-            // Step 1: load booking (FK points to auth.users, not user_profiles — avoid broken join)
+            // Step 1: load booking
             const { data: bookingData, error } = await supabase
                 .from('bookings' as any)
                 .select("*, machines(name, category, brand)")
@@ -64,7 +54,7 @@ const ReviewBooking = () => {
 
             if (error) throw error;
 
-            // Step 2: fetch renter and owner profiles (including .id — PK used in reviews FK)
+            // Step 2: fetch profiles
             const profileAuthIds = [bookingData.renter_id, bookingData.owner_id].filter(Boolean);
             const { data: profiles } = await supabase
                 .from('user_profiles')
@@ -73,37 +63,29 @@ const ReviewBooking = () => {
 
             const profileMap = Object.fromEntries((profiles || []).map((p: any) => [p.auth_user_id, p]));
 
-            setBooking({
+            const booking: Booking = {
                 ...bookingData,
                 renter: profileMap[bookingData.renter_id] || null,
                 owner: profileMap[bookingData.owner_id] || null,
-            } as any);
+            } as any;
 
-            // Check if user already reviewed this booking
-            // public.users.id = auth.uid(), so use user.id directly
+            // Step 3: Check if already reviewed
             const { data: existingReview } = await supabase
                 .from('reviews')
                 .select('id')
                 .eq('booking_id', bookingId)
-                .eq('reviewer_id', user.id)
+                .eq('reviewer_id', currentUserId)
                 .maybeSingle();
 
-            if (existingReview) {
-                setAlreadyReviewed(true);
-            }
-        } catch (error: any) {
-            console.error("Erro ao carregar reserva:", error);
-            toast({
-                title: "Erro",
-                description: "Não foi possível carregar os detalhes da reserva.",
-                variant: "destructive"
-            });
-        } finally {
-            setLoading(false);
-        }
-    };
+            return {
+                booking,
+                alreadyReviewed: !!existingReview,
+            };
+        },
+        enabled: !!bookingId,
+    });
 
-    if (loading) {
+    if (isLoading) {
         return (
             <div className="min-h-screen flex items-center justify-center">
                 <Loader2 className="h-8 w-8 animate-spin" />
@@ -111,12 +93,12 @@ const ReviewBooking = () => {
         );
     }
 
-    if (!booking || !currentUserId) return null;
+    if (!data?.booking || !currentUserId) return null;
 
-    const isRenter = currentUserId === booking.renter_id;
+    const { booking, alreadyReviewed } = data;
+
     const isOwner = currentUserId === booking.owner_id;
     const reviewType = isOwner ? "owner_reviews_client" as const : "client_reviews_owner" as const;
-    // public.users.id = auth.uid(), so booking renter_id/owner_id are valid as reviewed_id
     const reviewedId = isOwner ? booking.renter_id : booking.owner_id;
 
     const machineName = (booking as any).machines?.name || "Máquina";

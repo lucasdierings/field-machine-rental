@@ -1,6 +1,8 @@
 import { useState, useEffect, lazy, Suspense } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Header } from "@/components/ui/header";
 import { Footer } from "@/components/ui/footer";
 import { Button } from "@/components/ui/button";
@@ -18,9 +20,9 @@ const DocumentsPage = lazy(() => import("@/pages/Documents"));
 const Profile = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { userId, user } = useAuth();
+  const queryClient = useQueryClient();
   const [searchParams, setSearchParams] = useSearchParams();
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
   const [activeTab, setActiveTab] = useState(searchParams.get("tab") || "profile");
 
   const [formData, setFormData] = useState({
@@ -48,8 +50,7 @@ const Profile = () => {
 
       setUploading(true);
 
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Usuário não autenticado");
+      if (!userId) throw new Error("Usuário não autenticado");
 
       // 1. Upload to 'avatars' bucket
       const { error: uploadError } = await supabase.storage
@@ -82,35 +83,30 @@ const Profile = () => {
     }
   };
 
-  useEffect(() => {
-    loadProfile();
-  }, []);
-
-  const loadProfile = async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-
-      if (!user) {
-        navigate("/login");
-        return;
-      }
-
+  // Load profile with useQuery
+  const { isLoading } = useQuery({
+    queryKey: ['profile', userId],
+    queryFn: async () => {
       const { data: profile, error } = await supabase
         .from("user_profiles")
         .select("*")
-        .eq("auth_user_id", user.id)
+        .eq("auth_user_id", userId!)
         .single();
 
       if (error && error.code !== "PGRST116") {
         throw error;
       }
 
+      return profile;
+    },
+    enabled: !!userId,
+    onSuccess: (profile) => {
       if (profile) {
         const address = profile.address as any;
         setFormData({
           full_name: profile.full_name || "",
           phone: profile.phone || "",
-          email: user.email || "",
+          email: user?.email || "",
           cpf_cnpj: profile.cpf_cnpj || "",
           city: address?.city || "",
           state: address?.state || "",
@@ -118,29 +114,28 @@ const Profile = () => {
           profile_image: profile.profile_image || ""
         });
       } else {
-        setFormData(prev => ({ ...prev, email: user.email || "" }));
+        setFormData(prev => ({ ...prev, email: user?.email || "" }));
       }
-    } catch (error: any) {
+    },
+    onError: (error: any) => {
       toast({
         title: "Erro ao carregar perfil",
         description: error.message,
         variant: "destructive"
       });
-    } finally {
-      setLoading(false);
     }
-  };
+  } as any);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setSaving(true);
+  // Update email when user changes
+  useEffect(() => {
+    if (user?.email) {
+      setFormData(prev => ({ ...prev, email: user.email || "" }));
+    }
+  }, [user?.email]);
 
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-
-      if (!user) {
-        throw new Error("Usuário não autenticado");
-      }
+  const updateMutation = useMutation({
+    mutationFn: async () => {
+      if (!userId) throw new Error("Usuário não autenticado");
 
       const address = {
         city: formData.city,
@@ -151,7 +146,7 @@ const Profile = () => {
       const { error } = await supabase
         .from("user_profiles")
         .upsert({
-          auth_user_id: user.id,
+          auth_user_id: userId,
           full_name: formData.full_name,
           phone: formData.phone,
           cpf_cnpj: formData.cpf_cnpj,
@@ -160,23 +155,29 @@ const Profile = () => {
         }, { onConflict: 'auth_user_id' });
 
       if (error) throw error;
-
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['profile', userId] });
       toast({
         title: "Perfil atualizado!",
         description: "Suas informações foram salvas com sucesso."
       });
-    } catch (error: any) {
+    },
+    onError: (error: any) => {
       toast({
         title: "Erro ao salvar",
         description: error.message,
         variant: "destructive"
       });
-    } finally {
-      setSaving(false);
     }
+  });
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    updateMutation.mutate();
   };
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin" />
@@ -359,8 +360,8 @@ const Profile = () => {
                     </div>
 
                     <div className="flex gap-4">
-                      <Button type="submit" disabled={saving}>
-                        {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                      <Button type="submit" disabled={updateMutation.isPending}>
+                        {updateMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                         Salvar Alterações
                       </Button>
                       <Button

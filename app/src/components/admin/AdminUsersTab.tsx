@@ -86,27 +86,46 @@ const AdminUsersTab = () => {
   };
 
   const toggleUserVerification = async (userId: string, currentStatus: boolean | null) => {
-    try {
-      const { error } = await supabase
-        .from('user_profiles')
-        .update({ verified: !currentStatus })
-        .eq('id', userId);
+    const newStatus = !currentStatus;
 
-      if (error) throw error;
+    // Optimistic update — reflect change immediately in the UI
+    setUsers(prev =>
+      prev.map(u => u.id === userId ? { ...u, verified: newStatus } : u)
+    );
+
+    try {
+      // Try using the admin RPC function (bypasses RLS)
+      const { error: rpcError } = await supabase.rpc('admin_set_user_verified', {
+        target_user_id: userId,
+        is_verified: newStatus,
+      });
+
+      if (rpcError) {
+        // Fallback: try direct update (works if admin RLS policy exists)
+        const { error: updateError } = await supabase
+          .from('user_profiles')
+          .update({ verified: newStatus })
+          .eq('id', userId);
+
+        if (updateError) throw updateError;
+      }
 
       toast({
         title: "Sucesso",
-        description: `Usuário ${!currentStatus ? 'verificado' : 'não verificado'} com sucesso.`,
+        description: `Usuário ${newStatus ? 'verificado' : 'não verificado'} com sucesso.`,
       });
-
-      loadUsers();
     } catch (error) {
+      // Revert optimistic update on error
+      setUsers(prev =>
+        prev.map(u => u.id === userId ? { ...u, verified: currentStatus } : u)
+      );
+
       if (import.meta.env.DEV) {
         console.error('Failed to update user:', error);
       }
       toast({
         title: "Erro",
-        description: "Falha ao atualizar usuário.",
+        description: "Falha ao atualizar verificação do usuário. Verifique suas permissões de admin.",
         variant: "destructive",
       });
     }

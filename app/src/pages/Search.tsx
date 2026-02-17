@@ -9,12 +9,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { Search as SearchIcon, Filter, Bell } from "lucide-react";
 import { SEO } from "@/components/SEO";
 
 const Search = () => {
   const { toast } = useToast();
+  const { userId, user } = useAuth();
   const { city } = useParams();
   const locationObj = useLocation();
 
@@ -229,17 +231,16 @@ const Search = () => {
                     variant="outline"
                     className="border-primary text-primary hover:bg-primary hover:text-white"
                     onClick={async () => {
-                      const { data: { user } } = await supabase.auth.getUser();
                       let email = user?.email;
 
-                      if (!user) {
+                      if (!userId) {
                         const input = window.prompt("Digite seu email para receber alertas desta busca:");
                         if (!input) return;
                         email = input;
                       }
 
                       const { error } = await (supabase as any).from('search_alerts').insert({
-                        user_id: user?.id,
+                        user_id: userId || null,
                         email: email,
                         location: location,
                         category: category,

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Header } from "@/components/ui/header";
 import { Footer } from "@/components/ui/footer";
 import { MachineSearchBar } from "@/components/ui/machine-search-bar";
@@ -11,6 +11,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { demoMachines, categories, DemoMachine } from "@/data/demo-machines";
 import { getUserLocation, sortByDistance, Coordinates } from "@/lib/geolocation";
 import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { ArrowUpDown } from "lucide-react";
 import { SEO } from "@/components/SEO";
@@ -60,81 +61,61 @@ export interface SearchFilters {
 
 const Machines = () => {
   const navigate = useNavigate();
-  const [machines, setMachines] = useState<DemoMachine[]>([]);
-  const [displayMachines, setDisplayMachines] = useState<DemoMachine[]>([]);
-  const [loading, setLoading] = useState(true);
   const [userLocation, setUserLocation] = useState<Coordinates | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [sortBy, setSortBy] = useState("relevance");
-  const [hasRealData, setHasRealData] = useState(false);
   const [machineDistances, setMachineDistances] = useState<Map<string, number>>(new Map());
 
-  // Load machines (demo or real data)
-  useEffect(() => {
-    const loadMachines = async () => {
-      setLoading(true);
-      try {
-        // Try to fetch real machines from database
-        const { data, error, count } = await supabase
-          .from('machines')
-          .select('*', { count: 'exact' })
-          .eq('status', 'available')
-          .limit(50);
+  // Load machines with useQuery
+  const { data: machineQueryResult, isLoading: loading } = useQuery({
+    queryKey: ['machines-list'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('machines')
+        .select('*')
+        .eq('status', 'available')
+        .limit(50);
 
-        if (error) throw error;
+      if (error) throw error;
 
-        if (data && data.length > 0) {
-          // We have real data
-          setHasRealData(true);
+      if (data && data.length > 0) {
+        // Fetch review stats per machine
+        const machineIds = data.map((m: any) => m.id);
+        const { data: bookingsWithReviews } = await supabase
+          .from('bookings')
+          .select('machine_id, reviews(id, rating, review_type)')
+          .in('machine_id', machineIds);
 
-          // Fetch review stats per machine
-          const machineIds = data.map((m: any) => m.id);
-          const { data: bookingsWithReviews } = await supabase
-            .from('bookings')
-            .select('machine_id, reviews(id, rating, review_type)')
-            .in('machine_id', machineIds);
-
-          // Aggregate ratings per machine
-          const ratingMap: Record<string, { sum: number; count: number }> = {};
-          (bookingsWithReviews || []).forEach((b: any) => {
-            const clientReviews = (b.reviews || []).filter(
-              (r: any) => r.review_type === 'client_reviews_owner'
-            );
-            clientReviews.forEach((r: any) => {
-              if (!ratingMap[b.machine_id]) ratingMap[b.machine_id] = { sum: 0, count: 0 };
-              ratingMap[b.machine_id].sum += r.rating;
-              ratingMap[b.machine_id].count += 1;
-            });
+        const ratingMap: Record<string, { sum: number; count: number }> = {};
+        (bookingsWithReviews || []).forEach((b: any) => {
+          const clientReviews = (b.reviews || []).filter(
+            (r: any) => r.review_type === 'client_reviews_owner'
+          );
+          clientReviews.forEach((r: any) => {
+            if (!ratingMap[b.machine_id]) ratingMap[b.machine_id] = { sum: 0, count: 0 };
+            ratingMap[b.machine_id].sum += r.rating;
+            ratingMap[b.machine_id].count += 1;
           });
+        });
 
-          // Merge ratings into machines
-          const machinesWithRatings = data.map((m: any) => ({
-            ...m,
-            rating: ratingMap[m.id]?.count > 0
-              ? ratingMap[m.id].sum / ratingMap[m.id].count
-              : 0,
-            reviewCount: ratingMap[m.id]?.count || 0,
-          }));
+        const machinesWithRatings = data.map((m: any) => ({
+          ...m,
+          rating: ratingMap[m.id]?.count > 0
+            ? ratingMap[m.id].sum / ratingMap[m.id].count
+            : 0,
+          reviewCount: ratingMap[m.id]?.count || 0,
+        }));
 
-          setMachines(machinesWithRatings as any);
-        } else {
-          // Use demo data
-          setHasRealData(false);
-          setMachines(demoMachines);
-        }
-      } catch (error) {
-        console.error('Error loading machines:', error);
-        // Fallback to demo data
-        setHasRealData(false);
-        setMachines(demoMachines);
-      } finally {
-        setLoading(false);
+        return { machines: machinesWithRatings as DemoMachine[], hasRealData: true };
+      } else {
+        return { machines: demoMachines, hasRealData: false };
       }
-    };
+    },
+  });
 
-    loadMachines();
-  }, []);
+  const machines = machineQueryResult?.machines ?? demoMachines;
+  const hasRealData = machineQueryResult?.hasRealData ?? false;
 
   // Get user location on mount
   useEffect(() => {
@@ -155,11 +136,10 @@ const Machines = () => {
     }
   }, [userLocation, machines]);
 
-  // Apply filters and sorting
-  useEffect(() => {
+  // Apply filters and sorting (derived state via useMemo)
+  const displayMachines = useMemo(() => {
     let filtered = [...machines];
 
-    // Filter by search query
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter(
@@ -171,14 +151,12 @@ const Machines = () => {
       );
     }
 
-    // Filter by categories
     if (selectedCategories.length > 0) {
       filtered = filtered.filter((m) =>
         selectedCategories.includes(m.category)
       );
     }
 
-    // Sort
     switch (sortBy) {
       case "distance":
         if (userLocation) {
@@ -195,11 +173,10 @@ const Machines = () => {
         filtered.sort((a, b) => b.rating - a.rating);
         break;
       default:
-        // relevance - keep current order
         break;
     }
 
-    setDisplayMachines(filtered);
+    return filtered;
   }, [machines, searchQuery, selectedCategories, sortBy, userLocation]);
 
   const handleCategoryToggle = (category: string) => {

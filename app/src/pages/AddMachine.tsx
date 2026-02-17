@@ -1,61 +1,38 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useCallback } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { useQuery } from "@tanstack/react-query";
 import { Header } from "@/components/ui/header";
 import { Footer } from "@/components/ui/footer";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Upload, X, Image as ImageIcon } from "lucide-react";
-import { LocationSelector } from "@/components/ui/location-selector";
-import { MultiCitySelector } from "@/components/ui/multi-city-selector";
-import { hasApprovedDocuments } from "@/lib/userVerification";
-
-const categories = [
-  "Tratores",
-  "Colheitadeiras",
-  "Pulverizadores",
-  "Plantadeiras",
-  "Implementos",
-  "Transporte de Cargas"
-];
-
-const brands = [
-  "John Deere",
-  "New Holland",
-  "Case IH",
-  "Massey Ferguson",
-  "Valtra",
-  "Jacto",
-  "Montana",
-  "Scania",
-  "Mercedes-Benz"
-];
-
-interface MachineImageState {
-  id?: string;
-  url: string;
-  file?: File;
-  isNew: boolean;
-}
+import { Loader2, ShieldCheck, ShieldAlert } from "lucide-react";
+import { getDocumentVerificationStatus } from "@/lib/userVerification";
+import { MachineFormFields } from "@/components/machines/MachineFormFields";
+import { MachineImageUploader, type MachineImageState } from "@/components/machines/MachineImageUploader";
 
 export default function AddMachine() {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { userId } = useAuth();
   const [loading, setLoading] = useState(false);
   const [uploadingImages, setUploadingImages] = useState(false);
 
-  // New Image State Management
+  // Image State Management
   const [machineImages, setMachineImages] = useState<MachineImageState[]>([]);
   const [deletedImageIds, setDeletedImageIds] = useState<string[]>([]);
-
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const { id } = useParams();
   const isEditing = !!id;
+
+  // Verificação de documentos do usuário
+  const { data: verificationStatus } = useQuery({
+    queryKey: ['doc-verification', userId],
+    queryFn: () => getDocumentVerificationStatus(userId!),
+    enabled: !!userId,
+  });
 
   const [formData, setFormData] = useState({
     name: "",
@@ -77,25 +54,19 @@ export default function AddMachine() {
     service_cities: [] as string[]
   });
 
-  useEffect(() => {
-    if (isEditing) {
-      loadMachineData();
-    }
-  }, [id]);
-
-  const loadMachineData = async () => {
-    try {
-      setLoading(true);
+  // Load existing machine data when editing
+  const { isLoading: loadingMachine } = useQuery({
+    queryKey: ['edit-machine', id],
+    queryFn: async () => {
       const { data: machine, error } = await supabase
         .from('machines')
         .select('*')
-        .eq('id', id)
+        .eq('id', id!)
         .single();
 
       if (error) throw error;
 
       if (machine) {
-        // Parse location if it's a string, or use as object
         let locationData = machine.location;
         if (typeof locationData === 'string') {
           try {
@@ -121,11 +92,10 @@ export default function AddMachine() {
           service_cities: (machine as any).service_cities || []
         });
 
-        // Load images using new structure
         const { data: dbImages } = await supabase
           .from('machine_images')
           .select('id, image_url')
-          .eq('machine_id', id)
+          .eq('machine_id', id!)
           .order('order_index');
 
         if (dbImages) {
@@ -136,77 +106,23 @@ export default function AddMachine() {
           })));
         }
       }
-    } catch (error: any) {
-      toast({
-        title: "Erro ao carregar máquina",
-        description: error.message,
-        variant: "destructive"
-      });
-      navigate('/minhas-maquinas');
-    } finally {
-      setLoading(false);
-    }
-  };
 
-  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || []);
+      return machine;
+    },
+    enabled: isEditing,
+  });
 
-    if (machineImages.length + files.length > 3) {
-      toast({
-        title: "Limite de imagens",
-        description: "Você pode enviar no máximo 3 fotos",
-        variant: "destructive"
-      });
-      return;
-    }
+  const handleAddImages = useCallback((newImages: MachineImageState[]) => {
+    setMachineImages(prev => [...prev, ...newImages]);
+  }, []);
 
-    // Validar cada arquivo
-    const validFiles = files.filter(file => {
-      const isImage = file.type.startsWith('image/');
-      const isValidSize = file.size <= 5 * 1024 * 1024; // 5MB
-
-      if (!isImage) {
-        toast({
-          title: "Arquivo inválido",
-          description: `${file.name} não é uma imagem`,
-          variant: "destructive"
-        });
-      }
-      if (!isValidSize) {
-        toast({
-          title: "Arquivo muito grande",
-          description: `${file.name} excede 5MB`,
-          variant: "destructive"
-        });
-      }
-
-      return isImage && isValidSize;
-    });
-
-    if (validFiles.length > 0) {
-      const newImages = validFiles.map(file => ({
-        url: URL.createObjectURL(file), // Create local preview
-        file,
-        isNew: true
-      }));
-
-      setMachineImages(prev => [...prev, ...newImages]);
-    }
-
-    // Clear input
-    if (fileInputRef.current) fileInputRef.current.value = '';
-  };
-
-  const removeImage = (index: number) => {
+  const handleRemoveImage = useCallback((index: number) => {
     const imageToRemove = machineImages[index];
-
-    // If it's an existing image (from DB), track its ID for deletion
     if (!imageToRemove.isNew && imageToRemove.id) {
       setDeletedImageIds(prev => [...prev, imageToRemove.id!]);
     }
-
     setMachineImages(prev => prev.filter((_, i) => i !== index));
-  };
+  }, [machineImages]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -243,9 +159,7 @@ export default function AddMachine() {
     setLoading(true);
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-
-      if (!user) {
+      if (!userId) {
         toast({
           title: "Erro de autenticação",
           description: "Você precisa estar logado para cadastrar uma máquina",
@@ -258,41 +172,60 @@ export default function AddMachine() {
       // Verificar se o usuário tem perfil com dados básicos
       const { data: profile, error: profileError } = await supabase
         .from("user_profiles")
-        .select("full_name, phone")
-        .eq("auth_user_id", user.id)
+        .select("full_name, phone, cpf_cnpj")
+        .eq("auth_user_id", userId)
         .single();
 
-      if (profileError || !profile) {
+      if (profileError) {
+        console.error("[AddMachine] Erro ao buscar perfil:", profileError);
+      }
+
+      if (!profile) {
         toast({
-          title: "Perfil incompleto",
+          title: "Perfil não encontrado",
           description: "Complete seu cadastro antes de cadastrar máquinas.",
           variant: "destructive",
-          action: (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => navigate("/dashboard/perfil")}
-            >
-              Completar Cadastro
-            </Button>
-          )
         });
+        navigate("/dashboard/perfil");
         return;
       }
 
-      // Verificar se o usuár tem documentos aprovados
-      const hasDocuments = await hasApprovedDocuments(user.id);
-      if (!hasDocuments) {
+      // Verificar campos obrigatórios do perfil com mensagem clara
+      const missingFields: string[] = [];
+      if (!profile.full_name) missingFields.push("Nome completo");
+      if (!profile.phone) missingFields.push("Telefone");
+      if (!profile.cpf_cnpj) missingFields.push("CPF/CNPJ");
+
+      if (missingFields.length > 0) {
         toast({
-          title: "Verificação necessária",
-          description: "Você precisa ter documentos aprovados para disponibilizar máquinas. Envie seus documentos para análise.",
-          variant: "destructive"
+          title: "Perfil incompleto",
+          description: `Preencha: ${missingFields.join(", ")}`,
+          variant: "destructive",
         });
-        navigate('/dashboard/perfil?tab=documents');
+        navigate("/dashboard/perfil");
         return;
       }
 
-      const ownerId = user.id;
+      const ownerId = userId;
+
+      // Confirmar que temos uma sessão válida
+      const { data: sessionData } = await supabase.auth.getSession();
+      console.log("[AddMachine] Session check:", {
+        hasSession: !!sessionData.session,
+        sessionUserId: sessionData.session?.user?.id,
+        contextUserId: userId,
+        match: sessionData.session?.user?.id === userId,
+      });
+
+      if (!sessionData.session) {
+        toast({
+          title: "Sessão expirada",
+          description: "Sua sessão expirou. Faça login novamente.",
+          variant: "destructive",
+        });
+        navigate("/login");
+        return;
+      }
 
       const machineData = {
         name: formData.name,
@@ -311,6 +244,8 @@ export default function AddMachine() {
         status: "available",
         service_cities: formData.service_cities
       };
+
+      console.log("[AddMachine] Inserindo machineData:", machineData);
 
       let machineId: string | undefined;
 
@@ -400,10 +335,19 @@ export default function AddMachine() {
 
       navigate("/minhas-maquinas");
     } catch (error: any) {
-      let errorMessage = "Erro ao cadastrar máquina. Tente novamente.";
+      console.error("[AddMachine] Erro ao salvar:", {
+        message: error.message,
+        code: error.code,
+        details: error.details,
+        hint: error.hint,
+        status: error.status,
+      });
 
+      let errorMessage = error.message || "Erro ao cadastrar máquina. Tente novamente.";
       if (error.code === "23505") {
         errorMessage = "Já existe uma máquina cadastrada com esses dados.";
+      } else if (error.code === "42501") {
+        errorMessage = "Sem permissão (RLS). Verifique se está logado corretamente.";
       }
 
       toast({
@@ -417,7 +361,7 @@ export default function AddMachine() {
     }
   };
 
-  const handleChange = (field: string, value: any) => {
+  const handleChange = useCallback((field: string, value: any) => {
     if (field.includes('.')) {
       const [parent, child] = field.split('.');
       setFormData(prev => ({
@@ -430,7 +374,7 @@ export default function AddMachine() {
     } else {
       setFormData(prev => ({ ...prev, [field]: value }));
     }
-  };
+  }, []);
 
   return (
     <div className="min-h-screen bg-background">
@@ -438,25 +382,23 @@ export default function AddMachine() {
 
       <main className="pt-16 pb-8">
         <div className="container mx-auto px-4 max-w-2xl">
-          {/* Alerta informativo sobre requisitos */}
-          <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-            <h3 className="font-semibold text-blue-900 mb-2">📋 Requisitos para Cadastrar Máquinas</h3>
-            <p className="text-sm text-blue-800">
-              Para cadastrar uma máquina, você precisa ter:
-            </p>
-            <ul className="mt-2 text-sm text-blue-800 space-y-1 list-disc list-inside">
-              <li>Perfil completo (nome, telefone, CPF/CNPJ)</li>
-              <li>Documentos enviados e verificados pela equipe</li>
-            </ul>
-            <p className="mt-2 text-xs text-blue-700">
-              O sistema validará automaticamente antes de permitir o cadastro.
-            </p>
-          </div>
-
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-foreground">
-              {isEditing ? "Editar Máquina" : "Cadastrar Nova Máquina"}
-            </h1>
+            <div className="flex items-center gap-3">
+              <h1 className="text-3xl font-bold text-foreground">
+                {isEditing ? "Editar Máquina" : "Cadastrar Nova Máquina"}
+              </h1>
+              {verificationStatus?.hasApproved ? (
+                <Badge className="gap-1 bg-green-600 hover:bg-green-700 text-xs">
+                  <ShieldCheck className="h-3.5 w-3.5" />
+                  Verificado
+                </Badge>
+              ) : (
+                <Badge variant="outline" className="gap-1 text-xs border-amber-300 text-amber-700 bg-amber-50">
+                  <ShieldAlert className="h-3.5 w-3.5" />
+                  Não Verificado
+                </Badge>
+              )}
+            </div>
             <p className="text-muted-foreground">
               {isEditing ? "Atualize as informações do seu equipamento" : "Adicione uma máquina ao seu portfólio de equipamentos"}
             </p>
@@ -471,242 +413,13 @@ export default function AddMachine() {
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-6">
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="name">Nome/Modelo da Máquina *</Label>
-                    <Input
-                      id="name"
-                      value={formData.name}
-                      onChange={(e) => handleChange('name', e.target.value)}
-                      placeholder="Ex: Trator John Deere 6155R"
-                      required
-                    />
-                  </div>
+                <MachineFormFields formData={formData} onChange={handleChange} />
 
-                  <div className="space-y-2">
-                    <Label htmlFor="category">Categoria *</Label>
-                    <Select onValueChange={(value) => handleChange('category', value)} value={formData.category}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione a categoria" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {categories.map((category) => (
-                          <SelectItem key={category} value={category}>
-                            {category}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="brand">Marca *</Label>
-                    <Select onValueChange={(value) => handleChange('brand', value)} value={formData.brand}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione a marca" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {brands.map((brand) => (
-                          <SelectItem key={brand} value={brand}>
-                            {brand}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="model">Modelo</Label>
-                    <Input
-                      id="model"
-                      value={formData.model}
-                      onChange={(e) => handleChange('model', e.target.value)}
-                      placeholder="Ex: 6155R"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="year">Ano</Label>
-                    <Input
-                      id="year"
-                      type="number"
-                      min="1990"
-                      max={new Date().getFullYear() + 1}
-                      value={formData.year}
-                      onChange={(e) => handleChange('year', parseInt(e.target.value))}
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="operator_type">Tipo de Operador *</Label>
-                    <Select
-                      value={formData.operator_type}
-                      onValueChange={(value) => handleChange('operator_type', value)}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione quem opera" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="owner">O Próprio Dono</SelectItem>
-                        <SelectItem value="employee">Funcionário</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-
-                <div>
-                  <h3 className="text-lg font-medium mb-4">Preços do Serviço</h3>
-                  <div className="grid md:grid-cols-3 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="price_hour">Preço por Hora (R$)</Label>
-                      <Input
-                        id="price_hour"
-                        type="number"
-                        step="0.01"
-                        value={formData.price_hour}
-                        onChange={(e) => handleChange('price_hour', e.target.value)}
-                        placeholder="0.00"
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="price_day">Preço por Dia (R$)</Label>
-                      <Input
-                        id="price_day"
-                        type="number"
-                        step="0.01"
-                        value={formData.price_day}
-                        onChange={(e) => handleChange('price_day', e.target.value)}
-                        placeholder="0.00"
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="price_hectare">Preço por Hectare (R$)</Label>
-                      <Input
-                        id="price_hectare"
-                        type="number"
-                        step="0.01"
-                        value={formData.price_hectare}
-                        onChange={(e) => handleChange('price_hectare', e.target.value)}
-                        placeholder="0.00"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <div>
-                  <h3 className="text-lg font-medium mb-4">Localização</h3>
-                  <div className="grid md:grid-cols-2 gap-4">
-                    <div className="md:col-span-2 space-y-2">
-                      <Label>Base da Máquina (Onde ela fica)</Label>
-                      <LocationSelector
-                        onLocationChange={(loc) => {
-                          handleChange('location.city', loc.city);
-                          handleChange('location.state', loc.state);
-                        }}
-                        initialData={{
-                          country: 'BRASIL',
-                          state: formData.location.state,
-                          city: formData.location.city
-                        }}
-                      />
-                    </div>
-
-                    <div className="space-y-2 md:col-span-2">
-                      <Label htmlFor="address">Endereço / Ponto de Referência</Label>
-                      <Textarea
-                        id="address"
-                        value={formData.location.address}
-                        onChange={(e) => handleChange('location.address', e.target.value)}
-                        placeholder="Endereço onde a máquina está estacionada"
-                        rows={2}
-                      />
-                    </div>
-
-                    <div className="space-y-2 md:col-span-2">
-                      <Label htmlFor="radius">Raio de Atendimento (km do ponto base)</Label>
-                      <Input
-                        id="radius"
-                        type="number"
-                        min="1"
-                        max="1000"
-                        value={formData.radius_km}
-                        onChange={(e) => handleChange('radius_km', parseInt(e.target.value))}
-                        className="max-w-[200px]"
-                      />
-                    </div>
-
-                    <div className="md:col-span-2 space-y-2 border-t pt-4 mt-2">
-                      <Label>Cidades de Atuação Específicas (Opcional)</Label>
-                      <p className="text-sm text-muted-foreground mb-2">
-                        Além do raio, você pode listar cidades específicas onde aceita trabalhar.
-                      </p>
-                      <MultiCitySelector
-                        onCitiesChange={(cities) => handleChange('service_cities', cities)}
-                        initialCities={formData.service_cities}
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <div>
-                  <h3 className="text-lg font-medium mb-4">Fotos da Máquina</h3>
-                  <div className="space-y-4">
-                    <div className="border-2 border-dashed border-border rounded-lg p-6">
-                      <input
-                        ref={fileInputRef}
-                        type="file"
-                        accept="image/*"
-                        multiple
-                        onChange={handleImageSelect}
-                        className="hidden"
-                        id="machine-images"
-                      />
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() => fileInputRef.current?.click()}
-                        disabled={machineImages.length >= 3}
-                        className="w-full"
-                      >
-                        <Upload className="mr-2 h-4 w-4" />
-                        Selecionar Fotos ({machineImages.length}/3)
-                      </Button>
-                      <p className="text-xs text-muted-foreground mt-2 text-center">
-                        Envie até 3 fotos da máquina (máx. 5MB cada)
-                      </p>
-                    </div>
-
-                    {machineImages.length > 0 && (
-                      <div className="grid grid-cols-3 gap-4">
-                        {machineImages.map((img, index) => (
-                          <div key={index} className="relative group">
-                            <img
-                              src={img.url}
-                              alt={`Preview ${index + 1}`}
-                              className="w-full h-32 object-cover rounded-lg"
-                            />
-                            <Button
-                              type="button"
-                              size="sm"
-                              variant="destructive"
-                              className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
-                              onClick={() => removeImage(index)}
-                            >
-                              <X className="h-4 w-4" />
-                            </Button>
-                            {index === 0 && (
-                              <div className="absolute bottom-2 left-2 bg-primary text-primary-foreground px-2 py-1 rounded text-xs">
-                                Principal
-                              </div>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
+                <MachineImageUploader
+                  images={machineImages}
+                  onAdd={handleAddImages}
+                  onRemove={handleRemoveImage}
+                />
 
                 <div className="flex gap-4">
                   <Button

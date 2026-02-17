@@ -1,6 +1,7 @@
-import { useState, useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Header } from "@/components/ui/header";
 import { Footer } from "@/components/ui/footer";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,46 +12,27 @@ import { Loader2, FileCheck, Clock, XCircle, Upload, Download, Trash2, FileText 
 import { Badge } from "@/components/ui/badge";
 
 const Documents = () => {
-  const navigate = useNavigate();
   const { toast } = useToast();
-  const [loading, setLoading] = useState(true);
+  const { userId } = useAuth();
+  const queryClient = useQueryClient();
   const [uploading, setUploading] = useState(false);
-  const [documents, setDocuments] = useState<any[]>([]);
   const [selectedDocType, setSelectedDocType] = useState<string>("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    loadDocuments();
-  }, []);
-
-  const loadDocuments = async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-
-      if (!user) {
-        navigate("/login");
-        return;
-      }
-
+  const { data: documents = [], isLoading } = useQuery({
+    queryKey: ['documents', userId],
+    queryFn: async () => {
       const { data, error } = await supabase
         .from("user_documents")
         .select("*")
-        .eq("user_id", user.id)
+        .eq("user_id", userId!)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-
-      setDocuments(data || []);
-    } catch (error: any) {
-      toast({
-        title: "Erro ao carregar documentos",
-        description: error.message,
-        variant: "destructive"
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
+      return data || [];
+    },
+    enabled: !!userId,
+  });
 
   const getStatusBadge = (verified: boolean) => {
     if (verified) {
@@ -118,11 +100,10 @@ const Documents = () => {
     setUploading(true);
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Usuário não autenticado");
+      if (!userId) throw new Error("Usuário não autenticado");
 
       // Upload para o bucket user-documents
-      const fileName = `${user.id}/${selectedDocType}_${Date.now()}.${file.name.split('.').pop()}`;
+      const fileName = `${userId}/${selectedDocType}_${Date.now()}.${file.name.split('.').pop()}`;
       const { error: uploadError } = await supabase.storage
         .from('user-documents')
         .upload(fileName, file);
@@ -130,11 +111,10 @@ const Documents = () => {
       if (uploadError) throw uploadError;
 
       // Inserir registro na tabela user_documents
-      // Usar diretamente o user.id do auth (não precisa buscar em public.users)
       const { error: dbError } = await supabase
         .from('user_documents')
         .insert({
-          user_id: user.id,  // ID do auth.users
+          user_id: userId,
           document_type: selectedDocType,
           document_url: fileName
         });
@@ -148,7 +128,7 @@ const Documents = () => {
 
       setSelectedDocType("");
       if (fileInputRef.current) fileInputRef.current.value = "";
-      loadDocuments();
+      queryClient.invalidateQueries({ queryKey: ['documents', userId] });
     } catch (error: any) {
       toast({
         title: "Erro no upload",
@@ -214,7 +194,7 @@ const Documents = () => {
         description: "Documento removido com sucesso"
       });
 
-      loadDocuments();
+      queryClient.invalidateQueries({ queryKey: ['documents', userId] });
     } catch (error: any) {
       toast({
         title: "Erro ao excluir",
@@ -224,7 +204,7 @@ const Documents = () => {
     }
   };
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin" />
