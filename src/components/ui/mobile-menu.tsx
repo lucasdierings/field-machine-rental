@@ -7,10 +7,10 @@ import { Separator } from "@/components/ui/separator";
 
 const menuItems = [
   { icon: Home, label: "Início", path: "/" },
-  { icon: Search, label: "Buscar Máquinas", path: "/buscar" },
-  { icon: Grid3X3, label: "Categorias", path: "/categorias" },
+  { icon: Search, label: "Buscar Máquinas", path: "/servicos-agricolas" },
+  { icon: Grid3X3, label: "Categorias", path: "/servicos" },
   { icon: HelpCircle, label: "Como Funciona", path: "/como-funciona" },
-  { icon: Truck, label: "Prestar Serviços", path: "/alugar-minha-maquina" },
+  { icon: Truck, label: "Prestar Serviços", path: "/oferecer-servicos" },
 ];
 
 const userItems = [
@@ -36,7 +36,7 @@ export const MobileMenu = () => {
             </Link>
           </SheetTitle>
         </SheetHeader>
-        
+
         <div className="px-4 pb-6 space-y-6">
           {/* Main Navigation */}
           <nav className="space-y-1">

@@ -23,7 +23,7 @@ export function EnhancedMachineCard({
         if (onViewDetails) {
             onViewDetails();
         } else {
-            navigate(`/maquinas/${machine.id}`);
+            navigate(`/prestador/${machine.id}`);
         }
     };
 
@@ -47,10 +47,10 @@ export function EnhancedMachineCard({
                     <Star
                         key={i}
                         className={`h-4 w-4 ${i < fullStars
-                                ? 'fill-yellow-400 text-yellow-400'
-                                : hasHalfStar && i === fullStars
-                                    ? 'fill-yellow-400/50 text-yellow-400'
-                                    : 'fill-gray-200 text-gray-200'
+                            ? 'fill-yellow-400 text-yellow-400'
+                            : hasHalfStar && i === fullStars
+                                ? 'fill-yellow-400/50 text-yellow-400'
+                                : 'fill-gray-200 text-gray-200'
                             }`}
                     />
                 ))}

@@ -49,13 +49,28 @@ const MyMachines = () => {
 
             const { data, error } = await supabase
                 .from('machines')
-                .select('*')
+                .select('*, machine_images(image_url, is_primary, order_index)')
                 .eq('owner_id', user.id)
                 .order('created_at', { ascending: false });
 
             if (error) throw error;
 
-            setMachines(data || []);
+            // Map the relation data to the expected images array format
+            // Sort images to put primary first, then by order_index
+            const formattedMachines = (data || []).map((machine: any) => {
+                const sortedImages = machine.machine_images?.sort((a: any, b: any) => {
+                    if (a.is_primary === true && b.is_primary !== true) return -1;
+                    if (b.is_primary === true && a.is_primary !== true) return 1;
+                    return (a.order_index || 0) - (b.order_index || 0);
+                });
+
+                return {
+                    ...machine,
+                    images: sortedImages?.map((img: any) => img.image_url) || []
+                };
+            });
+
+            setMachines(formattedMachines);
         } catch (error: any) {
             toast({
                 title: "Erro ao carregar máquinas",

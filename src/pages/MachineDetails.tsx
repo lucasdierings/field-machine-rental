@@ -11,6 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Loader2, MapPin, Star, Calendar, Ruler, Fuel, Settings, User, CheckCircle2, Share2, Heart, Handshake, MessageCircle } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ReviewCard } from "@/components/ui/review-card";
+import { SEO } from "@/components/SEO";
 
 interface Machine {
     id: string;
@@ -121,7 +122,7 @@ const MachineDetails = () => {
                 description: "Não foi possível carregar os detalhes da máquina.",
                 variant: "destructive"
             });
-            navigate('/buscar');
+            navigate('/servicos-agricolas');
         } finally {
             setLoading(false);
         }
@@ -194,10 +195,20 @@ const MachineDetails = () => {
                 return;
             }
 
+            if (!machine.owner_id) {
+                toast({
+                    title: "Erro na máquina",
+                    description: "Esta máquina não possui um proprietário vinculado corretamente. Entre em contato com o suporte.",
+                    variant: "destructive"
+                });
+                return;
+            }
+
             const { error } = await supabase
                 .from('bookings')
                 .insert({
                     machine_id: machine.id,
+                    owner_id: machine.owner_id, // Add owner_id
                     renter_id: user.id,
                     start_date: startDate,
                     end_date: startDate,
@@ -235,6 +246,11 @@ const MachineDetails = () => {
 
     return (
         <div className="min-h-screen bg-background pb-16 md:pb-0">
+            <SEO
+                title={`${machine.name} - ${machine.location?.city || 'Brasil'}`}
+                description={`${machine.category} ${machine.brand} ${machine.model} disponível para serviços. ${machine.description?.substring(0, 120)}...`}
+                canonical={`/prestador/${machine.id}`}
+            />
             <Header />
 
             <main className="pt-20 md:pt-24 pb-16 container mx-auto px-4">

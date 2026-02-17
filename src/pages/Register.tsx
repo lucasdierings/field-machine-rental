@@ -141,7 +141,20 @@ const Register = () => {
       // if (!session.user.email_confirmed_at) ...
 
       const userId = session.user.id;
-      const userTypes = ['producer', 'owner']; // Always both
+
+      // Determine user types based on selection
+      let userTypes: string[] = [];
+      if (formData.userType === 'both') {
+        userTypes = ['producer', 'owner'];
+      } else if (formData.userType) {
+        userTypes = [formData.userType];
+      } else {
+        // Fallback default
+        userTypes = ['producer', 'owner'];
+      }
+
+      // Legacy single type field - prioritize producer if both
+      const primaryUserType = formData.userType === 'both' ? 'producer' : (formData.userType || 'producer');
 
       // Prepara dados do endereço (apenas se foram preenchidos)
       const addressData = formData.address ? {
@@ -162,7 +175,7 @@ const Register = () => {
           cpf_cnpj: formData.cpfCnpj,
           address: addressData,
           user_types: userTypes,
-          user_type: 'producer', // Default legacy
+          user_type: primaryUserType,
           profile_completed: true,
           profile_completion_step: 4, // Final Step
           verified: formData.documentsUploaded

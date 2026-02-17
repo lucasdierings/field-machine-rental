@@ -4,7 +4,7 @@ import { z } from "zod";
 export type UserType = "producer" | "owner" | "both";
 
 export interface RegisterFormData {
-  userType: UserType; // Still keep type for compatibility, but always 'both'
+  userType?: UserType; // Intention for the platform
   fullName: string;
   cpfCnpj: string;
   email: string;
@@ -24,6 +24,11 @@ export interface RegisterFormData {
   propertySize?: string; // Changed to string for input flexibility
   mainCrops?: string[];
   machinesCount?: string;
+  bankAccount?: string; // Removed from UI, but keeping in type just in case
+  rentalFrequency?: string;
+  rentalExperience?: string;
+  deliveryAvailable?: boolean;
+  howFoundUs?: string;
 
   // Verification
   emailVerified: boolean;
@@ -55,7 +60,7 @@ const locationSchema = z.object({
 export const useRegisterForm = () => {
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState<RegisterFormData>({
-    userType: "both",
+    userType: undefined,
     fullName: "",
     cpfCnpj: "",
     email: "",

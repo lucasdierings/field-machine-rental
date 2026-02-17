@@ -6,9 +6,11 @@ import { Footer } from "@/components/ui/footer";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, TrendingUp, TrendingDown, Tractor, ShoppingCart, BarChart3, Calendar } from "lucide-react";
+import { Plus, TrendingUp, Tractor, ShoppingCart, BarChart3, Calendar } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { BookingRequestsList } from "@/components/booking/BookingRequestsList";
+import { RenterBookingsList } from "@/components/booking/RenterBookingsList";
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -56,24 +58,43 @@ export default function Dashboard() {
       // Load user machines
       const { data: machines } = await supabase
         .from("machines")
-        .select("*")
+        .select("*, machine_images(image_url)")
         .eq("owner_id", user.id);
 
       const machinesList = machines || [];
       setUserMachines(machinesList);
 
-      // Load bookings
+      // Step 1: Load bookings (no user_profiles join — FK points to auth.users, not user_profiles)
       const { data: userBookings } = await supabase
         .from("bookings" as any)
-        .select(`
-          *,
-          machines(name, category, brand),
-          renter:user_profiles!bookings_renter_id_fkey(full_name),
-          owner:user_profiles!bookings_owner_id_fkey(full_name)
-        `)
-        .or(`renter_id.eq.${user.id},owner_id.eq.${user.id}`);
+        .select("*, machines(name, category, brand)")
+        .or(`renter_id.eq.${user.id},owner_id.eq.${user.id}`)
+        .order('created_at', { ascending: false });
 
-      const bookingsList = userBookings || [];
+      const rawBookings = userBookings || [];
+
+      // Step 2: Fetch profiles for all unique user IDs referenced in bookings
+      const userIds = [...new Set([
+        ...rawBookings.map((b: any) => b.renter_id),
+        ...rawBookings.map((b: any) => b.owner_id),
+      ].filter(Boolean))];
+
+      let profileMap: Record<string, { full_name: string; phone?: string }> = {};
+      if (userIds.length > 0) {
+        const { data: profiles } = await supabase
+          .from("user_profiles")
+          .select("auth_user_id, full_name, phone")
+          .in("auth_user_id", userIds);
+        profileMap = Object.fromEntries((profiles || []).map((p: any) => [p.auth_user_id, p]));
+      }
+
+      // Step 3: Merge profiles into bookings
+      const bookingsList = rawBookings.map((b: any) => ({
+        ...b,
+        renter: profileMap[b.renter_id] || null,
+        owner: profileMap[b.owner_id] || null,
+      }));
+
       setBookings(bookingsList);
 
       // Calculate Metrics
@@ -88,7 +109,7 @@ export default function Dashboard() {
         .filter((b: any) => {
           const bookingDate = new Date(b.created_at);
           return b.owner_id === user.id &&
-            (b.status === 'confirmed' || b.status === 'completed') &&
+            b.status === 'completed' &&
             bookingDate.getMonth() === currentMonth &&
             bookingDate.getFullYear() === currentYear;
         })
@@ -266,6 +287,46 @@ export default function Dashboard() {
             </Card>
           </div>
 
+          {/* Provider Section: All incoming booking requests */}
+          {bookings.some((b: any) => b.owner_id === user?.id) && (
+            <div className="mb-8">
+              <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
+                <ShoppingCart className="w-5 h-5 text-orange-500" />
+                Solicitações Recebidas (Prestador)
+              </h2>
+              <BookingRequestsList
+                bookings={bookings.filter((b: any) => b.owner_id === user?.id)}
+                onUpdate={loadUserData}
+                currentUserId={user?.id}
+              />
+            </div>
+          )}
+
+          {/* Renter Section: My Sent Requests */}
+          {bookings.some((b: any) => b.renter_id === user?.id) && (
+            <div className="mb-8">
+              <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
+                <Calendar className="w-5 h-5 text-blue-500" />
+                Minhas Solicitações (Enviadas)
+              </h2>
+              <RenterBookingsList
+                bookings={bookings.filter((b: any) => b.renter_id === user?.id)}
+                currentUserId={user?.id}
+              />
+            </div>
+          )}
+
+          {/* Show empty state when no bookings at all */}
+          {bookings.length === 0 && (
+            <div className="mb-8">
+              <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
+                <ShoppingCart className="w-5 h-5 text-orange-500" />
+                Solicitações de Serviço
+              </h2>
+              <BookingRequestsList bookings={[]} onUpdate={loadUserData} currentUserId={user?.id} />
+            </div>
+          )}
+
           {/* Minhas Máquinas Section */}
           <div className="mb-6">
             <div className="flex items-center justify-between mb-4">
@@ -288,7 +349,7 @@ export default function Dashboard() {
                   // Calculate real metrics for each machine
                   const machineBookings = bookings.filter((b: any) => b.machine_id === machine.id);
                   const machineRevenue = machineBookings
-                    .filter((b: any) => b.status === 'completed' || b.status === 'confirmed')
+                    .filter((b: any) => b.status === 'completed')
                     .reduce((acc: number, curr: any) => acc + Number(curr.total_price || 0), 0);
                   const machineReservations = machineBookings.length;
 
@@ -298,9 +359,9 @@ export default function Dashboard() {
                         <div className="flex gap-4">
                           {/* Machine Image */}
                           <div className="w-20 h-20 rounded-lg bg-gradient-to-br from-green-100 to-green-200 flex-shrink-0 overflow-hidden">
-                            {machine.images && machine.images[0] ? (
+                            {(machine.machine_images && machine.machine_images[0]?.image_url) ? (
                               <img
-                                src={machine.images[0]}
+                                src={machine.machine_images[0].image_url}
                                 alt={machine.name}
                                 className="w-full h-full object-cover"
                               />
@@ -375,6 +436,7 @@ export default function Dashboard() {
               </Card>
             )}
           </div>
+
         </div>
       </main>
 

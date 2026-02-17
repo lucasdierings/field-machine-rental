@@ -4,8 +4,8 @@ import { cn } from "@/lib/utils";
 
 const navItems = [
   { icon: Home, label: "Início", path: "/" },
-  { icon: Search, label: "Buscar", path: "/buscar" },
-  { icon: PlusCircle, label: "Anunciar", path: "/alugar-minha-maquina" },
+  { icon: Search, label: "Buscar", path: "/servicos-agricolas" },
+  { icon: PlusCircle, label: "Anunciar", path: "/oferecer-servicos" },
   { icon: MessageCircle, label: "Mensagens", path: "/dashboard" },
   { icon: User, label: "Perfil", path: "/dashboard/perfil" },
 ];
@@ -19,15 +19,15 @@ export const BottomNavigation = () => {
         {navItems.map((item) => {
           const isActive = location.pathname === item.path;
           const Icon = item.icon;
-          
+
           return (
             <Link
               key={item.path}
               to={item.path}
               className={cn(
                 "flex flex-col items-center justify-center flex-1 h-full gap-1 transition-colors",
-                isActive 
-                  ? "text-primary" 
+                isActive
+                  ? "text-primary"
                   : "text-muted-foreground hover:text-foreground"
               )}
             >

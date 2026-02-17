@@ -21,42 +21,42 @@ const categories = [
     description: "Potência e versatilidade para todas as operações",
     image: tractorImg,
     brand: "Varid",
-    link: "/buscar?categoria=tratores"
+    link: "/servicos-agricolas?categoria=tratores"
   },
   {
     title: "Colheitadeiras",
     description: "Eficiência na colheita de grãos",
     image: harvesterImg,
     brand: "New Holland",
-    link: "/buscar?categoria=colheitadeiras"
+    link: "/servicos/colheita"
   },
   {
     title: "Pulverizadores",
     description: "Aplicação precisa de defensivos",
     image: sprayerImg,
     brand: "Case IH",
-    link: "/buscar?categoria=pulverizadores"
+    link: "/servicos/pulverizacao"
   },
   {
     title: "Retroescavadeiras",
     description: "Serviços de terraplanagem e escavação",
     image: backhoeImg,
     brand: "CAT / JCB",
-    link: "/buscar?categoria=retroescavadeiras"
+    link: "/servicos/preparo-solo"
   },
   {
     title: "Drones Agrícolas",
     description: "Pulverização aérea e mapeamento",
     image: droneImg,
     brand: "DJI / XAG",
-    link: "/buscar?categoria=drones"
+    link: "/servicos/drones"
   },
   {
     title: "Transporte de Cargas",
     description: "Caminhões, carretas e bitrens",
     image: "https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?q=80&w=1000&auto=format&fit=crop",
     brand: "Diversos",
-    link: "/buscar?categoria=transporte-de-cargas"
+    link: "/servicos/transporte"
   }
 ];
 

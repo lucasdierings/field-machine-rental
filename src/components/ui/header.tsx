@@ -21,16 +21,16 @@ export const Header = () => {
 
           {/* Navigation - Desktop */}
           <nav className="hidden md:flex items-center space-x-8">
-            <Link to="/buscar" className="text-foreground hover:text-primary transition-colors">
+            <Link to="/servicos-agricolas" className="text-foreground hover:text-primary transition-colors">
               Buscar
             </Link>
-            <Link to="/categorias" className="text-foreground hover:text-primary transition-colors">
+            <Link to="/servicos" className="text-foreground hover:text-primary transition-colors">
               Categorias
             </Link>
             <Link to="/como-funciona" className="text-foreground hover:text-primary transition-colors">
               Como Funciona
             </Link>
-            <Link to="/alugar-minha-maquina" className="text-foreground hover:text-primary transition-colors">
+            <Link to="/oferecer-servicos" className="text-foreground hover:text-primary transition-colors">
               Prestar Serviços
             </Link>
           </nav>
@@ -43,7 +43,7 @@ export const Header = () => {
                 Favoritos
               </Link>
             </Button>
-            
+
             <Button variant="ghost" size="sm" className="hidden md:flex" asChild>
               <Link to="/alertas">
                 <Bell className="h-4 w-4 mr-2" />

@@ -55,22 +55,32 @@ const ReviewBooking = () => {
 
             if (!bookingId) return;
 
+            // Step 1: load booking (FK points to auth.users, not user_profiles — avoid broken join)
             const { data: bookingData, error } = await supabase
                 .from('bookings' as any)
-                .select(`
-                    *,
-                    machines(name, category, brand),
-                    renter:user_profiles!bookings_renter_id_fkey(full_name),
-                    owner:user_profiles!bookings_owner_id_fkey(full_name)
-                `)
+                .select("*, machines(name, category, brand)")
                 .eq('id', bookingId)
                 .single();
 
             if (error) throw error;
 
-            setBooking(bookingData as any);
+            // Step 2: fetch renter and owner profiles (including .id — PK used in reviews FK)
+            const profileAuthIds = [bookingData.renter_id, bookingData.owner_id].filter(Boolean);
+            const { data: profiles } = await supabase
+                .from('user_profiles')
+                .select('id, auth_user_id, full_name')
+                .in('auth_user_id', profileAuthIds);
+
+            const profileMap = Object.fromEntries((profiles || []).map((p: any) => [p.auth_user_id, p]));
+
+            setBooking({
+                ...bookingData,
+                renter: profileMap[bookingData.renter_id] || null,
+                owner: profileMap[bookingData.owner_id] || null,
+            } as any);
 
             // Check if user already reviewed this booking
+            // public.users.id = auth.uid(), so use user.id directly
             const { data: existingReview } = await supabase
                 .from('reviews')
                 .select('id')
@@ -106,6 +116,7 @@ const ReviewBooking = () => {
     const isRenter = currentUserId === booking.renter_id;
     const isOwner = currentUserId === booking.owner_id;
     const reviewType = isOwner ? "owner_reviews_client" as const : "client_reviews_owner" as const;
+    // public.users.id = auth.uid(), so booking renter_id/owner_id are valid as reviewed_id
     const reviewedId = isOwner ? booking.renter_id : booking.owner_id;
 
     const machineName = (booking as any).machines?.name || "Máquina";

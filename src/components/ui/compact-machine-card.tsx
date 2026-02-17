@@ -25,8 +25,8 @@ interface CompactMachineCardProps {
 
 export const CompactMachineCard = ({ machine }: CompactMachineCardProps) => {
   const imageUrl = machine.images?.[0] || "/placeholder.svg";
-  const locationText = machine.location 
-    ? `${machine.location.city}, ${machine.location.state}` 
+  const locationText = machine.location
+    ? `${machine.location.city}, ${machine.location.state}`
     : "Localização não informada";
 
   // Determina o preço principal a mostrar
@@ -34,7 +34,7 @@ export const CompactMachineCard = ({ machine }: CompactMachineCardProps) => {
   const priceUnit = machine.price_hectare ? "/ha" : "/hora";
 
   return (
-    <Link to={`/maquinas/${machine.id}`}>
+    <Link to={`/prestador/${machine.id}`}>
       <Card className="overflow-hidden hover:shadow-md transition-shadow duration-200 active:scale-[0.98]">
         <div className="flex h-28">
           {/* Image */}
@@ -46,7 +46,7 @@ export const CompactMachineCard = ({ machine }: CompactMachineCardProps) => {
               loading="lazy"
             />
             {machine.verified && (
-              <Badge 
+              <Badge
                 className="absolute top-1 left-1 bg-primary text-primary-foreground text-[10px] px-1.5 py-0.5"
               >
                 Verificado
@@ -61,12 +61,12 @@ export const CompactMachineCard = ({ machine }: CompactMachineCardProps) => {
               <span className="text-[10px] text-muted-foreground uppercase tracking-wide">
                 {machine.category}
               </span>
-              
+
               {/* Title */}
               <h3 className="font-semibold text-sm text-foreground line-clamp-1">
                 {machine.name}
               </h3>
-              
+
               {/* Location */}
               <div className="flex items-center gap-1 text-xs text-muted-foreground">
                 <MapPin className="h-3 w-3 flex-shrink-0" />

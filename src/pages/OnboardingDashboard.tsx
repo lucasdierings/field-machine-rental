@@ -5,14 +5,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import { 
-  CheckCircle, 
-  Circle, 
-  Search, 
-  Plus, 
-  Upload, 
-  Camera, 
-  Mail, 
+import {
+  CheckCircle,
+  Circle,
+  Search,
+  Plus,
+  Upload,
+  Camera,
+  Mail,
   Phone,
   Target,
   TrendingUp,
@@ -75,7 +75,7 @@ const OnboardingDashboard = () => {
       completed: false,
       required: true,
       action: 'Cadastrar Máquina',
-      link: '/cadastrar-maquina'
+      link: '/add-machine'
     }] : [{
       id: 'first-search',
       title: 'Primeira busca realizada',
@@ -83,7 +83,7 @@ const OnboardingDashboard = () => {
       completed: false,
       required: true,
       action: 'Buscar Máquinas',
-      link: '/buscar'
+      link: '/servicos-agricolas'
     }])
   ]);
 
@@ -92,7 +92,7 @@ const OnboardingDashboard = () => {
   const progressPercentage = (completedTasks / totalTasks) * 100;
 
   const toggleTask = (taskId: string) => {
-    setTasks(tasks.map(task => 
+    setTasks(tasks.map(task =>
       task.id === taskId ? { ...task, completed: !task.completed } : task
     ));
   };
@@ -166,7 +166,7 @@ const OnboardingDashboard = () => {
               Bem-vindo ao FieldMachine! 🚜
             </h1>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              {userType === 'producer' 
+              {userType === 'producer'
                 ? 'Você está a poucos passos de encontrar as máquinas perfeitas para sua produção!'
                 : 'Você está a poucos passos de começar a gerar renda extra com suas máquinas!'
               }
@@ -245,16 +245,16 @@ const OnboardingDashboard = () => {
                           </p>
                         </div>
                       </div>
-                      <Button 
-                        asChild 
+                      <Button
+                        asChild
                         className="w-full mt-4 bg-primary-foreground text-primary hover:bg-primary-foreground/90"
                       >
-                        <Link to="/buscar">
+                        <Link to="/servicos-agricolas">
                           Começar Busca
                         </Link>
                       </Button>
                     </Card>
-                    
+
                     <Card className="p-6 bg-gradient-card">
                       <div className="flex items-center gap-4">
                         <Calendar className="w-8 h-8 text-accent" />
@@ -284,16 +284,16 @@ const OnboardingDashboard = () => {
                           </p>
                         </div>
                       </div>
-                      <Button 
-                        asChild 
+                      <Button
+                        asChild
                         className="w-full mt-4 bg-primary-foreground text-primary hover:bg-primary-foreground/90"
                       >
-                        <Link to="/cadastrar-maquina">
+                        <Link to="/add-machine">
                           Cadastrar Agora
                         </Link>
                       </Button>
                     </Card>
-                    
+
                     <Card className="p-6 bg-gradient-card">
                       <div className="flex items-center gap-4">
                         <TrendingUp className="w-8 h-8 text-accent" />
