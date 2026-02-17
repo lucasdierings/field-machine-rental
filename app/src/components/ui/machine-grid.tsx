@@ -259,9 +259,12 @@ export const MachineGrid = ({ searchFilters }: MachineGridProps) => {
         )}
 
         <div className="text-center mt-12">
-          <button className="px-8 py-3 bg-primary text-primary-foreground rounded-lg font-semibold hover:bg-primary/90 transition-colors">
+          <a
+            href="/servicos-agricolas"
+            className="px-8 py-3 bg-primary text-primary-foreground rounded-lg font-semibold hover:bg-primary/90 transition-colors inline-block"
+          >
             Ver Todos os Equipamentos
-          </button>
+          </a>
         </div>
       </div>
     </section>

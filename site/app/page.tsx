@@ -116,14 +116,14 @@ export default function Home() {
         <div className="relative container mx-auto px-6 pt-24 pb-16">
           <div className="max-w-2xl">
             <span className="inline-block bg-green-900/60 border border-green-700/50 text-green-400 text-sm font-semibold px-3 py-1 rounded-full mb-6">
-              Plataforma #1 de serviços agrícolas no Brasil
+              Plataforma #1 de serviços do agronegócio no Brasil
             </span>
             <h1 className="text-5xl md:text-6xl font-extrabold leading-tight mb-6">
-              Serviços agrícolas
+              Plataforma de Serviços
               <br />
-              <span className="text-green-400">direto entre</span>
+              <span className="text-green-400">para o</span>
               <br />
-              produtores
+              Agronegócio
             </h1>
             <p className="text-lg text-gray-300 mb-10 leading-relaxed">
               Conectamos produtores rurais e prestadores de serviço agrícola.

@@ -30,8 +30,8 @@ const Bookings = () => {
 
             setUser(user);
 
-            // Fetch bookings where user is either renter or owner
-            const { data: bookingsData, error } = await supabase
+            // Step 1: Fetch bookings (FK renter_id/owner_id → auth.users, not user_profiles)
+            const { data: rawBookings, error } = await supabase
                 .from('bookings')
                 .select(`
           *,
@@ -39,11 +39,6 @@ const Bookings = () => {
             name,
             category,
             brand
-          ),
-          renter:user_profiles!renter_id (
-            full_name,
-            phone,
-            avatar_url
           )
         `)
                 .or(`renter_id.eq.${user.id},owner_id.eq.${user.id}`)
@@ -51,7 +46,30 @@ const Bookings = () => {
 
             if (error) throw error;
 
-            setBookings(bookingsData || []);
+            // Step 2: Fetch profiles for all unique user IDs
+            const bookingsList = rawBookings || [];
+            const userIds = [...new Set([
+                ...bookingsList.map((b: any) => b.renter_id),
+                ...bookingsList.map((b: any) => b.owner_id),
+            ].filter(Boolean))];
+
+            let profileMap: Record<string, { full_name: string; phone?: string; avatar_url?: string }> = {};
+            if (userIds.length > 0) {
+                const { data: profiles } = await supabase
+                    .from('user_profiles')
+                    .select('auth_user_id, full_name, phone, avatar_url')
+                    .in('auth_user_id', userIds);
+                profileMap = Object.fromEntries((profiles || []).map((p: any) => [p.auth_user_id, p]));
+            }
+
+            // Step 3: Merge profiles into bookings
+            const bookingsData = bookingsList.map((b: any) => ({
+                ...b,
+                renter: profileMap[b.renter_id] || null,
+                owner: profileMap[b.owner_id] || null,
+            }));
+
+            setBookings(bookingsData);
         } catch (error) {
             console.error("Erro ao carregar dados:", error);
             // Don't redirect on error, just log it

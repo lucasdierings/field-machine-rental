@@ -1,0 +1,49 @@
+# Field Machine — Plataforma de Serviços para o Agronegócio
+
+## O que é o Field Machine?
+
+O Field Machine é uma plataforma de serviços para o agronegócio no Brasil.
+Conectamos produtores rurais com prestadores de serviço agrícola de forma direta,
+sem taxas, sem intermediários e sem comissão sobre os serviços contratados.
+
+## Como funciona?
+
+1. Produtores buscam máquinas e serviços disponíveis na sua região
+2. Entram em contato diretamente com o prestador via chat integrado
+3. Negociam valores e condições diretamente (sem a plataforma intermediar pagamento)
+4. O serviço é realizado e ambos avaliam a experiência
+
+## Para quem é?
+
+- **Produtores rurais**: que precisam contratar serviços de colheita, plantio, pulverização, preparo de solo ou transporte agrícola
+- **Prestadores de serviço**: proprietários de máquinas agrícolas que querem rentabilizar seus equipamentos
+
+## Equipamentos disponíveis
+
+- Tratores (John Deere, Valtra, New Holland e outras marcas)
+- Colheitadeiras (para soja, milho, trigo)
+- Pulverizadores autopropelidos e acoplados
+- Plantadeiras (plantio direto e convencional)
+- Implementos agrícolas
+- Transporte de cargas
+
+## Modelo de negócio
+
+- 100% gratuito para uso
+- Sem taxas de comissão
+- Pagamento combinado diretamente entre as partes (PIX, transferência, dinheiro)
+- Sistema de avaliações em 4 dimensões: operador, máquina, serviço e cliente
+
+## Contato e acesso
+
+- Site: https://fieldmachine.com.br
+- Plataforma: https://app.fieldmachine.com.br
+- Email: fieldmachinebrasil@gmail.com
+- Telefone: (45) 99144-7004
+- Localização: Curitiba, Paraná, Brasil
+
+## Links importantes
+
+- Criar conta: https://app.fieldmachine.com.br/cadastro
+- Buscar serviços: https://app.fieldmachine.com.br/servicos-agricolas
+- Como funciona: https://app.fieldmachine.com.br/como-funciona
