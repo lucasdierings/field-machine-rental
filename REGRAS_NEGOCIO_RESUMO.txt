@@ -1,0 +1,404 @@
+================================================================================
+                 FIELD MACHINE RENTAL - REGRAS DE NEGÓCIO RESUMIDAS
+================================================================================
+
+COPIE E COLE ESTE ARQUIVO INTEIRO NO CLAUDE PARA REFERÊNCIA RÁPIDA
+
+================================================================================
+1. ATORES DO SISTEMA
+================================================================================
+
+ADMIN
+- Acesso total ao sistema
+- Aprova documentos de usuários
+- Visualiza analytics globais
+- Gerencia plataforma
+
+PROPRIETÁRIO
+- Cadastra máquinas
+- Recebe solicitações de aluguel
+- Aprova/rejeita reservas
+- Chat com rentadores
+- Avalia rentadores após conclusão
+
+RENTADOR
+- Busca máquinas por localização/categoria
+- Faz reservas (bookings)
+- Chat com proprietários
+- Favorita máquinas
+- Cria alertas de busca
+- Avalia proprietários após conclusão
+
+ANÔNIMO
+- Apenas visualizar home e buscar máquinas
+- Não pode fazer reservas sem cadastro
+
+================================================================================
+2. CADASTRO DE USUÁRIO
+================================================================================
+
+FLUXO OBRIGATÓRIO (4 STEPS):
+
+Step 1: Email, Senha, Nome, Telefone, CPF/CNPJ
+Step 2: Estado, Cidade, Rua, Número, CEP
+Step 3: Tipo de usuário (Rentador/Proprietário), Descrição, Cidades de operação
+Step 4: Verificação de Email (OTP 6 dígitos, válido 10 min, máx 3 tentativas)
+
+VALIDAÇÕES:
+- Email: Formato válido, único (case-insensitive)
+- Senha: Mín 8 chars, 1 maiúscula, 1 número
+- CPF/CNPJ: Validação com dígito verificador
+- Telefone: Formato brasileiro (+55 ou 11 dígitos)
+- Maiores de 18 anos (se aplicável)
+
+================================================================================
+3. MÁQUINAS
+================================================================================
+
+CATEGORIAS: Trator | Colheitadeira | Pulverizador | Plantadeira | Implemento | Transporte
+
+CAMPOS OBRIGATÓRIOS:
+- Nome (descritivo, 10-100 chars)
+- Marca (ex: Case IH, John Deere)
+- Modelo
+- Ano (>= 1990)
+- Categoria
+- Localização (estado + cidade)
+- Pelo menos 1 preço: hora, dia, ou hectare (> 0)
+
+CAMPOS OPCIONAIS:
+- Potência (CV)
+- Peso (toneladas)
+- Capacidade
+- Descrição (até 2000 chars)
+- Tipo operador (próprio ou contratado)
+- Raio de atuação (10-100km, padrão 50)
+
+IMAGENS:
+- Máx 10 imagens
+- Formatos: JPG, PNG (sem WEBP)
+- Tamanho: 5MB cada
+- Resolução mín: 800x600px
+- 1ª imagem é principal (thumbnail)
+- Mínimo 1 imagem para publicar
+
+STATUS: available | unavailable | archived
+
+REGRA: Proprietário só edita suas máquinas. Admin pode editar qualquer uma.
+       Não deletar do DB (apenas marcar como archived).
+
+================================================================================
+4. BUSCA E FILTROS
+================================================================================
+
+PARÂMETROS DE BUSCA:
+- Latitude/Longitude (obrigatório)
+- Raio: 10-100km (padrão 50km)
+- Categoria (opcional)
+- Preço min/max (opcional)
+- Ano min (opcional)
+- Avaliação mínima (opcional)
+- Data disponível (opcional)
+- Tipo operação (colheita, plantio, etc)
+
+CÁLCULO DISTÂNCIA: Usar Haversine formula
+
+RESULTADOS:
+- Máx 50 por página (paginar)
+- Apenas máquinas com status = 'available'
+- Ordenar por distância ou relevância
+
+FILTROS AVANÇADOS SUPORTADOS:
+- Categoria (6 opções)
+- Operações (Colheita, Plantio, Pulverização, Preparo, Transporte)
+- Faixa de Preço (R$ 50 - R$ 10.000)
+- Potência (CV)
+- Ano de Fabricação (1990-2024)
+- Avaliação (1-5 estrelas)
+- Disponibilidade (datas)
+
+================================================================================
+5. RESERVAS (BOOKINGS)
+================================================================================
+
+ESTADOS DA RESERVA:
+pending → confirmed → in_progress → completed → reviewed
+              ↓ (rejeição)
+           cancelled
+
+CRIAR RESERVA:
+- Usuário autenticado
+- Máquina com status = 'available'
+- Datas não conflitantes
+- Proprietário ≠ Rentador
+- start_date < end_date
+- Datas não podem ser passado
+- Máx 365 dias de aluguel
+
+CÁLCULO DE PREÇO:
+Se price_type = 'hourly':
+  total = machine.price_hour * (horas)
+
+Se price_type = 'daily':
+  total = machine.price_day * (dias, inclusive ambas)
+
+Se price_type = 'hectare':
+  total = machine.price_hectare * (hectares informados)
+
+Arredondar para 2 casas decimais
+
+CANCELAMENTO:
+- Por Rentador (pending): Sem penalidade
+- Por Proprietário (pending): Rejeita
+- Após Confirmado: Requer justificativa, pode ter penalidade
+- Durante Aluguel: Bloqueado (exceto com admin)
+
+================================================================================
+6. AVALIAÇÕES (REVIEWS)
+================================================================================
+
+PRÉ-REQUISITOS:
+- Booking em status 'completed'
+- Máx 1 avaliação por user por booking
+- Apenas após data de fim da reserva
+
+CAMPOS:
+- Rating: 1-5 estrelas (obrigatório)
+- Comentário: até 500 caracteres (opcional)
+- Reviewer avalia o PROPRIETÁRIO/MÁQUINA
+
+PÚBLICO: Sim, reviews aparecem no perfil do usuário
+
+EDITAR: Apenas criador ou admin, até 30 dias após criação
+
+RATING DO USUÁRIO: Média aritmética de todas as reviews
+
+EXIBIÇÃO: 1 casa decimal (ex: 4.5 ⭐)
+
+================================================================================
+7. PREÇOS
+================================================================================
+
+TRÊS TIPOS:
+- price_hour: Preço por hora (R$, > 0)
+- price_day: Preço por dia (R$, > 0)
+- price_hectare: Preço por hectare (R$, >= 0)
+
+REGRA: Proprietário define pelo menos 1 dos 3 preços
+
+FAIXA DE BUSCA:
+- Mínimo: R$ 50
+- Máximo: R$ 10.000
+- Validar: price_min < price_max
+
+HISTÓRICO: Não manter histórico (preço pode mudar)
+           Preço na booking é capturado no momento (imutável)
+
+COMISSÃO: [A definir] % da transação fica com plataforma
+
+================================================================================
+8. SEGURANÇA - ROW LEVEL SECURITY (RLS)
+================================================================================
+
+TABELAS PROTEGIDAS:
+
+user_profiles:
+  SELECT: Qualquer um (público)
+  INSERT/UPDATE/DELETE: Apenas próprio user ou admin
+
+machines:
+  SELECT: Qualquer um (público)
+  INSERT: Apenas proprietário autenticado
+  UPDATE: Apenas proprietário ou admin
+  DELETE: Apenas proprietário (soft delete → archived)
+
+bookings:
+  SELECT: Apenas renter, owner ou admin
+  INSERT: Apenas renter autenticado
+  UPDATE: Apenas renter/owner ou admin
+  DELETE: Não permitido (soft delete → cancelled)
+
+reviews:
+  SELECT: Qualquer um (público)
+  INSERT: Apenas criador autenticado
+  UPDATE: Apenas criador ou admin
+  DELETE: Apenas criador ou admin
+
+addresses, alerts, messages:
+  SELECT/INSERT/UPDATE/DELETE: Apenas proprietário ou admin
+
+user_documents:
+  SELECT: Apenas proprietário ou admin
+  INSERT: Apenas proprietário
+  UPDATE: Apenas proprietário ou admin (para aprovação)
+
+================================================================================
+9. AUTENTICAÇÃO E AUTORIZAÇÃO
+================================================================================
+
+AUTENTICAÇÃO:
+- Supabase Auth com JWT
+- Email + Senha
+- Session timeout: 7 dias
+- Refresh token timeout: 30 dias
+- Invalidar ao logout
+
+AUTORIZAÇÃO:
+- Validar `role` antes de acessar admin
+- Validar `owner_id` antes de editar máquinas
+- Validar `renter_id` ou `owner_id` antes de acessar bookings
+
+ROLES:
+- 'admin': Acesso total
+- 'user': Acesso normal (padrão)
+
+ROTAS PROTEGIDAS:
+- /admin: Apenas admin
+- /dashboard: Apenas autenticado
+- /add-machine: Apenas proprietário
+
+================================================================================
+10. ADMIN DASHBOARD
+================================================================================
+
+ABAS:
+1. Platform Stats
+   - Total usuários (todos, ativos últimos 30 dias)
+   - Total máquinas (ativas, arquivadas)
+   - Total reservas (pendentes, confirmadas, concluídas)
+   - Receita total e últimos 30 dias
+   - Taxa de conversão
+
+2. Users Tab
+   - Listar todos usuários
+   - Filtrar por: nome, email, status, rating
+   - Ver detalhes: máquinas, reservas, documentos
+   - Editar/bloquear usuários
+
+3. Machines Tab
+   - Listar todas máquinas
+   - Filtrar por: categoria, status, proprietário, cidade
+   - Ver imagens e detalhes
+   - Editar/arquivar
+
+4. Analytics Tab
+   - Gráficos crescimento (30d, 90d, 1 ano)
+   - Distribuição por categoria/cidade/estado
+   - Receita por período
+   - Usuários ativos
+
+5. Document Approval Tab
+   - Documentos pendentes
+   - Visualizar
+   - Aprovar/rejeitar com comentário
+   - Marcar verified = true
+
+================================================================================
+11. LANDING PAGES
+================================================================================
+
+POR CIDADE: /servicos/{state}/{city}
+- Máquinas disponíveis na cidade
+- Proprietários top-rated
+- SEO otimizado
+
+POR CATEGORIA/OPERAÇÃO:
+- /servicos/colheita
+- /servicos/plantio
+- /servicos/pulverizacao
+- /servicos/preparo-solo
+- /servicos/transporte
+
+================================================================================
+12. VALIDAÇÕES DE ENTRADA
+================================================================================
+
+SEMPRE VALIDAR:
+- Formato email (regex padrão)
+- CPF/CNPJ (dígito verificador)
+- Datas (não passado, start < end)
+- Números (preços > 0, raio 10-100)
+- Strings (comprimento min/max)
+- Coordenadas GPS (lat -90 a 90, long -180 a 180)
+
+SANITIZAR:
+- Remover tags HTML de inputs de texto
+- Trim espaços em branco
+- Lowercase para email
+
+SCHEMAS: Usar Zod para validação
+
+================================================================================
+13. BANCO DE DADOS - PRINCIPAIS TABELAS
+================================================================================
+
+auth.users (Supabase padrão)
+- id: UUID
+- email: String
+- created_at: Timestamp
+
+user_profiles
+- id, auth_user_id, full_name, cpf_cnpj, verified, rating
+
+machines
+- id, owner_id, name, brand, model, year, category, price_hour, price_day,
+  price_hectare, location, latitude, longitude, status, total_bookings, rating
+
+bookings
+- id, machine_id, renter_id, owner_id, start_date, end_date, price_type,
+  total_price, status
+
+reviews
+- id, booking_id, reviewer_id, reviewed_user_id, rating, comment
+
+addresses
+- id, user_id, city, state, street, number, cep, latitude, longitude
+
+alerts
+- id, user_id, category, location, radius_km, price_range, is_active
+
+user_documents
+- id, user_id, document_type, document_url, status, verified
+
+machine_images
+- id, machine_id, image_url
+
+================================================================================
+14. RESTRIÇÕES IMPORTANTES
+================================================================================
+
+NÃO PERMITIR:
+- Mesmo rentador + máquina + período = múltiplas bookings simultâneas
+- Deletar registros (usar soft delete com status/deleted_at)
+- Proprietário editar máquina de outro
+- Rentador acessar reserva de outro
+- Admin acessar dados sensíveis sem RLS
+
+BLOQUEAR:
+- Múltiplas contas com mesmo email
+- CPF/CNPJ duplicado
+- Booking em datas sobrepostas
+- Edição de booking completada
+- Cancelamento durante aluguel (exceto admin)
+
+================================================================================
+15. TECNOLOGIA
+================================================================================
+
+FRONTEND:
+- React 18.3 com TypeScript
+- Vite 5.4 (build tool)
+- Tailwind CSS 3.4
+- shadcn/ui (componentes)
+- React Hook Form (formulários)
+- Zod (validação)
+- TanStack React Query (data fetching)
+- Framer Motion (animações)
+
+BACKEND:
+- Supabase (PostgreSQL + Auth + Storage)
+- Edge Functions (Deno)
+
+================================================================================
+FIM DAS REGRAS
+================================================================================

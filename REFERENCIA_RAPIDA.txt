@@ -1,0 +1,170 @@
+╔════════════════════════════════════════════════════════════════════════════╗
+║           FIELD MACHINE RENTAL - REFERÊNCIA RÁPIDA                          ║
+║                  Cole isso no Claude quando precisar de                    ║
+║                    um resumo das regras                                     ║
+╚════════════════════════════════════════════════════════════════════════════╝
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ATORES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+ADMIN          Acesso total | Aprova docs | Analytics
+PROPRIETÁRIO   Máquinas | Recebe reservas | Avalia
+RENTADOR       Busca máquinas | Faz reservas | Avalia | Favorita | Alertas
+ANÔNIMO        Ver home | Buscar | Sem reserva
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+MÁQUINAS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+CATEGORIAS:    Trator | Colheitadeira | Pulverizador | Plantadeira | Implemento | Transporte
+
+STATUS:        available | unavailable | archived
+
+PREÇOS:        price_hour (R$) | price_day (R$) | price_hectare (R$)
+               Mínimo 1 deve ser > 0
+
+IMAGENS:       Máx 10 | JPG/PNG | 5MB | Min 800x600px | Mínimo 1
+
+VALIDAÇÕES:    Nome 10-100 chars | Ano >= 1990 | Preço > 0
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+BUSCA
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+RAIO:          10-100km (padrão 50km) | Usar Haversine formula
+FILTROS:       Categoria | Preço min-max | Ano | Avaliação | Operação
+RESULTADOS:    Máx 50/página | Apenas status='available'
+ORDENAÇÃO:     Por distância ou relevância
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+RESERVAS (BOOKINGS)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+ESTADOS:       pending → confirmed → in_progress → completed → reviewed
+               (OU cancelled se rejeitada/cancelada)
+
+VALIDAÇÕES:    start_date < end_date | Não passado | Máx 365 dias
+               Sem sobreposição | Proprietário ≠ Rentador
+
+PREÇO:         total = price_X * quantidade | Arredondar 2 casas decimais
+
+CANCELAMENTO:  Pending: sem penalidade | Após confirmado: justificativa
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+AVALIAÇÕES (REVIEWS)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+PRÉ-REQUISITO: Booking em status 'completed'
+
+CAMPOS:        Rating 1-5 (obrigatório) | Comentário até 500 chars (opt)
+
+PÚBLICO:       Sim, aparece no perfil
+
+EDITAR:        Até 30 dias, apenas criador ou admin
+
+RATING USER:   Média das reviews | Exibir 1 decimal (ex: 4.5 ⭐)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CADASTRO USUÁRIO
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+STEP 1:        Email | Senha | Nome | Telefone | CPF/CNPJ
+STEP 2:        Estado | Cidade | Rua | Número | CEP
+STEP 3:        Tipo User | Descrição | Cidades operação
+STEP 4:        Email OTP (6 dígitos | 10 min | Máx 3 tentativas)
+
+VALIDAÇÕES:    Email formato+único | Senha 8+ chars+maiúscula+número
+               CPF/CNPJ com dígito verificador | Telefone BR
+               Maiores 18 anos
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SEGURANÇA & RLS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+user_profiles:      SELECT público | INSERT/UPDATE/DELETE próprio ou admin
+machines:           SELECT público | INSERT proprietário | UPDATE proprietário+admin | DELETE archived
+bookings:           SELECT renter+owner+admin | INSERT renter | UPDATE renter+owner+admin
+reviews:            SELECT público | INSERT criador | UPDATE criador+admin | DELETE criador+admin
+addresses/alerts:   SELECT/INSERT/UPDATE/DELETE proprietário ou admin
+documents:          SELECT proprietário+admin | INSERT proprietário | UPDATE proprietário+admin
+
+AUTENTICAÇÃO:  Supabase JWT | Session 7 dias | Refresh 30 dias | Logout invalida
+
+ROLES:         'admin' | 'user' (padrão)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ADMIN DASHBOARD
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+ABA STATS:     Usuários | Máquinas | Reservas | Receita | Taxa conversão
+ABA USERS:     Listar | Filtrar | Editar | Bloquear
+ABA MACHINES:  Listar | Filtrar | Imagens | Editar | Arquivar
+ABA ANALYTICS: Gráficos crescimento | Distribuição | Receita
+ABA DOCS:      Pendentes | Visualizar | Aprovar/rejeitar | Comentário
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+VALIDAÇÕES GERAIS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+EMAIL:         Regex padrão | Unique case-insensitive
+CPF/CNPJ:      Dígito verificador
+TELEFONE:      Formato BR (+55 ou 11 dígitos)
+DATAS:         Não passado | start < end | Máx 365 dias
+NÚMEROS:       Preços > 0 | Raio 10-100
+GPS:           Latitude -90 a 90 | Longitude -180 a 180
+STRINGS:       Min/max chars | Trim espaço | Remover HTML | Lowercase email
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+RESTRIÇÕES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+BLOQUEADO:     Mesmo user + máquina + período (múltiplas bookings)
+               Deletar DB (usar soft delete)
+               Proprietário editar máquina alheia
+               Editar booking completada
+               Cancelar durante aluguel (exceto admin)
+
+IMPEDIR:       Emails duplicados | CPF/CNPJ duplicado | Datas sobrepostas
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+TECH STACK
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+FRONTEND:      React 18 | TypeScript | Vite | Tailwind | shadcn/ui
+               React Hook Form | Zod | TanStack Query | Framer Motion
+
+BACKEND:       Supabase | PostgreSQL | Edge Functions (Deno)
+
+GIT:           Branch: claude/feature-name-SESSION_ID
+               Commits: feat/fix/refactor(scope): description
+               Atômicos | Sem "git add ." | Push -u flag
+
+COMANDOS:      npm run dev | npm test | npm run lint | npm run build
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PADRÕES DE CÓDIGO
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+COMPONENTS:    FC<Props> | Interface Props | TypeScript obrigatório
+HOOKS:         useX | Custom logic | Reutilizável
+UTILS:         Funções puras | Sem side effects
+STYLES:        Tailwind | Sem inline | Mobile-first
+FORMS:         React Hook Form + Zod
+QUERIES:       TanStack Query | Chaves bem estruturadas
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+TESTES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+COVERAGE MIN:  Components 80% | Hooks 90% | Utils 95% | Pages 60%
+CMD:           npm test | npm test -- --coverage | npm test -- --watch
+HAPPY PATH:    Sim
+ERROR CASES:   Sim
+NO CONSOLE:    console.log deve ser removido
+
+╔════════════════════════════════════════════════════════════════════════════╗
+║                     FIM DA REFERÊNCIA RÁPIDA                              ║
+║                                                                            ║
+║          Para detalhes completos, veja CLAUDE_PROMPT.md                   ║
+╚════════════════════════════════════════════════════════════════════════════╝
