@@ -142,6 +142,17 @@ export const BookingRequestsList = ({ bookings, onUpdate }: BookingRequestsListP
                         </div>
 
                         <div className="flex flex-col justify-between gap-4">
+                            {/* Renter Contact */}
+                            {booking.renter?.phone && (
+                                <Button
+                                    variant="outline"
+                                    className="w-full text-green-600 border-green-200 hover:bg-green-50 mb-2"
+                                    onClick={() => window.open(`https://wa.me/55${booking.renter.phone?.replace(/\D/g, '')}`, '_blank')}
+                                >
+                                    <span className="mr-2 text-xl">📱</span>
+                                    WhatsApp do Solicitante
+                                </Button>
+                            )}
                             {booking.notes && (
                                 <div className="bg-muted/50 p-3 rounded-md text-sm italic text-muted-foreground">
                                     "{booking.notes}"

@@ -199,6 +199,7 @@ const MachineDetails = () => {
                 .from('bookings')
                 .insert({
                     machine_id: machine.id,
+                    owner_id: machine.owner_id, // Add owner_id
                     renter_id: user.id,
                     start_date: startDate,
                     end_date: startDate,

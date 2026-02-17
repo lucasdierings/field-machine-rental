@@ -10,6 +10,7 @@ import { Plus, TrendingUp, TrendingDown, Tractor, ShoppingCart, BarChart3, Calen
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { BookingRequestsList } from "@/components/booking/BookingRequestsList";
+import { RenterBookingsList } from "@/components/booking/RenterBookingsList";
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -57,7 +58,7 @@ export default function Dashboard() {
       // Load user machines
       const { data: machines } = await supabase
         .from("machines")
-        .select("*")
+        .select("*, machine_images(image_url)")
         .eq("owner_id", user.id);
 
       const machinesList = machines || [];
@@ -69,8 +70,9 @@ export default function Dashboard() {
         .select(`
           *,
           machines(name, category, brand),
-          renter:user_profiles!bookings_renter_id_fkey(full_name),
-          owner:user_profiles!bookings_owner_id_fkey(full_name)
+          machines(name, category, brand),
+          renter:user_profiles!renter_id(full_name, phone),
+          owner:user_profiles!owner_id(full_name, phone)
         `)
         .or(`renter_id.eq.${user.id},owner_id.eq.${user.id}`);
 
@@ -279,6 +281,17 @@ export default function Dashboard() {
             />
           </div>
 
+          {/* Renter Section: My Sent Requests */}
+          <div className="mb-8">
+            <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
+              <Calendar className="w-5 h-5 text-blue-500" />
+              Minhas Solicitações (Enviadas)
+            </h2>
+            <RenterBookingsList
+              bookings={bookings.filter((b: any) => b.renter_id === user?.id)}
+            />
+          </div>
+
           {/* Minhas Máquinas Section */}
           <div className="mb-6">
             <div className="flex items-center justify-between mb-4">
@@ -311,9 +324,9 @@ export default function Dashboard() {
                         <div className="flex gap-4">
                           {/* Machine Image */}
                           <div className="w-20 h-20 rounded-lg bg-gradient-to-br from-green-100 to-green-200 flex-shrink-0 overflow-hidden">
-                            {machine.images && machine.images[0] ? (
+                            {(machine.machine_images && machine.machine_images[0]?.image_url) ? (
                               <img
-                                src={machine.images[0]}
+                                src={machine.machine_images[0].image_url}
                                 alt={machine.name}
                                 className="w-full h-full object-cover"
                               />
@@ -388,6 +401,17 @@ export default function Dashboard() {
               </Card>
             )}
           </div>
+
+          {/* Debug RLS */}
+          {import.meta.env.DEV && (
+            <div className="mt-8 p-4 bg-muted/50 rounded-lg text-xs font-mono overflow-auto max-h-60 border border-border">
+              <h4 className="font-bold mb-2">Debug Info (Dev Only)</h4>
+              <p>User ID: {user?.id}</p>
+              <p>Bookings Count: {bookings?.length || 0}</p>
+              <p>Raw Bookings (First 2):</p>
+              <pre>{JSON.stringify(bookings?.slice(0, 2), null, 2)}</pre>
+            </div>
+          )}
         </div>
       </main>
 
