@@ -32,3 +32,4 @@ bun.lockb
 
 supabase/.temp/
 .env.development
+.env.production
