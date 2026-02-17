@@ -11,6 +11,7 @@ import {
     Loader2, CheckCircle, XCircle, Calendar, User, Truck,
     Clock, Star, MessageCircle, CheckCircle2, AlertCircle
 } from "lucide-react";
+import { CompleteServiceModal } from "./CompleteServiceModal";
 
 interface Booking {
     id: string;
@@ -20,6 +21,9 @@ interface Booking {
     status: string;
     total_amount?: number;
     total_price?: number;
+    negotiated_price?: number;
+    billing_type?: string;
+    billing_quantity?: number;
     quantity: number;
     notes?: string;
     renter_id: string;
@@ -36,25 +40,36 @@ interface BookingRequestsListProps {
 }
 
 const STATUS_TABS = [
-    { key: 'pending',   label: 'Pendentes',   icon: Clock,         color: 'text-yellow-600' },
-    { key: 'confirmed', label: 'Confirmadas',  icon: CheckCircle2,  color: 'text-blue-600'   },
-    { key: 'completed', label: 'Concluídas',   icon: CheckCircle,   color: 'text-green-600'  },
-    { key: 'rejected',  label: 'Rejeitadas',   icon: XCircle,       color: 'text-red-600'    },
+    { key: 'pending', label: 'Pendentes', icon: Clock, color: 'text-yellow-600' },
+    { key: 'confirmed', label: 'Confirmadas', icon: CheckCircle2, color: 'text-blue-600' },
+    { key: 'completed', label: 'Concluídas', icon: CheckCircle, color: 'text-green-600' },
+    { key: 'rejected', label: 'Rejeitadas', icon: XCircle, color: 'text-red-600' },
 ];
+
+const BILLING_TYPE_LABELS: Record<string, string> = {
+    hora: "horas",
+    hectare: "hectares",
+    dia: "diárias",
+    unidade: "unidades",
+    tonelada: "toneladas",
+    km: "km",
+};
 
 export const BookingRequestsList = ({ bookings, onUpdate }: BookingRequestsListProps) => {
     const { toast } = useToast();
     const navigate = useNavigate();
     const [processingId, setProcessingId] = useState<string | null>(null);
     const [activeTab, setActiveTab] = useState<string>('pending');
+    const [completeModalOpen, setCompleteModalOpen] = useState(false);
+    const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
+    const [completingLoading, setCompletingLoading] = useState(false);
 
-    const handleAction = async (bookingId: string, action: 'confirm' | 'reject' | 'complete') => {
+    const handleAction = async (bookingId: string, action: 'confirm' | 'reject') => {
         setProcessingId(bookingId);
         try {
             const statusMap: Record<string, string> = {
                 confirm: 'confirmed',
                 reject: 'rejected',
-                complete: 'completed',
             };
             const { error } = await supabase
                 .from('bookings')
@@ -64,23 +79,17 @@ export const BookingRequestsList = ({ bookings, onUpdate }: BookingRequestsListP
             if (error) throw error;
 
             const messages: Record<string, string> = {
-                confirm:  "Solicitação aceita! Entre em contato com o solicitante para combinar os detalhes.",
-                reject:   "Solicitação rejeitada. O solicitante será notificado.",
-                complete: "Serviço marcado como concluído! Agora você pode avaliar o cliente.",
+                confirm: "Solicitação aceita! Entre em contato com o solicitante para combinar os detalhes.",
+                reject: "Solicitação rejeitada. O solicitante será notificado.",
             };
 
             toast({
-                title: action === 'reject' ? "Solicitação Rejeitada" :
-                       action === 'complete' ? "Serviço Concluído!" : "Solicitação Aceita!",
+                title: action === 'reject' ? "Solicitação Rejeitada" : "Solicitação Aceita!",
                 description: messages[action],
                 variant: action === 'reject' ? "destructive" : "default"
             });
 
-            if (action === 'complete') {
-                navigate(`/avaliar/${bookingId}`);
-            } else {
-                onUpdate();
-            }
+            onUpdate();
         } catch (error: any) {
             toast({ title: "Erro ao processar", description: error.message, variant: "destructive" });
         } finally {
@@ -88,8 +97,80 @@ export const BookingRequestsList = ({ bookings, onUpdate }: BookingRequestsListP
         }
     };
 
+    const handleOpenCompleteModal = (booking: Booking) => {
+        setSelectedBooking(booking);
+        setCompleteModalOpen(true);
+    };
+
+    const handleCompleteService = async (data: {
+        negotiatedPrice: number;
+        billingType: string;
+        billingQuantity: number;
+    }) => {
+        if (!selectedBooking) return;
+
+        setCompletingLoading(true);
+        try {
+            // 1. Update booking with completion data
+            const { error: bookingError } = await supabase
+                .from('bookings')
+                .update({
+                    status: 'completed',
+                    negotiated_price: data.negotiatedPrice,
+                    billing_type: data.billingType,
+                    billing_quantity: data.billingQuantity,
+                    completed_at: new Date().toISOString(),
+                } as any)
+                .eq('id', selectedBooking.id);
+
+            if (bookingError) throw bookingError;
+
+            // 2. Create transaction record
+            const { error: txError } = await supabase
+                .from('transactions')
+                .insert({
+                    booking_id: selectedBooking.id,
+                    amount: data.negotiatedPrice,
+                    type: 'service_payment',
+                    status: 'completed',
+                    provider: 'peer_to_peer',
+                    metadata: {
+                        billing_type: data.billingType,
+                        billing_quantity: data.billingQuantity,
+                        unit_price: data.negotiatedPrice / data.billingQuantity,
+                        machine_name: getMachineName(selectedBooking),
+                        owner_id: selectedBooking.owner_id,
+                        renter_id: selectedBooking.renter_id,
+                    },
+                } as any);
+
+            if (txError) {
+                console.warn("Transaction record failed (non-critical):", txError);
+            }
+
+            toast({
+                title: "Serviço Concluído! ✅",
+                description: `R$ ${data.negotiatedPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 })} — ${data.billingQuantity} ${BILLING_TYPE_LABELS[data.billingType] || data.billingType} registrados.`,
+            });
+
+            setCompleteModalOpen(false);
+            setSelectedBooking(null);
+
+            // Navigate to review page
+            navigate(`/avaliar/${selectedBooking.id}`);
+        } catch (error: any) {
+            toast({
+                title: "Erro ao concluir",
+                description: error.message,
+                variant: "destructive"
+            });
+        } finally {
+            setCompletingLoading(false);
+        }
+    };
+
     const getMachineName = (b: Booking) => b.machines?.name || b.machine?.name || 'Máquina';
-    const getAmount = (b: Booking) => b.total_amount || b.total_price || 0;
+    const getAmount = (b: Booking) => b.negotiated_price || b.total_amount || b.total_price || 0;
 
     const countByStatus = STATUS_TABS.reduce((acc, tab) => {
         acc[tab.key] = bookings.filter(b => b.status === tab.key).length;
@@ -99,14 +180,14 @@ export const BookingRequestsList = ({ bookings, onUpdate }: BookingRequestsListP
     const filtered = bookings.filter(b => b.status === activeTab);
 
     const statusBadgeClass = (status: string) => {
-        if (status === 'pending')   return 'bg-yellow-50 text-yellow-700 border-yellow-200';
+        if (status === 'pending') return 'bg-yellow-50 text-yellow-700 border-yellow-200';
         if (status === 'confirmed') return 'bg-blue-50 text-blue-700 border-blue-200';
         if (status === 'completed') return 'bg-green-50 text-green-700 border-green-200';
         return 'bg-red-50 text-red-700 border-red-200';
     };
 
     const statusLabel = (status: string) => {
-        if (status === 'pending')   return 'Pendente';
+        if (status === 'pending') return 'Pendente';
         if (status === 'confirmed') return 'Confirmada';
         if (status === 'completed') return 'Concluída';
         return 'Rejeitada';
@@ -137,18 +218,16 @@ export const BookingRequestsList = ({ bookings, onUpdate }: BookingRequestsListP
                         <button
                             key={tab.key}
                             onClick={() => setActiveTab(tab.key)}
-                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium whitespace-nowrap border transition-colors ${
-                                activeTab === tab.key
+                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium whitespace-nowrap border transition-colors ${activeTab === tab.key
                                     ? 'bg-primary text-primary-foreground border-primary'
                                     : 'bg-background border-border hover:bg-muted'
-                            }`}
+                                }`}
                         >
                             <Icon className="w-3.5 h-3.5" />
                             {tab.label}
                             {count > 0 && (
-                                <span className={`ml-1 px-1.5 py-0.5 rounded-full text-xs font-bold ${
-                                    activeTab === tab.key ? 'bg-white/20' : 'bg-muted-foreground/20'
-                                }`}>
+                                <span className={`ml-1 px-1.5 py-0.5 rounded-full text-xs font-bold ${activeTab === tab.key ? 'bg-white/20' : 'bg-muted-foreground/20'
+                                    }`}>
                                     {count}
                                 </span>
                             )}
@@ -188,7 +267,9 @@ export const BookingRequestsList = ({ bookings, onUpdate }: BookingRequestsListP
                                         R$ {getAmount(booking).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                                     </p>
                                     <p className="text-xs text-muted-foreground">
-                                        {booking.status === 'completed' ? 'Valor Recebido' : 'Valor Estimado'}
+                                        {booking.status === 'completed'
+                                            ? (booking.negotiated_price ? 'Valor Recebido' : 'Valor Estimado')
+                                            : 'Valor Estimado'}
                                     </p>
                                 </div>
                             </div>
@@ -217,8 +298,19 @@ export const BookingRequestsList = ({ bookings, onUpdate }: BookingRequestsListP
                                 <div className="flex items-start gap-3">
                                     <Truck className="w-5 h-5 text-muted-foreground shrink-0 mt-0.5" />
                                     <div>
-                                        <p className="text-sm font-medium">Qtd / Área</p>
-                                        <p className="text-sm text-foreground">{booking.quantity} (unid./ha/dias)</p>
+                                        <p className="text-sm font-medium">Detalhes do Serviço</p>
+                                        {booking.status === 'completed' && booking.billing_type && booking.billing_quantity ? (
+                                            <p className="text-sm text-foreground">
+                                                {booking.billing_quantity} {BILLING_TYPE_LABELS[booking.billing_type] || booking.billing_type}
+                                                {booking.negotiated_price && booking.billing_quantity > 0 && (
+                                                    <span className="text-muted-foreground ml-1">
+                                                        (R$ {(booking.negotiated_price / booking.billing_quantity).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}/{booking.billing_type})
+                                                    </span>
+                                                )}
+                                            </p>
+                                        ) : (
+                                            <p className="text-sm text-foreground">{booking.quantity} (unid./ha/dias)</p>
+                                        )}
                                     </div>
                                 </div>
                             </div>
@@ -279,16 +371,14 @@ export const BookingRequestsList = ({ bookings, onUpdate }: BookingRequestsListP
                                     </div>
                                 )}
 
-                                {/* Confirmed: mark complete */}
+                                {/* Confirmed: mark complete — now opens modal */}
                                 {booking.status === 'confirmed' && (
                                     <Button
                                         className="w-full bg-blue-600 hover:bg-blue-700 text-white mt-1"
-                                        onClick={() => handleAction(booking.id, 'complete')}
+                                        onClick={() => handleOpenCompleteModal(booking)}
                                         disabled={!!processingId}
                                     >
-                                        {processingId === booking.id
-                                            ? <Loader2 className="w-4 h-4 animate-spin" />
-                                            : <CheckCircle2 className="w-4 h-4 mr-2" />}
+                                        <CheckCircle2 className="w-4 h-4 mr-2" />
                                         Marcar como Concluído
                                     </Button>
                                 )}
@@ -308,6 +398,22 @@ export const BookingRequestsList = ({ bookings, onUpdate }: BookingRequestsListP
                         </CardContent>
                     </Card>
                 ))
+            )}
+
+            {/* Complete Service Modal */}
+            {selectedBooking && (
+                <CompleteServiceModal
+                    open={completeModalOpen}
+                    onOpenChange={(open) => {
+                        setCompleteModalOpen(open);
+                        if (!open) setSelectedBooking(null);
+                    }}
+                    onConfirm={handleCompleteService}
+                    bookingId={selectedBooking.id}
+                    machineName={getMachineName(selectedBooking)}
+                    estimatedAmount={selectedBooking.total_amount || selectedBooking.total_price || 0}
+                    loading={completingLoading}
+                />
             )}
         </div>
     );

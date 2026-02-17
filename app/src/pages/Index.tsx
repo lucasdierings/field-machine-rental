@@ -1,32 +1,31 @@
-import { Header } from "@/components/ui/header";
-import { EnhancedHero } from "@/components/ui/enhanced-hero";
-import { ProcessFlow } from "@/components/ui/process-flow";
-import { StatsSection } from "@/components/ui/stats-section";
-import { HowItWorks } from "@/components/ui/how-it-works";
-import { CategoriesShowcase } from "@/components/ui/categories-showcase";
-import { Testimonials } from "@/components/ui/testimonials";
-import { EnhancedFooter } from "@/components/ui/enhanced-footer";
-
-import { SEO } from "@/components/SEO";
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 
 const Index = () => {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        navigate("/dashboard", { replace: true });
+      } else {
+        navigate("/login", { replace: true });
+      }
+    };
+    checkAuth();
+  }, [navigate]);
+
+  // Show a brief loading state while checking auth
   return (
-    <div className="min-h-screen bg-background pb-16 md:pb-0">
-      <SEO
-        title="Home"
-        description="A maior plataforma de aluguel de máquinas agrícolas do Brasil. Conecte-se com prestadores de serviço sem taxas."
-        canonical="/"
-      />
-      <Header />
-      <main>
-        <EnhancedHero />
-        <ProcessFlow />
-        <StatsSection />
-        <HowItWorks />
-        <CategoriesShowcase />
-        <Testimonials />
-      </main>
-      <EnhancedFooter />
+    <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="text-center">
+        <h1 className="text-2xl font-bold mb-2">
+          Field<span className="text-primary">Machine</span>
+        </h1>
+        <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mt-4"></div>
+      </div>
     </div>
   );
 };

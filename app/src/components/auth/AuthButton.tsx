@@ -10,7 +10,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { LogOut, Settings, User as UserIcon, Tractor } from "lucide-react";
+import { LogOut, Settings, User as UserIcon, Tractor, FileText } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 
@@ -150,13 +150,17 @@ export const AuthButton = () => {
           <UserIcon className="mr-2 h-4 w-4" />
           <span>Dashboard</span>
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => navigate('/dashboard/perfil')}>
-          <Settings className="mr-2 h-4 w-4" />
-          <span>Configurações</span>
-        </DropdownMenuItem>
         <DropdownMenuItem onClick={() => navigate('/minhas-maquinas')}>
           <Tractor className="mr-2 h-4 w-4" />
           <span>Minhas Máquinas</span>
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => navigate('/dashboard')}>
+          <FileText className="mr-2 h-4 w-4" />
+          <span>Solicitações</span>
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => navigate('/dashboard/perfil')}>
+          <Settings className="mr-2 h-4 w-4" />
+          <span>Perfil</span>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={handleLogout}>

@@ -107,13 +107,16 @@ export default function Dashboard() {
 
       const monthlyRevenueValue = bookingsList
         .filter((b: any) => {
-          const bookingDate = new Date(b.created_at);
+          const completedDate = b.completed_at ? new Date(b.completed_at) : new Date(b.created_at);
           return b.owner_id === user.id &&
             b.status === 'completed' &&
-            bookingDate.getMonth() === currentMonth &&
-            bookingDate.getFullYear() === currentYear;
+            completedDate.getMonth() === currentMonth &&
+            completedDate.getFullYear() === currentYear;
         })
-        .reduce((acc: number, curr: any) => acc + Number(curr.total_price || 0), 0);
+        .reduce((acc: number, curr: any) => {
+          const amount = Number(curr.negotiated_price || curr.total_price || curr.total_amount || 0);
+          return acc + amount;
+        }, 0);
 
       const upcomingReservationsCount = bookingsList.filter((b: any) =>
         (b.owner_id === user.id || b.renter_id === user.id) &&
@@ -350,7 +353,10 @@ export default function Dashboard() {
                   const machineBookings = bookings.filter((b: any) => b.machine_id === machine.id);
                   const machineRevenue = machineBookings
                     .filter((b: any) => b.status === 'completed')
-                    .reduce((acc: number, curr: any) => acc + Number(curr.total_price || 0), 0);
+                    .reduce((acc: number, curr: any) => {
+                      const amount = Number(curr.negotiated_price || curr.total_price || curr.total_amount || 0);
+                      return acc + amount;
+                    }, 0);
                   const machineReservations = machineBookings.length;
 
                   return (

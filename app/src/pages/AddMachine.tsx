@@ -13,6 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Loader2, Upload, X, Image as ImageIcon } from "lucide-react";
 import { LocationSelector } from "@/components/ui/location-selector";
 import { MultiCitySelector } from "@/components/ui/multi-city-selector";
+import { hasApprovedDocuments } from "@/lib/userVerification";
 
 const categories = [
   "Tratores",
@@ -276,6 +277,18 @@ export default function AddMachine() {
             </Button>
           )
         });
+        return;
+      }
+
+      // Verificar se o usuár tem documentos aprovados
+      const hasDocuments = await hasApprovedDocuments(user.id);
+      if (!hasDocuments) {
+        toast({
+          title: "Verificação necessária",
+          description: "Você precisa ter documentos aprovados para disponibilizar máquinas. Envie seus documentos para análise.",
+          variant: "destructive"
+        });
+        navigate('/dashboard/perfil?tab=documents');
         return;
       }
 

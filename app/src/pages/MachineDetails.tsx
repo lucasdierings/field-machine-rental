@@ -12,6 +12,7 @@ import { Loader2, MapPin, Star, Calendar, Ruler, Fuel, Settings, User, CheckCirc
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ReviewCard } from "@/components/ui/review-card";
 import { SEO } from "@/components/SEO";
+import { hasApprovedDocuments } from "@/lib/userVerification";
 
 interface Machine {
     id: string;
@@ -195,6 +196,18 @@ const MachineDetails = () => {
                 return;
             }
 
+            // Verificar se o usuário tem documentos aprovados
+            const hasDocuments = await hasApprovedDocuments(user.id);
+            if (!hasDocuments) {
+                toast({
+                    title: "Verificação necessária",
+                    description: "Você precisa ter documentos aprovados para fazer reservas. Envie seus documentos para análise.",
+                    variant: "destructive"
+                });
+                navigate('/dashboard/perfil?tab=documents');
+                return;
+            }
+
             if (!machine.owner_id) {
                 toast({
                     title: "Erro na máquina",
@@ -208,7 +221,7 @@ const MachineDetails = () => {
                 .from('bookings')
                 .insert({
                     machine_id: machine.id,
-                    owner_id: machine.owner_id, // Add owner_id
+                    owner_id: machine.owner_id,
                     renter_id: user.id,
                     start_date: startDate,
                     end_date: startDate,
@@ -217,7 +230,8 @@ const MachineDetails = () => {
                     platform_fee: 0,
                     notes: notes,
                     status: 'pending',
-                    payment_status: 'peer_to_peer'
+                    payment_status: 'peer_to_peer',
+                    price_type: unit,
                 });
 
             if (error) throw error;

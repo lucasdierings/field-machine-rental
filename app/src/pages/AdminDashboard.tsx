@@ -39,6 +39,8 @@ interface TransactionRow {
   renter_name: string;
   value: number;
   date: string;
+  billing_type?: string;
+  billing_quantity?: number;
 }
 interface UserGrowthRow { month: string; users: number; }
 
@@ -121,7 +123,7 @@ const AdminDashboard = () => {
       // 3. Bookings Stats
       const { data: bookingsData } = await supabase
         .from('bookings')
-        .select('id, status, total_price, total_amount, created_at, machine_id, renter_id, machines(name)')
+        .select('id, status, total_price, total_amount, negotiated_price, billing_type, billing_quantity, completed_at, created_at, machine_id, renter_id, machines(name)')
         .order('created_at', { ascending: false });
 
       const bookings = bookingsData as any[] || [];
@@ -130,14 +132,13 @@ const AdminDashboard = () => {
       const pendingBookings = bookings.filter(b => b.status === 'pending').length;
       const completedBookings = bookings.filter(b => b.status === 'completed').length;
 
-      // Negotiations = value of completed bookings only
       const totalNegotiations = bookings
         .filter(b => b.status === 'completed')
-        .reduce((acc, curr) => acc + (Number(curr.total_price) || Number(curr.total_amount) || 0), 0);
+        .reduce((acc, curr) => acc + (Number(curr.negotiated_price) || Number(curr.total_price) || Number(curr.total_amount) || 0), 0);
 
       const negotiations30d = bookings
         .filter(b => b.status === 'completed' && new Date(b.created_at) >= thirtyDaysAgo)
-        .reduce((acc, curr) => acc + (Number(curr.total_price) || Number(curr.total_amount) || 0), 0);
+        .reduce((acc, curr) => acc + (Number(curr.negotiated_price) || Number(curr.total_price) || Number(curr.total_amount) || 0), 0);
 
       // Latest 5 completed transactions
       const completedList = bookings.filter(b => b.status === 'completed').slice(0, 5);
@@ -156,21 +157,55 @@ const AdminDashboard = () => {
           id: b.id,
           machine_name: b.machines?.name || 'Máquina',
           renter_name: renterMap[b.renter_id] || 'Usuário',
-          value: Number(b.total_price) || Number(b.total_amount) || 0,
-          date: b.created_at,
+          value: Number(b.negotiated_price) || Number(b.total_price) || Number(b.total_amount) || 0,
+          date: b.completed_at || b.created_at,
+          billing_type: b.billing_type || null,
+          billing_quantity: b.billing_quantity || null,
         }))
       );
 
-      // 4. Users by city (top 10)
+      // 4. Users by city — extract from address JSON in user_profiles + machines location
       const { data: profilesCity } = await supabase
         .from('user_profiles')
-        .select('city');
+        .select('address');
+
+      const { data: machinesCity } = await supabase
+        .from('machines')
+        .select('location, owner_id');
 
       const cityMap: Record<string, number> = {};
+
+      // Extract from user_profiles.address (JSON: {city, state, ...})
       (profilesCity || []).forEach((p: any) => {
-        const city = p.city?.trim();
-        if (city) cityMap[city] = (cityMap[city] || 0) + 1;
+        const addr = typeof p.address === 'string' ? JSON.parse(p.address) : p.address;
+        const city = addr?.city?.trim();
+        const state = addr?.state?.trim();
+        if (city) {
+          const label = state ? `${city}/${state}` : city;
+          cityMap[label] = (cityMap[label] || 0) + 1;
+        }
       });
+
+      // Also extract from machines.location (JSON: {city, state, ...})
+      // Count unique owners per city (so one owner = 1 count even with multiple machines)
+      const ownerCitySet = new Set<string>();
+      (machinesCity || []).forEach((m: any) => {
+        const loc = typeof m.location === 'string' ? JSON.parse(m.location) : m.location;
+        const city = loc?.city?.trim();
+        const state = loc?.state?.trim();
+        if (city && m.owner_id) {
+          const label = state ? `${city}/${state}` : city;
+          const key = `${m.owner_id}:${label}`;
+          if (!ownerCitySet.has(key)) {
+            ownerCitySet.add(key);
+            // Only add if we didn't already count this user from their profile
+            if (!cityMap[label]) cityMap[label] = 0;
+            // Add machine-based city data with lower weight if profile already counted
+            cityMap[label] = (cityMap[label] || 0) + 1;
+          }
+        }
+      });
+
       setCityData(
         Object.entries(cityMap)
           .sort((a, b) => b[1] - a[1])
@@ -502,7 +537,7 @@ const AdminDashboard = () => {
               <Card>
                 <CardHeader>
                   <CardTitle>Top 10 Cidades</CardTitle>
-                  <CardDescription>Usuários por cidade</CardDescription>
+                  <CardDescription>Usuários e prestadores por cidade</CardDescription>
                 </CardHeader>
                 <CardContent className="h-[300px]">
                   {cityData.length > 0 ? (
@@ -510,11 +545,11 @@ const AdminDashboard = () => {
                       <BarChart
                         data={cityData}
                         layout="vertical"
-                        margin={{ top: 5, right: 20, left: 60, bottom: 5 }}
+                        margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
                       >
                         <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                         <XAxis type="number" tick={{ fontSize: 11 }} allowDecimals={false} />
-                        <YAxis dataKey="city" type="category" tick={{ fontSize: 11 }} width={55} />
+                        <YAxis dataKey="city" type="category" tick={{ fontSize: 10 }} width={90} />
                         <Tooltip />
                         <Bar dataKey="users" name="Usuários" fill="#3b82f6" radius={[0, 4, 4, 0]} />
                       </BarChart>
@@ -546,6 +581,11 @@ const AdminDashboard = () => {
                           <div>
                             <p className="font-medium truncate">{tx.machine_name}</p>
                             <p className="text-xs text-muted-foreground truncate">{tx.renter_name}</p>
+                            {tx.billing_type && tx.billing_quantity && (
+                              <p className="text-xs text-blue-600">
+                                {tx.billing_quantity} {tx.billing_type === 'hora' ? 'h' : tx.billing_type === 'hectare' ? 'ha' : tx.billing_type === 'dia' ? 'dias' : tx.billing_type}
+                              </p>
+                            )}
                           </div>
                           <p className="text-xs text-muted-foreground text-center">
                             {new Date(tx.date).toLocaleDateString('pt-BR')}
