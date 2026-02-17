@@ -19,7 +19,6 @@ export default function Dashboard() {
   const [userProfile, setUserProfile] = useState<any>(null);
   const [userMachines, setUserMachines] = useState<any[]>([]);
   const [bookings, setBookings] = useState<any[]>([]);
-  const [debugRawBookings, setDebugRawBookings] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   const [metrics, setMetrics] = useState({
@@ -65,34 +64,38 @@ export default function Dashboard() {
       const machinesList = machines || [];
       setUserMachines(machinesList);
 
-      // Load bookings with explicit FK references to avoid ambiguity
-      const { data: userBookings, error: bookingsError } = await supabase
+      // Step 1: Load bookings (no user_profiles join — FK points to auth.users, not user_profiles)
+      const { data: userBookings } = await supabase
         .from("bookings" as any)
-        .select(`
-          *,
-          machines(name, category, brand),
-          renter:user_profiles!bookings_renter_id_fkey(full_name, phone),
-          owner:user_profiles!bookings_owner_id_fkey(full_name, phone)
-        `)
+        .select("*, machines(name, category, brand)")
         .or(`renter_id.eq.${user.id},owner_id.eq.${user.id}`)
         .order('created_at', { ascending: false });
 
-      if (bookingsError) {
-        console.error("Main bookings query error:", bookingsError);
+      const rawBookings = userBookings || [];
+
+      // Step 2: Fetch profiles for all unique user IDs referenced in bookings
+      const userIds = [...new Set([
+        ...rawBookings.map((b: any) => b.renter_id),
+        ...rawBookings.map((b: any) => b.owner_id),
+      ].filter(Boolean))];
+
+      let profileMap: Record<string, { full_name: string; phone?: string }> = {};
+      if (userIds.length > 0) {
+        const { data: profiles } = await supabase
+          .from("user_profiles")
+          .select("auth_user_id, full_name, phone")
+          .in("auth_user_id", userIds);
+        profileMap = Object.fromEntries((profiles || []).map((p: any) => [p.auth_user_id, p]));
       }
 
-      const bookingsList = userBookings || [];
+      // Step 3: Merge profiles into bookings
+      const bookingsList = rawBookings.map((b: any) => ({
+        ...b,
+        renter: profileMap[b.renter_id] || null,
+        owner: profileMap[b.owner_id] || null,
+      }));
+
       setBookings(bookingsList);
-
-      // DEBUG: Raw fetch to check if data exists at all
-      if (import.meta.env.DEV) {
-        const { data: rawData, error: rawError } = await supabase
-          .from('bookings')
-          .select('*')
-          .limit(5);
-        if (rawError) console.error("Raw debug fetch error:", rawError);
-        setDebugRawBookings(rawData || []);
-      }
 
       // Calculate Metrics
       const now = new Date();
@@ -434,19 +437,6 @@ export default function Dashboard() {
             )}
           </div>
 
-          {/* Debug RLS */}
-          {import.meta.env.DEV && (
-            <div className="mt-8 p-4 bg-muted/50 rounded-lg text-xs font-mono overflow-auto max-h-60 border border-border">
-              <h4 className="font-bold mb-2">Debug Info (Dev Only)</h4>
-              <p>User ID: {user?.id}</p>
-              <p>Bookings Count (Main Query): {bookings?.length || 0}</p>
-              <p className="mt-2 font-bold">Raw Bookings in DB (Select *):</p>
-              <p>Count: {debugRawBookings.length}</p>
-              <pre>{JSON.stringify(debugRawBookings, null, 2)}</pre>
-              <p className="mt-2 font-bold">Main Query Result (First item):</p>
-              <pre>{JSON.stringify(bookings?.[0], null, 2)}</pre>
-            </div>
-          )}
         </div>
       </main>
 
