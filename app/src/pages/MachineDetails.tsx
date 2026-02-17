@@ -244,12 +244,44 @@ const MachineDetails = () => {
         ? machine.images[selectedImage]
         : "https://images.unsplash.com/photo-1625246333195-78d9c38ad449?w=1200&h=600&fit=crop";
 
+    const jsonLd = {
+        "@context": "https://schema.org",
+        "@type": "Product",
+        "name": machine.name,
+        "image": machine.images && machine.images.length > 0 ? machine.images : ["https://fieldmachine.com.br/placeholder.jpg"], // Fallback image if none
+        "description": machine.description || `Aluguel de ${machine.name} - ${machine.brand} ${machine.model}.`,
+        "brand": {
+            "@type": "Brand",
+            "name": machine.brand
+        },
+        "model": machine.model,
+        "offers": {
+            "@type": "Offer",
+            "url": window.location.href,
+            "priceCurrency": "BRL",
+            "price": price,
+            "priceValidUntil": new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString().split('T')[0], // Valid for 1 year
+            "itemCondition": "https://schema.org/UsedCondition",
+            "availability": "https://schema.org/InStock",
+            "seller": {
+                "@type": "Person",
+                "name": machine.owner?.full_name || "Proprietário"
+            }
+        },
+        "aggregateRating": reviews.length > 0 ? {
+            "@type": "AggregateRating",
+            "ratingValue": avgRating.toFixed(1),
+            "reviewCount": reviews.length
+        } : undefined
+    };
+
     return (
         <div className="min-h-screen bg-background pb-16 md:pb-0">
             <SEO
                 title={`${machine.name} - ${machine.location?.city || 'Brasil'}`}
                 description={`${machine.category} ${machine.brand} ${machine.model} disponível para serviços. ${machine.description?.substring(0, 120)}...`}
                 canonical={`/prestador/${machine.id}`}
+                structuredData={jsonLd}
             />
             <Header />
 

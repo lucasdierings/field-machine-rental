@@ -46,12 +46,19 @@ Updated all internal `Link` and `navigate` calls in components:
 - `DashboardLayout.tsx`
 - And various other pages.
 
+### 6. Structured Data (JSON-LD)
+- Updated `SEO` component to support `structuredData` prop.
+- Implemented `Product` schema in `MachineDetails.tsx` including:
+  - Name, Description, Brand, Model
+  - Offers (Price, Currency, Seller)
+  - Aggregate Rating (if available)
+
 ## Verification
 - **Redirects**: Old URLs like `/buscar` now redirect to `/servicos-agricolas`.
 - **Deep Links**: `/servicos/colheita` correctly sets filters to "Colheitadeiras".
 - **Canonical Tags**: Verified presence in code (e.g., `<link rel="canonical" href="..." />`).
+- **Structured Data**: `MachineDetails` page now injects JSON-LD script for rich snippets.
 
 ## Next Steps
 - Monitor Google Search Console for indexation of new URLs.
 - Consider server-side rendering (SSR) or pre-rendering if SEO performance needs further boost (currently client-side React).
-- Add structured data (JSON-LD) for `Product` or `Service` schema in `MachineDetails`.
