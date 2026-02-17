@@ -80,18 +80,12 @@ const ReviewBooking = () => {
             } as any);
 
             // Check if user already reviewed this booking
-            // reviewer_id FK → user_profiles.id, so look up current user's profile id
-            const { data: myProfile } = await supabase
-                .from('user_profiles')
-                .select('id')
-                .eq('auth_user_id', user.id)
-                .single();
-
+            // public.users.id = auth.uid(), so use user.id directly
             const { data: existingReview } = await supabase
                 .from('reviews')
                 .select('id')
                 .eq('booking_id', bookingId)
-                .eq('reviewer_id', myProfile?.id || '')
+                .eq('reviewer_id', user.id)
                 .maybeSingle();
 
             if (existingReview) {
@@ -122,9 +116,8 @@ const ReviewBooking = () => {
     const isRenter = currentUserId === booking.renter_id;
     const isOwner = currentUserId === booking.owner_id;
     const reviewType = isOwner ? "owner_reviews_client" as const : "client_reviews_owner" as const;
-    // reviewed_id FK → user_profiles.id (PK), so use the profile id loaded from user_profiles
-    const reviewedProfile = isOwner ? (booking as any).renter : (booking as any).owner;
-    const reviewedId = reviewedProfile?.id || (isOwner ? booking.renter_id : booking.owner_id);
+    // public.users.id = auth.uid(), so booking renter_id/owner_id are valid as reviewed_id
+    const reviewedId = isOwner ? booking.renter_id : booking.owner_id;
 
     const machineName = (booking as any).machines?.name || "Máquina";
     const machineCategory = (booking as any).machines?.category || "";
