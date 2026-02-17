@@ -195,6 +195,15 @@ const MachineDetails = () => {
                 return;
             }
 
+            if (!machine.owner_id) {
+                toast({
+                    title: "Erro na máquina",
+                    description: "Esta máquina não possui um proprietário vinculado corretamente. Entre em contato com o suporte.",
+                    variant: "destructive"
+                });
+                return;
+            }
+
             const { error } = await supabase
                 .from('bookings')
                 .insert({

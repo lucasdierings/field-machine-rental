@@ -19,6 +19,7 @@ export default function Dashboard() {
   const [userProfile, setUserProfile] = useState<any>(null);
   const [userMachines, setUserMachines] = useState<any[]>([]);
   const [bookings, setBookings] = useState<any[]>([]);
+  const [debugRawBookings, setDebugRawBookings] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   const [metrics, setMetrics] = useState({
@@ -64,20 +65,34 @@ export default function Dashboard() {
       const machinesList = machines || [];
       setUserMachines(machinesList);
 
-      // Load bookings
-      const { data: userBookings } = await supabase
+      // Load bookings with relaxed joins
+      const { data: userBookings, error: bookingsError } = await supabase
         .from("bookings" as any)
         .select(`
           *,
           machines(name, category, brand),
-          machines(name, category, brand),
-          renter:user_profiles!renter_id(full_name, phone),
-          owner:user_profiles!owner_id(full_name, phone)
+          renter:user_profiles(full_name, phone),
+          owner:user_profiles(full_name, phone)
         `)
-        .or(`renter_id.eq.${user.id},owner_id.eq.${user.id}`);
+        .or(`renter_id.eq.${user.id},owner_id.eq.${user.id}`)
+        .order('created_at', { ascending: false });
+
+      if (bookingsError) {
+        console.error("Main bookings query error:", bookingsError);
+      }
 
       const bookingsList = userBookings || [];
       setBookings(bookingsList);
+
+      // DEBUG: Raw fetch to check if data exists at all
+      if (import.meta.env.DEV) {
+        const { data: rawData, error: rawError } = await supabase
+          .from('bookings')
+          .select('*')
+          .limit(5);
+        if (rawError) console.error("Raw debug fetch error:", rawError);
+        setDebugRawBookings(rawData || []);
+      }
 
       // Calculate Metrics
       const now = new Date();
@@ -407,9 +422,12 @@ export default function Dashboard() {
             <div className="mt-8 p-4 bg-muted/50 rounded-lg text-xs font-mono overflow-auto max-h-60 border border-border">
               <h4 className="font-bold mb-2">Debug Info (Dev Only)</h4>
               <p>User ID: {user?.id}</p>
-              <p>Bookings Count: {bookings?.length || 0}</p>
-              <p>Raw Bookings (First 2):</p>
-              <pre>{JSON.stringify(bookings?.slice(0, 2), null, 2)}</pre>
+              <p>Bookings Count (Main Query): {bookings?.length || 0}</p>
+              <p className="mt-2 font-bold">Raw Bookings in DB (Select *):</p>
+              <p>Count: {debugRawBookings.length}</p>
+              <pre>{JSON.stringify(debugRawBookings, null, 2)}</pre>
+              <p className="mt-2 font-bold">Main Query Result (First item):</p>
+              <pre>{JSON.stringify(bookings?.[0], null, 2)}</pre>
             </div>
           )}
         </div>
