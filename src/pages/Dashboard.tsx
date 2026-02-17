@@ -109,7 +109,7 @@ export default function Dashboard() {
         .filter((b: any) => {
           const bookingDate = new Date(b.created_at);
           return b.owner_id === user.id &&
-            (b.status === 'confirmed' || b.status === 'completed') &&
+            b.status === 'completed' &&
             bookingDate.getMonth() === currentMonth &&
             bookingDate.getFullYear() === currentYear;
         })
@@ -349,7 +349,7 @@ export default function Dashboard() {
                   // Calculate real metrics for each machine
                   const machineBookings = bookings.filter((b: any) => b.machine_id === machine.id);
                   const machineRevenue = machineBookings
-                    .filter((b: any) => b.status === 'completed' || b.status === 'confirmed')
+                    .filter((b: any) => b.status === 'completed')
                     .reduce((acc: number, curr: any) => acc + Number(curr.total_price || 0), 0);
                   const machineReservations = machineBookings.length;
 

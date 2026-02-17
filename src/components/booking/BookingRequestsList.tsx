@@ -187,7 +187,9 @@ export const BookingRequestsList = ({ bookings, onUpdate }: BookingRequestsListP
                                     <p className="font-bold text-lg text-primary">
                                         R$ {getAmount(booking).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                                     </p>
-                                    <p className="text-xs text-muted-foreground">Valor Estimado</p>
+                                    <p className="text-xs text-muted-foreground">
+                                        {booking.status === 'completed' ? 'Valor Recebido' : 'Valor Estimado'}
+                                    </p>
                                 </div>
                             </div>
                         </CardHeader>

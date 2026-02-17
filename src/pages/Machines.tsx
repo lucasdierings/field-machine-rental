@@ -87,8 +87,37 @@ const Machines = () => {
         if (data && data.length > 0) {
           // We have real data
           setHasRealData(true);
-          // Convert to DemoMachine format (you may need to adjust this mapping)
-          setMachines(data as any);
+
+          // Fetch review stats per machine
+          const machineIds = data.map((m: any) => m.id);
+          const { data: bookingsWithReviews } = await supabase
+            .from('bookings')
+            .select('machine_id, reviews(id, rating, review_type)')
+            .in('machine_id', machineIds);
+
+          // Aggregate ratings per machine
+          const ratingMap: Record<string, { sum: number; count: number }> = {};
+          (bookingsWithReviews || []).forEach((b: any) => {
+            const clientReviews = (b.reviews || []).filter(
+              (r: any) => r.review_type === 'client_reviews_owner'
+            );
+            clientReviews.forEach((r: any) => {
+              if (!ratingMap[b.machine_id]) ratingMap[b.machine_id] = { sum: 0, count: 0 };
+              ratingMap[b.machine_id].sum += r.rating;
+              ratingMap[b.machine_id].count += 1;
+            });
+          });
+
+          // Merge ratings into machines
+          const machinesWithRatings = data.map((m: any) => ({
+            ...m,
+            rating: ratingMap[m.id]?.count > 0
+              ? ratingMap[m.id].sum / ratingMap[m.id].count
+              : 0,
+            reviewCount: ratingMap[m.id]?.count || 0,
+          }));
+
+          setMachines(machinesWithRatings as any);
         } else {
           // Use demo data
           setHasRealData(false);
