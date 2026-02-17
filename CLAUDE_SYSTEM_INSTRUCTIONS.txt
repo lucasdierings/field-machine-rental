@@ -1,0 +1,153 @@
+INSTRUÇÕES PARA DESENVOLVIMENTO - FIELD MACHINE RENTAL
+
+## COMO TRABALHAR COMIGO
+
+Quando pedir para implementar algo, descreva assim:
+
+**Tipo**: Bug Fix | Feature | Refactor
+**Prioridade**: P0 (crítico) | P1 (alto) | P2 (médio) | P3 (baixo)
+**Descrição**: Claro e detalhado
+**Regra de Negócio**: Qual seção se aplica (da memória acima)
+**Arquivos**: Quais vão ser afetados
+**Testes**: Deve ter? Sim (mínimo coverage da memória)
+**Critério**: Quando está completo?
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+## ANTES DE IMPLEMENTAR
+
+1. ✅ Ler a regra de negócio (referência da memória)
+2. ✅ Validar todos os campos obrigatórios
+3. ✅ Verificar se há restrições de segurança (RLS)
+4. ✅ Pensar em testes necessários
+
+## DURANTE IMPLEMENTAÇÃO
+
+1. ✅ Usar TypeScript stricto (sem 'any')
+2. ✅ Validar com Zod (não confiar em input)
+3. ✅ Usar React Hook Form para forms
+4. ✅ Componentes com FC<Props>
+5. ✅ Custom hooks para lógica reutilizável
+6. ✅ Tailwind para styling (sem inline)
+7. ✅ TanStack Query para data fetching
+
+## DEPOIS DE IMPLEMENTAR
+
+1. ✅ Rodar: npm test (100% testes passando)
+2. ✅ Rodar: npm run lint (zero erros)
+3. ✅ Rodar: npm run build (deve funcionar)
+4. ✅ Remover: console.log, commented code
+5. ✅ Verificar: Sem console errors no browser
+6. ✅ Testar: Comportamento esperado atendido
+7. ✅ Commit: Mensagem clara e atômica
+
+## COMMIT MESSAGE
+
+Formato: <tipo>(<escopo>): <descrição>
+
+Exemplos:
+- feat(search): implement machine search with filters
+- fix(booking): correct date overlap validation
+- refactor(hooks): extract machine query logic
+
+## TEMPLATES DE REQUISIÇÃO
+
+### FEATURE
+```
+Preciso implementar [feature name].
+
+Descrição: O que o usuário conseguirá fazer?
+
+Regras (da memória): [seção correspondente]
+
+Requisitos:
+- [ ] Requisito 1
+- [ ] Requisito 2
+
+Arquivos:
+- src/pages/X.tsx (novo)
+- src/components/Y.tsx (novo)
+
+Testes: Sim (80%+ coverage)
+
+Critério de aceitação:
+- [ ] Feature funciona conforme especificado
+- [ ] Testes passam
+- [ ] Sem console errors
+- [ ] Responsivo mobile/desktop
+```
+
+### BUG FIX
+```
+Bug: [Título claro]
+
+Problema: O que está acontecendo?
+
+Passos para reproduzir:
+1. ...
+2. ...
+
+Esperado: O que deveria acontecer
+
+Atual: O que está acontecendo
+
+Arquivo(s): src/components/X.tsx (linha Y)
+
+Regra: [Qual regra está violada]
+```
+
+### REFACTOR
+```
+Refactor: [Tema]
+
+Por quê: Por que isso precisa melhorar?
+
+Benefícios:
+- Performance: X% mais rápido
+- Bundle: Reduz Y KB
+- Maintainability: Mais legível
+
+Mudanças:
+- [ ] Arquivo A
+- [ ] Arquivo B
+
+Testes: Devem passar 100% (sem novos)
+```
+
+## SE EU ESQUECER ALGO
+
+Pode indicar:
+- "Isso viola a regra de X (da memória)"
+- "Coverage está abaixo de Y%"
+- "Falta teste para caso de erro"
+- "Tem console.log no código"
+
+## REFERÊNCIAS
+
+Quando tiver dúvida:
+- Seção em CLAUDE_MEMORIA.txt: Consulta rápida
+- REGRAS_NEGOCIO_RESUMO.txt: Detalhes completos
+- REFERENCIA_RAPIDA.txt: Tabelas e lookups
+- CLAUDE_INSTRUCTIONS.md: Padrões de código específicos
+
+## GIT WORKFLOW
+
+1. Branch: claude/feature-name-SESSION_ID
+2. Commits: feat/fix/refactor(scope): description
+3. Atômicos (1 feature = 1 commit)
+4. Push: git push -u origin [branch]
+5. Sem "git add ." (especificar arquivos)
+
+Quando terminar:
+- Indicar status (pronto para teste/merge)
+- Listar se há warnings
+- Dizer se tudo passou nos testes
+
+═══════════════════════════════════════════════════════
+
+TL;DR:
+1. Descrever claramente o que precisa
+2. Eu implemento seguindo regras
+3. Você testa localmente (npm run dev)
+4. Quando pronto, commit e push
+5. Próxima tarefa!

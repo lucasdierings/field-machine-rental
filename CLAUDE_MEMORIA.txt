@@ -1,0 +1,108 @@
+FIELD MACHINE RENTAL - MEMÓRIA DO PROJETO
+
+📌 VISÃO GERAL
+Marketplace SaaS de aluguel de máquinas agrícolas no Brasil
+Conecta proprietários com produtores rurais
+Tech: React 18 + TypeScript + Supabase
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+👥 ATORES
+- ADMIN: Acesso total, aprova docs, analytics
+- PROPRIETÁRIO: Cadastra máquinas, recebe reservas
+- RENTADOR: Busca, faz reservas, avalia
+- ANÔNIMO: Apenas visualizar
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🚜 MÁQUINAS
+Categorias: Trator | Colheitadeira | Pulverizador | Plantadeira | Implemento | Transporte
+Status: available | unavailable | archived
+Preços: price_hour | price_day | price_hectare (mínimo 1 > 0)
+Imagens: Máx 10 | JPG/PNG | 5MB | Min 800x600px
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📅 RESERVAS (BOOKINGS)
+Estados: pending → confirmed → in_progress → completed → reviewed
+Validações: start_date < end_date | Não passado | Máx 365 dias | Sem sobreposição
+Preço: Calculado automaticamente | 2 casas decimais
+Cancelamento: Pending sem penalidade | Após confirmado requer justificativa
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+⭐ AVALIAÇÕES (REVIEWS)
+Pré-requisito: Booking em status 'completed'
+Rating: 1-5 (obrigatório) | Comentário: até 500 chars (opcional)
+Público: Sim, aparece no perfil
+Editar: Até 30 dias, apenas criador ou admin
+Rating user: Média aritmética, exibir 1 decimal
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🔍 BUSCA E FILTROS
+Raio: 10-100km (padrão 50) | Cálculo: Haversine formula
+Filtros: Categoria | Preço min-max | Ano | Avaliação | Operação
+Resultados: Máx 50/página | Apenas status='available'
+Ordenação: Por distância ou relevância
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🔐 SEGURANÇA & RLS
+user_profiles: SELECT público | INSERT/UPDATE/DELETE próprio+admin
+machines: SELECT público | INSERT proprietário | UPDATE proprietário+admin
+bookings: SELECT renter+owner+admin | INSERT renter | UPDATE renter+owner+admin
+reviews: SELECT público | INSERT criador | UPDATE criador+admin
+Autenticação: Supabase JWT | Session 7d | Refresh 30d
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✅ VALIDAÇÕES
+Email: Formato válido + único (case-insensitive)
+CPF/CNPJ: Com dígito verificador
+Telefone: Formato BR (+55 ou 11 dígitos)
+Senha: Mín 8 chars + maiúscula + número
+Datas: Não passado | start < end | Máx 365 dias
+Preços: > 0 | Raio: 10-100
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+💻 ESTRUTURA
+src/pages/          ← Rotas principais
+src/components/     ← Componentes React
+src/hooks/          ← Custom hooks
+src/lib/            ← Utils e validações
+src/integrations/   ← Supabase client
+supabase/          ← Backend
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📋 PADRÕES DE CÓDIGO
+Components: FC<Props> | TypeScript obrigatório
+Validação: Zod + React Hook Form
+Queries: TanStack React Query
+Styling: Tailwind CSS
+Sem console.log no código final
+Commits atômicos com mensagens claras
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🧪 TESTES
+Coverage mínimo: Components 80% | Hooks 90% | Utils 95% | Pages 60%
+npm test | npm test -- --coverage | npm test -- --watch
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🚀 COMANDOS
+npm run dev       ← Desenvolvimento local (localhost:8080)
+npm test          ← Rodar testes
+npm run lint      ← Verificar código
+npm run build     ← Build produção
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📚 REFERÊNCIAS COMPLETAS
+- CLAUDE_PROMPT.md: Prompt completo para sessões
+- REGRAS_NEGOCIO_RESUMO.txt: Todas as 15 regras detalhadas
+- REFERENCIA_RAPIDA.txt: Cheat sheet com tabelas
+- CLAUDE_INSTRUCTIONS.md: Padrões de código
