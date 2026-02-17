@@ -55,20 +55,29 @@ const ReviewBooking = () => {
 
             if (!bookingId) return;
 
+            // Step 1: load booking (FK points to auth.users, not user_profiles — avoid broken join)
             const { data: bookingData, error } = await supabase
                 .from('bookings' as any)
-                .select(`
-                    *,
-                    machines(name, category, brand),
-                    renter:user_profiles!bookings_renter_id_fkey(full_name),
-                    owner:user_profiles!bookings_owner_id_fkey(full_name)
-                `)
+                .select("*, machines(name, category, brand)")
                 .eq('id', bookingId)
                 .single();
 
             if (error) throw error;
 
-            setBooking(bookingData as any);
+            // Step 2: fetch renter and owner profiles separately
+            const profileIds = [bookingData.renter_id, bookingData.owner_id].filter(Boolean);
+            const { data: profiles } = await supabase
+                .from('user_profiles')
+                .select('auth_user_id, full_name')
+                .in('auth_user_id', profileIds);
+
+            const profileMap = Object.fromEntries((profiles || []).map((p: any) => [p.auth_user_id, p]));
+
+            setBooking({
+                ...bookingData,
+                renter: profileMap[bookingData.renter_id] || null,
+                owner: profileMap[bookingData.owner_id] || null,
+            } as any);
 
             // Check if user already reviewed this booking
             const { data: existingReview } = await supabase

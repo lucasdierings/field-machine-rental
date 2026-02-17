@@ -129,8 +129,10 @@ export const ReviewForm = ({ bookingId, reviewedId, reviewType, onSuccess }: Rev
                 booking_id: bookingId,
                 reviewer_id: user.id,
                 reviewed_id: reviewedId,
+                review_type: reviewType,
                 rating,
                 comment: comment || null,
+                observations: observations || null,
             };
 
             // Add specific ratings based on review type
@@ -140,10 +142,11 @@ export const ReviewForm = ({ bookingId, reviewedId, reviewType, onSuccess }: Rev
                 reviewData.communication_rating = serviceRating || null;
             } else {
                 // Client reviews the service/operator/machine
+                reviewData.service_rating = serviceRating || null;
+                reviewData.operator_rating = operatorRating || null;
                 reviewData.equipment_rating = machineRating || null;
-                reviewData.punctuality_rating = operatorRating || null;
-                reviewData.communication_rating = serviceRating || null;
-                reviewData.platform_rating = platformRating || null;
+                // platformRating → store in communication_rating (closest available column)
+                reviewData.communication_rating = platformRating || null;
             }
 
             const { error } = await supabase
