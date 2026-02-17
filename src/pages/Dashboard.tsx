@@ -6,7 +6,7 @@ import { Footer } from "@/components/ui/footer";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, TrendingUp, TrendingDown, Tractor, ShoppingCart, BarChart3, Calendar } from "lucide-react";
+import { Plus, TrendingUp, Tractor, ShoppingCart, BarChart3, Calendar } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { BookingRequestsList } from "@/components/booking/BookingRequestsList";
@@ -65,14 +65,14 @@ export default function Dashboard() {
       const machinesList = machines || [];
       setUserMachines(machinesList);
 
-      // Load bookings with relaxed joins
+      // Load bookings with explicit FK references to avoid ambiguity
       const { data: userBookings, error: bookingsError } = await supabase
         .from("bookings" as any)
         .select(`
           *,
           machines(name, category, brand),
-          renter:user_profiles(full_name, phone),
-          owner:user_profiles(full_name, phone)
+          renter:user_profiles!bookings_renter_id_fkey(full_name, phone),
+          owner:user_profiles!bookings_owner_id_fkey(full_name, phone)
         `)
         .or(`renter_id.eq.${user.id},owner_id.eq.${user.id}`)
         .order('created_at', { ascending: false });
@@ -284,28 +284,45 @@ export default function Dashboard() {
             </Card>
           </div>
 
-          {/* Pending Requests Section */}
-          <div className="mb-8">
-            <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
-              <ShoppingCart className="w-5 h-5 text-orange-500" />
-              Solicitações de Serviço
-            </h2>
-            <BookingRequestsList
-              bookings={bookings.filter((b: any) => b.status === 'pending' && b.owner_id === user?.id)}
-              onUpdate={loadUserData}
-            />
-          </div>
+          {/* Provider Section: All incoming booking requests */}
+          {bookings.some((b: any) => b.owner_id === user?.id) && (
+            <div className="mb-8">
+              <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
+                <ShoppingCart className="w-5 h-5 text-orange-500" />
+                Solicitações Recebidas (Prestador)
+              </h2>
+              <BookingRequestsList
+                bookings={bookings.filter((b: any) => b.owner_id === user?.id)}
+                onUpdate={loadUserData}
+                currentUserId={user?.id}
+              />
+            </div>
+          )}
 
           {/* Renter Section: My Sent Requests */}
-          <div className="mb-8">
-            <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
-              <Calendar className="w-5 h-5 text-blue-500" />
-              Minhas Solicitações (Enviadas)
-            </h2>
-            <RenterBookingsList
-              bookings={bookings.filter((b: any) => b.renter_id === user?.id)}
-            />
-          </div>
+          {bookings.some((b: any) => b.renter_id === user?.id) && (
+            <div className="mb-8">
+              <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
+                <Calendar className="w-5 h-5 text-blue-500" />
+                Minhas Solicitações (Enviadas)
+              </h2>
+              <RenterBookingsList
+                bookings={bookings.filter((b: any) => b.renter_id === user?.id)}
+                currentUserId={user?.id}
+              />
+            </div>
+          )}
+
+          {/* Show empty state when no bookings at all */}
+          {bookings.length === 0 && (
+            <div className="mb-8">
+              <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
+                <ShoppingCart className="w-5 h-5 text-orange-500" />
+                Solicitações de Serviço
+              </h2>
+              <BookingRequestsList bookings={[]} onUpdate={loadUserData} currentUserId={user?.id} />
+            </div>
+          )}
 
           {/* Minhas Máquinas Section */}
           <div className="mb-6">

@@ -27,6 +27,7 @@ import Documents from "./pages/Documents";
 import MyMachines from "./pages/MyMachines";
 import MachineDetails from "./pages/MachineDetails";
 import ReviewBooking from "./pages/ReviewBooking";
+import Chat from "./pages/Chat";
 import ForgotPassword from "./pages/ForgotPassword";
 import VerifyEmail from "./pages/VerifyEmail";
 import SupabaseConnectionTest from "./components/SupabaseConnectionTest";
@@ -144,6 +145,11 @@ const App = () => (
             <Route path="/avaliar/:bookingId" element={
               <ProtectedRoute>
                 <ReviewBooking />
+              </ProtectedRoute>
+            } />
+            <Route path="/chat/:userId" element={
+              <ProtectedRoute>
+                <Chat />
               </ProtectedRoute>
             } />
 
