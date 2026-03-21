@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useParams, useSearchParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -41,6 +41,7 @@ export default function Chat() {
     const [loading, setLoading] = useState(true);
     const [sending, setSending] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
+    const channelRef = useRef<any>(null);
 
     useEffect(() => {
         if (!currentUserId) {
@@ -48,7 +49,14 @@ export default function Chat() {
             return;
         }
         initChat();
-    }, [otherUserId, currentUserId]);
+
+        // Cleanup function
+        return () => {
+            if (channelRef.current) {
+                supabase.removeChannel(channelRef.current);
+            }
+        };
+    }, [otherUserId, currentUserId, navigate]);
 
     useEffect(() => {
         scrollToBottom();
@@ -58,29 +66,40 @@ export default function Chat() {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     };
 
-    const initChat = async () => {
+    const initChat = useCallback(async () => {
         try {
             if (!currentUserId || !otherUserId) return;
 
             // Load the other user's profile
-            const { data: profile } = await supabase
+            const { data: profile, error: profileError } = await supabase
                 .from("user_profiles")
                 .select("full_name, profile_image, auth_user_id")
                 .eq("auth_user_id", otherUserId)
                 .single();
 
-            setOtherUser(profile);
+            if (profileError && profileError.code !== "PGRST116") {
+                console.error("Error loading profile:", profileError);
+            }
+
+            // Set profile with null check
+            if (profile) {
+                setOtherUser(profile);
+            }
 
             // Load existing messages between the two users
             await loadMessages(currentUserId, otherUserId);
 
             // Mark received messages as read
-            await supabase
+            const { error: updateError } = await supabase
                 .from("messages")
                 .update({ read: true, read_at: new Date().toISOString() })
                 .eq("sender_id", otherUserId)
                 .eq("receiver_id", currentUserId)
                 .eq("read", false);
+
+            if (updateError) {
+                console.error("Error marking messages as read:", updateError);
+            }
 
             // Subscribe to new messages in real time
             const channel = supabase
@@ -97,25 +116,26 @@ export default function Chat() {
                         const msg = payload.new as Message;
                         if (msg.sender_id === otherUserId) {
                             setMessages((prev) => [...prev, msg]);
-                            // Mark as read immediately
+                            // Mark as read immediately (with proper error handling)
                             supabase
                                 .from("messages")
                                 .update({ read: true, read_at: new Date().toISOString() })
-                                .eq("id", msg.id);
+                                .eq("id", msg.id)
+                                .catch((err) => console.error("Error updating message read status:", err));
                         }
                     }
                 )
                 .subscribe();
 
+            // Store channel reference for cleanup
+            channelRef.current = channel;
             setLoading(false);
-
-            return () => { supabase.removeChannel(channel); };
         } catch (error: any) {
             console.error("Chat init error:", error);
             toast({ title: "Erro ao carregar chat", variant: "destructive" });
             setLoading(false);
         }
-    };
+    }, [currentUserId, otherUserId, toast]);
 
     const loadMessages = async (myId: string, otherId: string) => {
         // Validate IDs are UUIDs to prevent injection
