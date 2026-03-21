@@ -170,16 +170,21 @@ const AdminAnalyticsTab = () => {
       {/* Time Range Selector */}
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold">Analytics</h2>
-        <Select value={timeRange} onValueChange={setTimeRange}>
-          <SelectTrigger className="w-[150px]">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="1d">Último dia</SelectItem>
-            <SelectItem value="7d">Últimos 7 dias</SelectItem>
-            <SelectItem value="30d">Últimos 30 dias</SelectItem>
-          </SelectContent>
-        </Select>
+        <div className="flex items-center gap-3">
+          <label htmlFor="time-range-select" className="text-sm font-medium text-muted-foreground">
+            Período:
+          </label>
+          <Select value={timeRange} onValueChange={setTimeRange}>
+            <SelectTrigger className="w-[150px]" id="time-range-select" aria-label="Selecionar período de análise">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="1d">Último dia</SelectItem>
+              <SelectItem value="7d">Últimos 7 dias</SelectItem>
+              <SelectItem value="30d">Últimos 30 dias</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       {/* Traffic Metrics */}
@@ -310,15 +315,15 @@ const AdminAnalyticsTab = () => {
           <CardDescription>Últimas 50 atividades registradas</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="rounded-md border">
+          <div className="rounded-md border" role="region" aria-label="Tabela de eventos recentes de análise">
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Tipo</TableHead>
-                  <TableHead>Página</TableHead>
-                  <TableHead>Busca</TableHead>
-                  <TableHead>Data/Hora</TableHead>
-                  <TableHead>User Agent</TableHead>
+                  <TableHead scope="col">Tipo</TableHead>
+                  <TableHead scope="col">Página</TableHead>
+                  <TableHead scope="col">Busca</TableHead>
+                  <TableHead scope="col">Data/Hora</TableHead>
+                  <TableHead scope="col">User Agent</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
