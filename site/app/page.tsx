@@ -521,7 +521,7 @@ export default function Home() {
             <div>
               <h4 className="font-semibold text-gray-300 mb-4">Contato</h4>
               <ul className="space-y-2 text-sm text-gray-500">
-                <li>📧 fieldmachinebrasil@gmail.com</li>
+                <li>📧 <a href="mailto:contato@fieldmachine.com.br" className="hover:text-green-400 transition">contato@fieldmachine.com.br</a></li>
                 <li>📱 (45) 99144-7004</li>
                 <li>📍 Curitiba, Paraná</li>
               </ul>
