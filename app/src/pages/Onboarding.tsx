@@ -5,11 +5,19 @@ import { SplashScreen } from '@/components/onboarding/SplashScreen';
 import { OnboardingStepOne } from '@/components/onboarding/OnboardingStepOne';
 import { OnboardingStepTwo } from '@/components/onboarding/OnboardingStepTwo';
 import { OnboardingStepThree } from '@/components/onboarding/OnboardingStepThree';
+import { StepIndicator } from '@/components/onboarding/StepIndicator';
 import { useOnboarding } from '@/hooks/useOnboarding';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { validateCPFCNPJ, validateEmail, formatPhone } from '@/lib/validation';
 import { ToastAction } from "@/components/ui/toast";
+
+// Logger helper - only log in development
+const log = (msg: string, data?: any) => {
+  if (import.meta.env.DEV) {
+    console.log(`[Onboarding] ${msg}`, data || '');
+  }
+};
 
 export const Onboarding = () => {
     const navigate = useNavigate();
@@ -93,7 +101,7 @@ export const Onboarding = () => {
 
             nextStep(); // Go to verification step
         } catch (error: any) {
-            console.error('Signup error:', error);
+            log('Signup error:', error);
 
             // Check for existing user error
             if (error.message?.includes('already registered') || error.code === 'user_already_exists') {
@@ -156,7 +164,7 @@ export const Onboarding = () => {
                 description: 'Verifique sua caixa de entrada.',
             });
         } catch (error: any) {
-            console.error('Resend error:', error);
+            log('Resend error:', error);
             toast({
                 title: 'Erro ao reenviar email',
                 description: error.message,
@@ -240,7 +248,7 @@ export const Onboarding = () => {
                 navigate('/add-machine');
             }
         } catch (error: any) {
-            console.error('Finalize error:', error);
+            log('Finalize error:', error);
             toast({
                 title: 'Erro ao finalizar',
                 description: error.message,
@@ -249,8 +257,28 @@ export const Onboarding = () => {
         }
     };
 
+    // Map step names to step numbers for progress indicator
+    const getStepNumber = (step: string): 1 | 2 | 3 => {
+        switch (step) {
+            case 'splash': return 1;
+            case 'welcome': return 1;
+            case 'register': return 2;
+            case 'verify': return 3;
+            default: return 1;
+        }
+    };
+
+    const showProgressBar = state.currentStep !== 'splash';
+
     return (
         <div className="min-h-screen w-full overflow-x-hidden bg-background">
+            {/* Progress Indicator - shown after splash screen */}
+            {showProgressBar && (
+                <div className="sticky top-0 z-10 bg-background px-4 py-4 sm:px-6 border-b">
+                    <StepIndicator currentStep={getStepNumber(state.currentStep)} totalSteps={3} />
+                </div>
+            )}
+
             <AnimatePresence mode="wait">
                 {state.currentStep === 'splash' && (
                     <SplashScreen key="splash" onComplete={nextStep} />
