@@ -1,0 +1,90 @@
+name: Lint and Build
+
+on:
+  push:
+    branches: [main, develop, 'claude/**']
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  lint-and-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    strategy:
+      matrix:
+        node-version: [20.x]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: npm
+
+      # App workspace
+      - name: Install dependencies (app)
+        working-directory: ./app
+        run: npm ci
+
+      - name: Run ESLint (app)
+        working-directory: ./app
+        run: npm run lint
+        continue-on-error: true
+
+      - name: Build app
+        working-directory: ./app
+        run: npm run build
+
+      # Site workspace
+      - name: Install dependencies (site)
+        working-directory: ./site
+        run: npm ci
+
+      - name: Run ESLint (site)
+        working-directory: ./site
+        run: npm run lint
+        continue-on-error: true
+
+      - name: Build site
+        working-directory: ./site
+        run: npm run build
+
+      # Optional: Run tests when implemented
+      # - name: Run tests
+      #   working-directory: ./app
+      #   run: npm run test
+
+  # TypeScript type checking
+  type-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+          cache: npm
+
+      - name: Install dependencies (app)
+        working-directory: ./app
+        run: npm ci
+
+      - name: Type check (app)
+        working-directory: ./app
+        run: npx tsc --noEmit
+
+      - name: Install dependencies (site)
+        working-directory: ./site
+        run: npm ci
+
+      - name: Type check (site)
+        working-directory: ./site
+        run: npx tsc --noEmit

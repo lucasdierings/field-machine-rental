@@ -1,0 +1,65 @@
+version: 2
+
+updates:
+  # App dependencies (Vite + React)
+  - package-ecosystem: npm
+    directory: "/app"
+    schedule:
+      interval: weekly
+      day: monday
+      time: "03:00"
+    open-pull-requests-limit: 10
+    pull-request-branch-name:
+      separator: "/"
+    reviewers:
+      - "lucasdierings"
+    commit-message:
+      prefix: "chore(app):"
+      prefix-development: "chore(app):"
+      include: "scope"
+    allow:
+      - dependency-type: production
+      - dependency-type: development
+    rebase-strategy: "auto"
+    labels:
+      - "dependencies"
+      - "app"
+
+  # Site dependencies (Next.js)
+  - package-ecosystem: npm
+    directory: "/site"
+    schedule:
+      interval: weekly
+      day: monday
+      time: "03:30"
+    open-pull-requests-limit: 10
+    pull-request-branch-name:
+      separator: "/"
+    reviewers:
+      - "lucasdierings"
+    commit-message:
+      prefix: "chore(site):"
+      prefix-development: "chore(site):"
+      include: "scope"
+    allow:
+      - dependency-type: production
+      - dependency-type: development
+    rebase-strategy: "auto"
+    labels:
+      - "dependencies"
+      - "site"
+
+  # GitHub Actions
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: monthly
+      day: "1"
+      time: "04:00"
+    reviewers:
+      - "lucasdierings"
+    commit-message:
+      prefix: "ci:"
+    labels:
+      - "ci"
+      - "github-actions"
