@@ -203,6 +203,8 @@ export const BookingRequestsList = ({ bookings, onUpdate, currentUserId }: Booki
                         <button
                             key={tab.key}
                             onClick={() => setActiveTab(tab.key)}
+                            aria-label={`${tab.label} — ${countByStatus[tab.key]} solicitações`}
+                            aria-current={activeTab === tab.key ? 'page' : undefined}
                             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium whitespace-nowrap border transition-colors ${activeTab === tab.key
                                 ? 'bg-primary text-primary-foreground border-primary'
                                 : 'bg-background border-border hover:bg-muted'
@@ -292,7 +294,7 @@ const statusLabelUtil = (status: string) => {
     return 'Rejeitada';
 };
 
-const BookingCard = memo(({ booking, processingId, profileName, onAction, onOpenCompleteModal, onNavigate }: BookingCardProps) => {
+const BookingCard = memo<BookingCardProps>(({ booking, processingId, profileName, onAction, onOpenCompleteModal, onNavigate }) => {
     return (
                     <Card className="overflow-hidden">
                         <CardHeader className="bg-muted/30 pb-3">
@@ -385,6 +387,7 @@ const BookingCard = memo(({ booking, processingId, profileName, onAction, onOpen
                                 <Button
                                     variant="outline"
                                     className="w-full"
+                                    aria-label={`Chat com solicitante ${booking.renter?.full_name || 'desconhecido'}`}
                                     onClick={() => onNavigate(`/chat/${booking.renter_id}?booking=${booking.id}`)}
                                 >
                                     <MessageCircle className="w-4 h-4 mr-2" />
@@ -418,6 +421,7 @@ const BookingCard = memo(({ booking, processingId, profileName, onAction, onOpen
                                         <Button
                                             variant="outline"
                                             className="flex-1 border-red-200 text-red-700 hover:bg-red-50"
+                                            aria-label={`Rejeitar solicitação de ${booking.renter?.full_name || 'solicitante'}`}
                                             onClick={() => onAction(booking.id, 'reject')}
                                             disabled={!!processingId}
                                         >
@@ -428,6 +432,7 @@ const BookingCard = memo(({ booking, processingId, profileName, onAction, onOpen
                                         </Button>
                                         <Button
                                             className="flex-1 bg-green-600 hover:bg-green-700 text-white"
+                                            aria-label={`Aceitar solicitação de ${booking.renter?.full_name || 'solicitante'}`}
                                             onClick={() => onAction(booking.id, 'confirm')}
                                             disabled={!!processingId}
                                         >
@@ -443,6 +448,7 @@ const BookingCard = memo(({ booking, processingId, profileName, onAction, onOpen
                                 {booking.status === 'confirmed' && (
                                     <Button
                                         className="w-full bg-blue-600 hover:bg-blue-700 text-white mt-1"
+                                        aria-label={`Marcar serviço de ${getMachineNameUtil(booking)} como concluído`}
                                         onClick={() => onOpenCompleteModal(booking)}
                                         disabled={!!processingId}
                                     >
@@ -456,6 +462,7 @@ const BookingCard = memo(({ booking, processingId, profileName, onAction, onOpen
                                     <Button
                                         variant="outline"
                                         className="w-full border-yellow-300 text-yellow-700 hover:bg-yellow-50 mt-1"
+                                        aria-label={`Avaliar cliente ${booking.renter?.full_name || 'desconhecido'} após serviço`}
                                         onClick={() => onNavigate(`/avaliar/${booking.id}`)}
                                     >
                                         <Star className="w-4 h-4 mr-2" />

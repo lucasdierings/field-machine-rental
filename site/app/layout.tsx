@@ -56,7 +56,7 @@ export const metadata: Metadata = {
       'Conectamos produtores rurais e prestadores de serviço agrícola no Brasil. Sem taxas, sem intermediários — combine direto e acerte entre vocês.',
     images: [
       {
-        url: '/images/og-image.jpg',
+        url: '/og',
         width: 1200,
         height: 630,
         alt: 'Field Machine — Plataforma de Serviços para o Agronegócio',
@@ -68,7 +68,7 @@ export const metadata: Metadata = {
     title: 'Field Machine — Plataforma de Serviços para o Agronegócio',
     description:
       'Conectamos produtores rurais e prestadores de serviço agrícola no Brasil. Sem taxas, sem intermediários.',
-    images: ['/images/og-image.jpg'],
+    images: ['/og'],
   },
   alternates: {
     canonical: siteUrl,
@@ -86,14 +86,14 @@ const jsonLd = {
       url: siteUrl,
       logo: {
         '@type': 'ImageObject',
-        url: `${siteUrl}/images/og-image.jpg`,
+        url: `${siteUrl}/og`,
       },
       description:
         'Plataforma de serviços para o agronegócio no Brasil. Conectamos produtores rurais e prestadores de serviço agrícola sem taxas e sem intermediários.',
       areaServed: 'BR',
       contactPoint: {
         '@type': 'ContactPoint',
-        email: 'fieldmachinebrasil@gmail.com',
+        email: 'contato@fieldmachine.com.br',
         telephone: '+55-45-99144-7004',
         contactType: 'customer support',
         areaServed: 'BR',
@@ -157,6 +157,44 @@ const jsonLd = {
           { '@type': 'Offer', itemOffered: { '@type': 'Service', name: 'Transporte Agrícola' } },
         ],
       },
+    },
+    {
+      '@type': 'FAQPage',
+      '@id': `${siteUrl}/#faq`,
+      mainEntity: [
+        {
+          '@type': 'Question',
+          name: 'Como funciona o pagamento?',
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: 'O pagamento é combinado diretamente entre você e o proprietário/operador. A plataforma facilita a conexão e a negociação — vocês decidem a forma de pagamento (PIX, dinheiro, transferência, etc.).',
+          },
+        },
+        {
+          '@type': 'Question',
+          name: 'A plataforma cobra alguma taxa?',
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: 'Não! O FieldMachine é gratuito para uso. Não cobramos comissão sobre os serviços contratados. Nosso objetivo é conectar a comunidade agrícola.',
+          },
+        },
+        {
+          '@type': 'Question',
+          name: 'Como garantir que o serviço será bem feito?',
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: 'Nosso sistema de avaliações permite que tanto o contratante quanto o prestador avaliem a experiência. São avaliados: qualidade do serviço, operador, máquina e o próprio cliente.',
+          },
+        },
+        {
+          '@type': 'Question',
+          name: 'Como posso me tornar um prestador de serviço?',
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: 'Cadastre-se na plataforma, complete seu perfil e cadastre suas máquinas. Produtores da sua região poderão encontrar e contratar seus serviços automaticamente.',
+          },
+        },
+      ],
     },
   ],
 };

@@ -1,0 +1,46 @@
+name: Security Checks
+
+on:
+  push:
+    branches: [main, develop, 'claude/**']
+  pull_request:
+    branches: [main, develop]
+  schedule:
+    # Run weekly on Monday at 8 AM
+    - cron: '0 8 * * 1'
+
+jobs:
+  dependency-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+          cache: npm
+
+      # Check for vulnerabilities in app
+      - name: Audit dependencies (app)
+        working-directory: ./app
+        run: npm audit --audit-level=moderate
+        continue-on-error: true
+
+      # Check for vulnerabilities in site
+      - name: Audit dependencies (site)
+        working-directory: ./site
+        run: npm audit --audit-level=moderate
+        continue-on-error: true
+
+  # Optional: Add more security checks like SAST, code scanning, etc.
+  # - Snyk (requires setup)
+  # - GitHub Advanced Security (if available)
+  # - OWASP Dependency Check
+
+permissions:
+  contents: read
+  security-events: write
