@@ -70,11 +70,11 @@ export default function Home() {
       {/* ── NAVBAR ──────────────────────────────── */}
       <nav className="fixed top-0 inset-x-0 z-50 bg-gray-950/80 backdrop-blur-md border-b border-white/10">
         <div className="container mx-auto px-6 py-4 flex justify-between items-center">
-          <div className="flex items-center gap-3">
+          <a href="/" className="flex items-center gap-3 hover:opacity-80 transition">
             <span className="text-2xl font-bold text-white tracking-tight">
               Field<span className="text-green-400">Machine</span>
             </span>
-          </div>
+          </a>
           <div className="hidden md:flex items-center gap-8 text-sm font-medium text-gray-300">
             <a href="#maquinas" className="hover:text-green-400 transition">Máquinas</a>
             <a href="#como-funciona" className="hover:text-green-400 transition">Como funciona</a>

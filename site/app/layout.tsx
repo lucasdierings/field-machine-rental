@@ -56,7 +56,7 @@ export const metadata: Metadata = {
       'Conectamos produtores rurais e prestadores de serviço agrícola no Brasil. Sem taxas, sem intermediários — combine direto e acerte entre vocês.',
     images: [
       {
-        url: '/images/og-image.jpg',
+        url: '/og',
         width: 1200,
         height: 630,
         alt: 'Field Machine — Plataforma de Serviços para o Agronegócio',
@@ -68,7 +68,7 @@ export const metadata: Metadata = {
     title: 'Field Machine — Plataforma de Serviços para o Agronegócio',
     description:
       'Conectamos produtores rurais e prestadores de serviço agrícola no Brasil. Sem taxas, sem intermediários.',
-    images: ['/images/og-image.jpg'],
+    images: ['/og'],
   },
   alternates: {
     canonical: siteUrl,
@@ -86,7 +86,7 @@ const jsonLd = {
       url: siteUrl,
       logo: {
         '@type': 'ImageObject',
-        url: `${siteUrl}/images/og-image.jpg`,
+        url: `${siteUrl}/og`,
       },
       description:
         'Plataforma de serviços para o agronegócio no Brasil. Conectamos produtores rurais e prestadores de serviço agrícola sem taxas e sem intermediários.',
