@@ -179,7 +179,7 @@ export default function Home() {
               { value: '96%', label: 'Satisfação', desc: 'Clientes satisfeitos' },
             ].map((s) => (
               <div key={s.label} className="text-center">
-                <div className="bg-gray-800/60 border border-white/10 rounded-2xl p-8 hover:border-green-700/50 transition">
+                <div className="bg-gray-800/40 border border-white/10 rounded-xl p-8 hover:border-green-700/50 hover:bg-gray-800/60 transition">
                   <p className="text-5xl md:text-6xl font-extrabold text-green-400 mb-3">{s.value}</p>
                   <p className="text-lg font-semibold text-white mb-1">{s.label}</p>
                   <p className="text-sm text-gray-400">{s.desc}</p>
