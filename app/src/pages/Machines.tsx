@@ -16,6 +16,32 @@ import { useNavigate } from "react-router-dom";
 import { ArrowUpDown } from "lucide-react";
 import { SEO } from "@/components/SEO";
 
+export interface LocationData {
+  city: string;
+  state: string;
+  latitude?: number;
+  longitude?: number;
+}
+
+export interface SpecificationsData {
+  power?: string;
+  fuel_type?: string;
+  hours_used?: number;
+  condition?: string;
+  [key: string]: unknown;
+}
+
+export interface Review {
+  id: string;
+  rating: number;
+  review_type: string;
+}
+
+export interface BookingWithReviews {
+  machine_id: string;
+  reviews: Review[];
+}
+
 export interface MachineData {
   id: string;
   name: string;
@@ -24,11 +50,11 @@ export interface MachineData {
   model?: string;
   year?: number;
   images?: string[];
-  location?: any;
+  location?: LocationData;
   price_hour?: number;
   price_hectare?: number;
   price_day?: number;
-  specifications?: any;
+  specifications?: SpecificationsData;
   owner_id?: string;
   status?: string;
   created_at?: string;
@@ -81,18 +107,18 @@ const Machines = () => {
 
       if (data && data.length > 0) {
         // Fetch review stats per machine
-        const machineIds = data.map((m: any) => m.id);
+        const machineIds = data.map((m: MachineData) => m.id);
         const { data: bookingsWithReviews } = await supabase
           .from('bookings')
           .select('machine_id, reviews(id, rating, review_type)')
-          .in('machine_id', machineIds);
+          .in('machine_id', machineIds) as { data: BookingWithReviews[] | null };
 
         const ratingMap: Record<string, { sum: number; count: number }> = {};
-        (bookingsWithReviews || []).forEach((b: any) => {
+        (bookingsWithReviews || []).forEach((b: BookingWithReviews) => {
           const clientReviews = (b.reviews || []).filter(
-            (r: any) => r.review_type === 'client_reviews_owner'
+            (r: Review) => r.review_type === 'client_reviews_owner'
           );
-          clientReviews.forEach((r: any) => {
+          clientReviews.forEach((r: Review) => {
             if (!ratingMap[b.machine_id]) ratingMap[b.machine_id] = { sum: 0, count: 0 };
             ratingMap[b.machine_id].sum += r.rating;
             ratingMap[b.machine_id].count += 1;

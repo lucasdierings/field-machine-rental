@@ -9,13 +9,45 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Loader2, FileText, Calendar, Clock } from "lucide-react";
 import { BookingRequestsList } from "@/components/booking/BookingRequestsList";
 
+interface MachineInfo {
+  name: string;
+  category: string;
+  brand?: string;
+}
+
+interface UserProfile {
+  full_name: string;
+  phone?: string;
+  avatar_url?: string;
+  verified?: boolean;
+}
+
+interface Booking {
+  id: string;
+  renter_id: string;
+  owner_id: string;
+  machine_id: string;
+  status: string;
+  created_at: string;
+  machines?: MachineInfo;
+  renter?: UserProfile | null;
+  owner?: UserProfile | null;
+}
+
+interface EnrichedBooking extends Booking {
+  renter?: UserProfile | null;
+  owner?: UserProfile | null;
+}
+
 const Bookings = () => {
     const queryClient = useQueryClient();
     const { userId } = useAuth();
 
-    const { data: bookings = [], isLoading } = useQuery({
+    const { data: bookings = [], isLoading } = useQuery<EnrichedBooking[]>({
         queryKey: ['bookings', userId],
         queryFn: async () => {
+            if (!userId) return [];
+
             // Step 1: Fetch bookings
             const { data: rawBookings, error } = await supabase
                 .from('bookings')
@@ -28,28 +60,36 @@ const Bookings = () => {
           )
         `)
                 .or(`renter_id.eq.${userId},owner_id.eq.${userId}`)
-                .order('created_at', { ascending: false });
+                .order('created_at', { ascending: false }) as { data: Booking[] | null; error: any };
 
             if (error) throw error;
 
             // Step 2: Fetch profiles for all unique user IDs
             const bookingsList = rawBookings || [];
             const userIds = [...new Set([
-                ...bookingsList.map((b: any) => b.renter_id),
-                ...bookingsList.map((b: any) => b.owner_id),
+                ...bookingsList.map((b: Booking) => b.renter_id),
+                ...bookingsList.map((b: Booking) => b.owner_id),
             ].filter(Boolean))];
 
-            let profileMap: Record<string, { full_name: string; phone?: string; avatar_url?: string; verified?: boolean }> = {};
+            let profileMap: Record<string, UserProfile> = {};
             if (userIds.length > 0) {
                 const { data: profiles } = await supabase
                     .from('user_profiles')
                     .select('auth_user_id, full_name, phone, avatar_url, verified')
-                    .in('auth_user_id', userIds);
-                profileMap = Object.fromEntries((profiles || []).map((p: any) => [p.auth_user_id, p]));
+                    .in('auth_user_id', userIds) as { data: any[] | null };
+
+                profileMap = Object.fromEntries(
+                    (profiles || []).map((p) => [p.auth_user_id, {
+                        full_name: p.full_name,
+                        phone: p.phone,
+                        avatar_url: p.avatar_url,
+                        verified: p.verified,
+                    } as UserProfile])
+                );
             }
 
             // Step 3: Merge profiles into bookings
-            return bookingsList.map((b: any) => ({
+            return bookingsList.map((b: Booking): EnrichedBooking => ({
                 ...b,
                 renter: profileMap[b.renter_id] || null,
                 owner: profileMap[b.owner_id] || null,
@@ -65,9 +105,9 @@ const Bookings = () => {
     // Filter bookings based on active tab logic passed to components
     const filteredBookings = useMemo(() => ({
         all: bookings,
-        pending: bookings.filter((b: any) => b.status === 'pending'),
-        confirmed: bookings.filter((b: any) => b.status === 'confirmed'),
-        completed: bookings.filter((b: any) => b.status === 'completed'),
+        pending: bookings.filter((b: EnrichedBooking) => b.status === 'pending'),
+        confirmed: bookings.filter((b: EnrichedBooking) => b.status === 'confirmed'),
+        completed: bookings.filter((b: EnrichedBooking) => b.status === 'completed'),
     }), [bookings]);
 
     if (isLoading) {

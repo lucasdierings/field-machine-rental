@@ -118,6 +118,12 @@ export default function Chat() {
     };
 
     const loadMessages = async (myId: string, otherId: string) => {
+        // Validate IDs are UUIDs to prevent injection
+        if (!myId || !otherId || !/^[0-9a-f-]{36}$/i.test(myId) || !/^[0-9a-f-]{36}$/i.test(otherId)) {
+            console.error("Invalid user IDs provided to loadMessages");
+            return;
+        }
+
         const { data, error } = await supabase
             .from("messages")
             .select("*")
