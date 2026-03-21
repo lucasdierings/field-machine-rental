@@ -163,7 +163,7 @@ export default function Login() {
           <CardContent className="space-y-6">
             <form onSubmit={handleEmailLogin} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email">Email *</Label>
                 <Input
                   id="email"
                   type="email"
@@ -171,11 +171,16 @@ export default function Login() {
                   onChange={(e) => handleChange('email', e.target.value)}
                   placeholder="seu@email.com"
                   required
+                  aria-required="true"
+                  aria-describedby="email-hint"
                 />
+                <p id="email-hint" className="text-xs text-muted-foreground">
+                  Informe o email cadastrado na sua conta
+                </p>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="password">Senha</Label>
+                <Label htmlFor="password">Senha *</Label>
                 <div className="relative">
                   <Input
                     id="password"
@@ -184,13 +189,17 @@ export default function Login() {
                     onChange={(e) => handleChange('password', e.target.value)}
                     placeholder="••••••••"
                     required
+                    aria-required="true"
+                    aria-describedby="password-visibility-hint"
                   />
                   <Button
                     type="button"
                     variant="ghost"
                     size="sm"
-                    className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                    className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
                     onClick={() => setShowPassword(!showPassword)}
+                    aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
+                    aria-pressed={showPassword}
                   >
                     {showPassword ? (
                       <EyeOff className="h-4 w-4" />
@@ -198,6 +207,10 @@ export default function Login() {
                       <Eye className="h-4 w-4" />
                     )}
                   </Button>
+                </div>
+                <p id="password-visibility-hint" className="text-xs text-muted-foreground">
+                  Clique no ícone para mostrar/ocultar a senha
+                </p>
                 </div>
               </div>
 
@@ -253,8 +266,13 @@ export default function Login() {
                 variant="outline"
                 onClick={handleGoogleLogin}
                 className="w-full"
+                aria-label="Continuar login com conta Google"
               >
-                <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
+                <svg
+                  className="mr-2 h-4 w-4"
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                >
                   <path
                     fill="currentColor"
                     d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
