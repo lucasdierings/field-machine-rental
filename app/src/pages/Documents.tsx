@@ -11,6 +11,18 @@ import { useToast } from "@/hooks/use-toast";
 import { Loader2, FileCheck, Clock, XCircle, Upload, Download, Trash2, FileText } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
+// Safe MIME to extension mapping for documents
+const getDocumentExtension = (mimeType: string): string => {
+  const mimeMap: Record<string, string> = {
+    'application/pdf': 'pdf',
+    'image/jpeg': 'jpg',
+    'image/jpg': 'jpg',
+    'image/png': 'png',
+    'image/webp': 'webp',
+  };
+  return mimeMap[mimeType.toLowerCase()] || 'pdf';
+};
+
 const Documents = () => {
   const { toast } = useToast();
   const { userId } = useAuth();
@@ -102,8 +114,9 @@ const Documents = () => {
     try {
       if (!userId) throw new Error("Usuário não autenticado");
 
-      // Upload para o bucket user-documents
-      const fileName = `${userId}/${selectedDocType}_${Date.now()}.${file.name.split('.').pop()}`;
+      // Upload para o bucket user-documents (using safe MIME-based extension)
+      const ext = getDocumentExtension(file.type);
+      const fileName = `${userId}/${selectedDocType}_${Date.now()}.${ext}`;
       const { error: uploadError } = await supabase.storage
         .from('user-documents')
         .upload(fileName, file);
