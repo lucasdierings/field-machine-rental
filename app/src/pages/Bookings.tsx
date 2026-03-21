@@ -48,6 +48,11 @@ const Bookings = () => {
         queryFn: async () => {
             if (!userId) return [];
 
+            // Validate userId is UUID format to prevent injection
+            if (!/^[0-9a-f-]{36}$/i.test(userId)) {
+                throw new Error("Invalid user ID format");
+            }
+
             // Step 1: Fetch bookings
             const { data: rawBookings, error } = await supabase
                 .from('bookings')
