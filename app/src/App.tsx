@@ -11,6 +11,7 @@ import { RoleProtectedRoute } from "./components/auth/RoleProtectedRoute";
 import { BottomNavigation } from "./components/ui/bottom-navigation";
 import { PageLoader } from "./components/ui/page-loader";
 import { ErrorBoundary } from "./components/ui/error-boundary";
+import { AnalyticsTracker } from "./components/AnalyticsTracker";
 
 // ─── Lazy-loaded pages ───────────────────────────────────────────────────────
 // Each page is loaded on-demand, reducing the initial bundle size significantly.
@@ -87,6 +88,7 @@ const App = () => (
             <Toaster />
             <Sonner />
             <ErrorBoundary>
+            <AnalyticsTracker />
             <Suspense fallback={<PageLoader message="Carregando..." />}>
               <Routes>
                 <Route path="/" element={<Index />} />
