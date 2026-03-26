@@ -57,10 +57,7 @@ const AdminMachinesTab = () => {
 
             let query = supabase
                 .from('machines')
-                .select(`
-          *,
-          owner:users(full_name, email)
-        `, { count: 'exact' });
+                .select('*', { count: 'exact' });
 
             // Apply filters
             if (searchTerm) {
@@ -83,11 +80,23 @@ const AdminMachinesTab = () => {
 
             if (error) throw error;
 
-            // Transform data to match interface (handling potential join issues)
-            const formattedMachines = data?.map((machine: any) => ({
+            // Fetch owner profiles separately
+            const ownerIds = [...new Set((data || []).map((m: any) => m.owner_id).filter(Boolean))];
+            let ownerMap: Record<string, { full_name: string; email: string }> = {};
+            if (ownerIds.length > 0) {
+                const { data: profiles } = await supabase
+                    .from('user_profiles')
+                    .select('auth_user_id, full_name, email')
+                    .in('auth_user_id', ownerIds);
+                ownerMap = Object.fromEntries(
+                    (profiles || []).map((p: any) => [p.auth_user_id, { full_name: p.full_name, email: p.email }])
+                );
+            }
+
+            const formattedMachines = (data || []).map((machine: any) => ({
                 ...machine,
-                owner: machine.owner // Supabase returns joined data here
-            })) || [];
+                owner: ownerMap[machine.owner_id] || null,
+            }));
 
             setMachines(formattedMachines);
             setTotalMachines(count || 0);

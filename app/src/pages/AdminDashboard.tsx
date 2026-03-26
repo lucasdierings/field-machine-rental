@@ -2,13 +2,15 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { BarChart3, FileCheck, Tractor, TrendingUp, Users, Activity } from 'lucide-react';
+import { BarChart3, FileCheck, Tractor, TrendingUp, Users, Activity, Inbox, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { useUserRole } from '@/hooks/useUserRole';
 import AdminUsersTab from '@/components/admin/AdminUsersTab';
 import AdminAnalyticsTab from '@/components/admin/AdminAnalyticsTab';
 import AdminMachinesTab from '@/components/admin/AdminMachinesTab';
+import AdminSupportTab from '@/components/admin/AdminSupportTab';
+import AdminSettingsTab from '@/components/admin/AdminSettingsTab';
 import { DocumentApproval } from '@/components/admin/DocumentApproval';
 import { AdminOverviewTab } from '@/components/admin/AdminOverviewTab';
 
@@ -215,7 +217,7 @@ const AdminDashboard = () => {
       setStats({
         total_users: totalUsers || 0,
         active_users_30d: activeUserSet.size,
-        new_users_30d: 0,
+        new_users_30d: (profilesCreated || []).filter((p: any) => p.created_at && new Date(p.created_at) >= thirtyDaysAgo).length,
         total_machines: totalMachines || 0,
         available_machines: availableMachines || 0,
         total_bookings: totalBookings,
@@ -266,26 +268,34 @@ const AdminDashboard = () => {
 
       <main className="container mx-auto px-4 py-8">
         <Tabs defaultValue="dashboard" className="space-y-8">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="flex w-full overflow-x-auto">
             <TabsTrigger value="dashboard" className="gap-2">
               <BarChart3 className="h-4 w-4" />
-              Dashboard
+              <span className="hidden sm:inline">Dashboard</span>
             </TabsTrigger>
             <TabsTrigger value="users" className="gap-2">
               <Users className="h-4 w-4" />
-              Usuários
+              <span className="hidden sm:inline">Usuários</span>
             </TabsTrigger>
             <TabsTrigger value="machines" className="gap-2">
               <Tractor className="h-4 w-4" />
-              Máquinas
+              <span className="hidden sm:inline">Máquinas</span>
             </TabsTrigger>
-            <TabsTrigger value="analytics" className="gap-2">
-              <TrendingUp className="h-4 w-4" />
-              Analytics
+            <TabsTrigger value="support" className="gap-2">
+              <Inbox className="h-4 w-4" />
+              <span className="hidden sm:inline">Suporte</span>
             </TabsTrigger>
             <TabsTrigger value="documents" className="gap-2">
               <FileCheck className="h-4 w-4" />
-              Documentos
+              <span className="hidden sm:inline">Documentos</span>
+            </TabsTrigger>
+            <TabsTrigger value="analytics" className="gap-2">
+              <TrendingUp className="h-4 w-4" />
+              <span className="hidden sm:inline">Analytics</span>
+            </TabsTrigger>
+            <TabsTrigger value="settings" className="gap-2">
+              <Settings className="h-4 w-4" />
+              <span className="hidden sm:inline">Config</span>
             </TabsTrigger>
           </TabsList>
 
@@ -312,8 +322,16 @@ const AdminDashboard = () => {
             <AdminAnalyticsTab />
           </TabsContent>
 
+          <TabsContent value="support">
+            <AdminSupportTab />
+          </TabsContent>
+
           <TabsContent value="documents">
             <DocumentApproval />
+          </TabsContent>
+
+          <TabsContent value="settings">
+            <AdminSettingsTab />
           </TabsContent>
         </Tabs>
       </main>

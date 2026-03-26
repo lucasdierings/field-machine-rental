@@ -27,6 +27,7 @@ const Contact = lazy(() => import("./pages/Contact"));
 const Terms = lazy(() => import("./pages/Terms"));
 const Privacy = lazy(() => import("./pages/Privacy"));
 const NotFound = lazy(() => import("./pages/NotFound"));
+const Support = lazy(() => import("./pages/Support"));
 
 // Auth pages
 const Login = lazy(() => import("./pages/Login"));
@@ -118,6 +119,7 @@ const App = () => (
                 <Route path="/verificar-email" element={<VerifyEmail />} />
                 <Route path="/onboarding" element={<Onboarding />} />
                 <Route path="/como-funciona" element={<HowItWorks />} />
+                <Route path="/suporte" element={<Support />} />
 
                 {/* Old Routes Redirects (301-like) */}
                 <Route path="/buscar" element={<Navigate to="/servicos-agricolas" replace />} />

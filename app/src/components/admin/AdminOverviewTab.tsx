@@ -64,7 +64,7 @@ export function AdminOverviewTab({
           <CardContent>
             <div className="text-2xl font-bold">{stats?.total_users || 0}</div>
             <p className="text-xs text-green-600">
-              {stats?.active_users_30d || 0} ativos nos últimos 30 dias
+              +{stats?.new_users_30d || 0} novos · {stats?.active_users_30d || 0} ativos (30d)
             </p>
           </CardContent>
         </Card>
