@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, MapPin, Star, Calendar, Ruler, Fuel, Settings, User, CheckCircle2, Share2, Heart, Handshake, AlertCircle } from "lucide-react";
+import { Loader2, MapPin, Star, Calendar, Ruler, Fuel, Settings, User, CheckCircle2, Share2, Heart, Handshake, AlertCircle, Tractor } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { SEO } from "@/components/SEO";
 import { MachineImageGallery } from "@/components/machines/MachineImageGallery";
@@ -176,6 +176,15 @@ const MachineDetails = () => {
                 variant: "destructive"
             });
             navigate('/login');
+            return;
+        }
+
+        if (userId === machine.owner_id) {
+            toast({
+                title: "Esta máquina é sua",
+                description: "Você não pode solicitar serviço da sua própria máquina.",
+                variant: "destructive"
+            });
             return;
         }
 
@@ -430,19 +439,48 @@ const MachineDetails = () => {
                         <MachineReviewsSection reviews={reviews} avgRating={avgRating} />
                     </div>
 
-                    {/* Right Column: Booking Card */}
-                    <MachineBookingForm
-                        price={price}
-                        unit={unit}
-                        startDate={startDate}
-                        quantity={quantity}
-                        notes={notes}
-                        bookingLoading={bookingLoading}
-                        onStartDateChange={setStartDate}
-                        onQuantityChange={setQuantity}
-                        onNotesChange={setNotes}
-                        onBooking={handleBooking}
-                    />
+                    {/* Right Column: Booking Card or Owner Panel */}
+                    {userId && userId === machine.owner_id ? (
+                        <div className="relative">
+                            <Card className="sticky top-24 shadow-lg border-primary/20">
+                                <CardContent className="p-6 text-center space-y-4">
+                                    <div className="bg-primary/10 w-14 h-14 rounded-full flex items-center justify-center mx-auto">
+                                        <Tractor className="h-7 w-7 text-primary" />
+                                    </div>
+                                    <h3 className="font-semibold text-lg">Esta é sua máquina</h3>
+                                    <p className="text-sm text-muted-foreground">
+                                        Você está visualizando como os contratantes veem seu anúncio.
+                                    </p>
+                                    <Button
+                                        className="w-full"
+                                        onClick={() => navigate(`/edit-machine/${machine.id}`)}
+                                    >
+                                        Editar Máquina
+                                    </Button>
+                                    <Button
+                                        variant="outline"
+                                        className="w-full"
+                                        onClick={() => navigate('/dashboard')}
+                                    >
+                                        Voltar ao Dashboard
+                                    </Button>
+                                </CardContent>
+                            </Card>
+                        </div>
+                    ) : (
+                        <MachineBookingForm
+                            price={price}
+                            unit={unit}
+                            startDate={startDate}
+                            quantity={quantity}
+                            notes={notes}
+                            bookingLoading={bookingLoading}
+                            onStartDateChange={setStartDate}
+                            onQuantityChange={setQuantity}
+                            onNotesChange={setNotes}
+                            onBooking={handleBooking}
+                        />
+                    )}
                 </div>
             </main>
             <Footer />
