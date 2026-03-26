@@ -4,27 +4,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { LocationSelector } from "@/components/ui/location-selector";
 import { MultiCitySelector } from "@/components/ui/multi-city-selector";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { ShieldCheck } from "lucide-react";
+import { CATEGORY_NAMES } from "@/data/categories";
+import { MACHINERY_BRANDS } from "@/data/brands";
 
-const CATEGORIES = [
-    "Tratores",
-    "Colheitadeiras",
-    "Pulverizadores",
-    "Plantadeiras",
-    "Implementos",
-    "Transporte de Cargas"
-];
-
-const BRANDS = [
-    "John Deere",
-    "New Holland",
-    "Case IH",
-    "Massey Ferguson",
-    "Valtra",
-    "Jacto",
-    "Montana",
-    "Scania",
-    "Mercedes-Benz"
-];
+const CATEGORIES = CATEGORY_NAMES;
+const BRANDS = MACHINERY_BRANDS;
 
 interface FormData {
     name: string;
@@ -201,6 +187,13 @@ export function MachineFormFields({ formData, onChange }: MachineFormFieldsProps
                             placeholder="Endereço onde a máquina está estacionada"
                             rows={2}
                         />
+                        <Alert className="bg-green-50 border-green-200">
+                            <ShieldCheck className="h-4 w-4 text-green-600" />
+                            <AlertDescription className="text-xs text-green-700">
+                                Seu endereço exato <strong>não será exibido</strong> para contratantes.
+                                Apenas a cidade/região será visível no anúncio para proteger sua segurança.
+                            </AlertDescription>
+                        </Alert>
                     </div>
 
                     <div className="space-y-2 md:col-span-2">

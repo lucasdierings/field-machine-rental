@@ -1,15 +1,14 @@
+import { useNavigate } from "react-router-dom";
 import { Header } from "@/components/ui/header";
 import { Footer } from "@/components/ui/footer";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Upload, DollarSign, Shield, Users } from "lucide-react";
+import { DollarSign, Shield, Users, ArrowRight, Tractor } from "lucide-react";
 import { SEO } from "@/components/SEO";
 
 const RentMyMachine = () => {
+  const navigate = useNavigate();
+
   return (
     <div className="min-h-screen bg-background">
       <SEO
@@ -77,104 +76,28 @@ const RentMyMachine = () => {
           </div>
         </section>
 
-        {/* Registration Form */}
+        {/* CTA to Register Machine */}
         <section className="py-16 bg-muted/30">
           <div className="container mx-auto px-4">
-            <div className="max-w-2xl mx-auto">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-center text-2xl">Cadastre Seu Equipamento</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="machine-name">Nome da Máquina *</Label>
-                      <Input id="machine-name" placeholder="Ex: Trator New Holland T7" />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="brand">Marca *</Label>
-                      <Select>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecionar marca" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="john-deere">John Deere</SelectItem>
-                          <SelectItem value="new-holland">New Holland</SelectItem>
-                          <SelectItem value="case">Case IH</SelectItem>
-                          <SelectItem value="massey">Massey Ferguson</SelectItem>
-                          <SelectItem value="valtra">Valtra</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
+            <div className="max-w-lg mx-auto text-center">
+              <Card className="border-0 shadow-lg">
+                <CardContent className="p-10">
+                  <div className="bg-primary/10 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <Tractor className="h-10 w-10 text-primary" />
                   </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="category">Categoria *</Label>
-                      <Select>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecionar categoria" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="trator">Trator</SelectItem>
-                          <SelectItem value="colheitadeira">Colheitadeira</SelectItem>
-                          <SelectItem value="pulverizador">Pulverizador</SelectItem>
-                          <SelectItem value="plantadeira">Plantadeira</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="year">Ano *</Label>
-                      <Input id="year" placeholder="Ex: 2020" type="number" />
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="power">Potência (CV)</Label>
-                      <Input id="power" placeholder="Ex: 180" type="number" />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="location">Localização *</Label>
-                      <Input id="location" placeholder="Cidade, Estado" />
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="price">Preço por Hora (R$) *</Label>
-                    <Input id="price" placeholder="Ex: 250" type="number" />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="description">Descrição do Equipamento</Label>
-                    <Textarea
-                      id="description"
-                      placeholder="Descreva o estado, características especiais e informações importantes sobre sua máquina"
-                      rows={4}
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label>Fotos do Equipamento *</Label>
-                    <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-8 text-center">
-                      <Upload className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                      <p className="text-muted-foreground mb-2">
-                        Clique para fazer upload ou arraste as fotos aqui
-                      </p>
-                      <p className="text-sm text-muted-foreground">
-                        PNG, JPG até 10MB (máximo 8 fotos)
-                      </p>
-                    </div>
-                  </div>
-
-                  <Button className="w-full bg-gradient-primary" size="lg">
+                  <h2 className="text-2xl font-bold mb-3">Pronto para começar?</h2>
+                  <p className="text-muted-foreground mb-6">
+                    Cadastre seu equipamento em poucos minutos e comece a receber solicitações de produtores da sua região.
+                  </p>
+                  <Button
+                    className="w-full bg-gradient-primary"
+                    size="lg"
+                    onClick={() => navigate("/add-machine")}
+                  >
                     Cadastrar Equipamento
+                    <ArrowRight className="ml-2 h-5 w-5" />
                   </Button>
-
-                  <p className="text-sm text-muted-foreground text-center">
+                  <p className="text-xs text-muted-foreground mt-3">
                     Após o cadastro, nossa equipe verificará as informações em até 24 horas
                   </p>
                 </CardContent>
