@@ -1,6 +1,7 @@
 import {
     Tractor, Droplets, Wheat, Truck, Plane, Sprout,
-    Mountain, Scissors, Package, Wrench, Leaf, Sun
+    Mountain, Scissors, Package, Wrench, Leaf, Sun,
+    ScanLine, HardHat, Navigation
 } from "lucide-react";
 
 /**
@@ -126,6 +127,33 @@ export const SERVICE_CATEGORIES: ServiceCategory[] = [
         icon: Leaf,
         color: "bg-teal-500",
         iconColor: "text-teal-600",
+    },
+    {
+        id: "agricultura-precisao",
+        name: "Agricultura de Precisão",
+        slug: "agricultura-precisao",
+        description: "Amostragem georreferenciada, mapas de produtividade e taxa variável",
+        icon: ScanLine,
+        color: "bg-indigo-500",
+        iconColor: "text-indigo-600",
+    },
+    {
+        id: "terraplanagem",
+        name: "Terraplanagem e Infraestrutura",
+        slug: "terraplanagem",
+        description: "Retroescavadeiras, patrol, curvas de nível e estradas rurais",
+        icon: HardHat,
+        color: "bg-stone-500",
+        iconColor: "text-stone-600",
+    },
+    {
+        id: "aviacao-agricola",
+        name: "Aviação Agrícola",
+        slug: "aviacao-agricola",
+        description: "Pulverização aérea com aeronaves para aplicação em larga escala",
+        icon: Navigation,
+        color: "bg-sky-500",
+        iconColor: "text-sky-600",
     },
 ];
 
