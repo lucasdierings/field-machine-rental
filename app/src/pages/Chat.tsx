@@ -47,7 +47,73 @@ export default function Chat() {
             navigate("/login");
             return;
         }
-        initChat();
+        if (!otherUserId) return;
+
+        let channel: ReturnType<typeof supabase.channel> | null = null;
+
+        const startChat = async () => {
+            try {
+                // Load the other user's profile
+                const { data: profile } = await supabase
+                    .from("user_profiles")
+                    .select("full_name, profile_image, auth_user_id")
+                    .eq("auth_user_id", otherUserId)
+                    .single();
+
+                setOtherUser(profile);
+
+                // Load existing messages between the two users
+                await loadMessages(currentUserId, otherUserId);
+
+                // Mark received messages as read
+                await supabase
+                    .from("messages")
+                    .update({ read: true, read_at: new Date().toISOString() })
+                    .eq("sender_id", otherUserId)
+                    .eq("receiver_id", currentUserId)
+                    .eq("read", false);
+
+                // Subscribe to new messages in real time
+                channel = supabase
+                    .channel(`chat-${currentUserId}-${otherUserId}`)
+                    .on(
+                        "postgres_changes",
+                        {
+                            event: "INSERT",
+                            schema: "public",
+                            table: "messages",
+                            filter: `receiver_id=eq.${currentUserId}`,
+                        },
+                        (payload) => {
+                            const msg = payload.new as Message;
+                            if (msg.sender_id === otherUserId) {
+                                setMessages((prev) => [...prev, msg]);
+                                // Mark as read immediately
+                                supabase
+                                    .from("messages")
+                                    .update({ read: true, read_at: new Date().toISOString() })
+                                    .eq("id", msg.id)
+                                    .then(() => {});
+                            }
+                        }
+                    )
+                    .subscribe();
+
+                setLoading(false);
+            } catch (error: any) {
+                console.error("Chat init error:", error);
+                toast({ title: "Erro ao carregar chat", variant: "destructive" });
+                setLoading(false);
+            }
+        };
+
+        startChat();
+
+        return () => {
+            if (channel) {
+                supabase.removeChannel(channel);
+            }
+        };
     }, [otherUserId, currentUserId]);
 
     useEffect(() => {
@@ -56,65 +122,6 @@ export default function Chat() {
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-    };
-
-    const initChat = async () => {
-        try {
-            if (!currentUserId || !otherUserId) return;
-
-            // Load the other user's profile
-            const { data: profile } = await supabase
-                .from("user_profiles")
-                .select("full_name, profile_image, auth_user_id")
-                .eq("auth_user_id", otherUserId)
-                .single();
-
-            setOtherUser(profile);
-
-            // Load existing messages between the two users
-            await loadMessages(currentUserId, otherUserId);
-
-            // Mark received messages as read
-            await supabase
-                .from("messages")
-                .update({ read: true, read_at: new Date().toISOString() })
-                .eq("sender_id", otherUserId)
-                .eq("receiver_id", currentUserId)
-                .eq("read", false);
-
-            // Subscribe to new messages in real time
-            const channel = supabase
-                .channel(`chat-${currentUserId}-${otherUserId}`)
-                .on(
-                    "postgres_changes",
-                    {
-                        event: "INSERT",
-                        schema: "public",
-                        table: "messages",
-                        filter: `receiver_id=eq.${currentUserId}`,
-                    },
-                    (payload) => {
-                        const msg = payload.new as Message;
-                        if (msg.sender_id === otherUserId) {
-                            setMessages((prev) => [...prev, msg]);
-                            // Mark as read immediately
-                            supabase
-                                .from("messages")
-                                .update({ read: true, read_at: new Date().toISOString() })
-                                .eq("id", msg.id);
-                        }
-                    }
-                )
-                .subscribe();
-
-            setLoading(false);
-
-            return () => { supabase.removeChannel(channel); };
-        } catch (error: any) {
-            console.error("Chat init error:", error);
-            toast({ title: "Erro ao carregar chat", variant: "destructive" });
-            setLoading(false);
-        }
     };
 
     const loadMessages = async (myId: string, otherId: string) => {

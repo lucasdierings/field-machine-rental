@@ -211,7 +211,6 @@ export default function Login() {
                 <p id="password-visibility-hint" className="text-xs text-muted-foreground">
                   Clique no ícone para mostrar/ocultar a senha
                 </p>
-                </div>
               </div>
 
               <div className="flex items-center justify-between">

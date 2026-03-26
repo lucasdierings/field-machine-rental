@@ -139,7 +139,7 @@ export const BookingRequestsList = ({ bookings, onUpdate, currentUserId }: Booki
                     metadata: {
                         billing_type: data.billingType,
                         billing_quantity: data.billingQuantity,
-                        unit_price: data.negotiatedPrice / data.billingQuantity,
+                        unit_price: data.billingQuantity > 0 ? data.negotiatedPrice / data.billingQuantity : 0,
                         machine_name: getMachineNameUtil(selectedBooking),
                         owner_id: selectedBooking.owner_id,
                         renter_id: selectedBooking.renter_id,

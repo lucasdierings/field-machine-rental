@@ -144,10 +144,10 @@ const Machines = () => {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter(
         (m) =>
-          m.name.toLowerCase().includes(query) ||
-          m.brand.toLowerCase().includes(query) ||
-          m.model.toLowerCase().includes(query) ||
-          m.category.toLowerCase().includes(query)
+          m.name?.toLowerCase().includes(query) ||
+          (m.brand ?? '').toLowerCase().includes(query) ||
+          (m.model ?? '').toLowerCase().includes(query) ||
+          (m.category ?? '').toLowerCase().includes(query)
       );
     }
 

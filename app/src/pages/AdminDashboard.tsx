@@ -166,7 +166,10 @@ const AdminDashboard = () => {
       const cityMap: Record<string, number> = {};
 
       (profilesCity || []).forEach((p: any) => {
-        const addr = typeof p.address === 'string' ? JSON.parse(p.address) : p.address;
+        let addr = p.address;
+        if (typeof addr === 'string') {
+          try { addr = JSON.parse(addr); } catch { addr = null; }
+        }
         const city = addr?.city?.trim();
         const state = addr?.state?.trim();
         if (city) {

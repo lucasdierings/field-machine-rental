@@ -75,9 +75,18 @@ export const AuthButton = () => {
 
   const handleLogout = async () => {
     try {
-      // Clear any cached data
-      localStorage.clear();
-      sessionStorage.clear();
+      // Clear auth-related cached data only
+      const authKeys = ['sb-', 'supabase'];
+      Object.keys(localStorage).forEach(key => {
+        if (authKeys.some(prefix => key.startsWith(prefix))) {
+          localStorage.removeItem(key);
+        }
+      });
+      Object.keys(sessionStorage).forEach(key => {
+        if (authKeys.some(prefix => key.startsWith(prefix))) {
+          sessionStorage.removeItem(key);
+        }
+      });
 
       const { error } = await supabase.auth.signOut();
 

@@ -6,7 +6,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { CheckCircle, Mail, Phone, Upload, FileText } from "lucide-react";
 import { RegisterFormData } from "@/hooks/useRegisterForm";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 
@@ -34,6 +34,12 @@ export const VerificationStep = ({
   const { toast } = useToast();
   const [resendCooldown, setResendCooldown] = useState(0);
 
+  useEffect(() => {
+    if (resendCooldown <= 0) return;
+    const timer = setTimeout(() => setResendCooldown((prev) => prev - 1), 1000);
+    return () => clearTimeout(timer);
+  }, [resendCooldown]);
+
   const handleVerifyEmail = async () => {
     if (formData.emailCode.length !== 6) return;
 
@@ -50,17 +56,6 @@ export const VerificationStep = ({
     try {
       await onResendEmail();
       setResendCooldown(60);
-
-      // Countdown timer
-      const interval = setInterval(() => {
-        setResendCooldown((prev) => {
-          if (prev <= 1) {
-            clearInterval(interval);
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
     } catch (error) {
       // Error handled in parent
     }

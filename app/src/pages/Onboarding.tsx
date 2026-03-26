@@ -186,21 +186,21 @@ export const Onboarding = () => {
     // Change Email
     const handleChangeEmail = async (newEmail: string) => {
         try {
-            // In a real scenario, you'd need to:
-            // 1. Delete the old auth user
-            // 2. Create a new one with the new email
-            // For now, just update form data and resend
+            // Update auth user email via Supabase
+            const { error: updateError } = await supabase.auth.updateUser({
+                email: newEmail,
+            });
+
+            if (updateError) throw updateError;
 
             updateFormData({ email: newEmail });
 
-            // Resend verification to new email
-            await handleResendEmail();
-
             toast({
                 title: 'Email atualizado!',
-                description: `Novo código enviado para ${newEmail}`,
+                description: `Novo código enviado para ${newEmail}. Verifique sua caixa de entrada.`,
             });
         } catch (error: any) {
+            log('Change email error:', error);
             throw new Error(error.message || 'Erro ao atualizar email');
         }
     };
