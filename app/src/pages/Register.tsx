@@ -62,10 +62,12 @@ const Register = () => {
       return { success: true };
 
     } catch (error: any) {
-      console.error("Erro ao criar conta (FULL):", error);
+      const { getErrorMessage, logError, AUTH_ERRORS } = await import('@/lib/error-messages');
+      logError('Register.handleSignUp', error);
+
       toast({
-        title: "Erro ao criar conta",
-        description: `${error.message} (Code: ${error.code || 'N/A'})`,
+        title: AUTH_ERRORS.signUp.title,
+        description: getErrorMessage(error),
         variant: "destructive",
       });
       throw error;
@@ -91,9 +93,12 @@ const Register = () => {
         });
       }
     } catch (error: any) {
+      const { getErrorMessage, logError, AUTH_ERRORS } = await import('@/lib/error-messages');
+      logError('Register.handleVerifyEmailCode', error);
+
       toast({
-        title: "Código inválido",
-        description: "Verifique o código e tente novamente.",
+        title: AUTH_ERRORS.verifyOtp.title,
+        description: getErrorMessage(error),
         variant: "destructive",
       });
       throw error;

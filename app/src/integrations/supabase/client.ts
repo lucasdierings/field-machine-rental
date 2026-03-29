@@ -6,7 +6,14 @@ const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
 if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
-  console.error("CRITICAL: Missing Supabase environment variables. Please check your .env file. Required: VITE_SUPABASE_URL, VITE_SUPABASE_PUBLISHABLE_KEY");
+  const errorMsg = "CRITICAL: Missing Supabase environment variables. Please check your .env file.";
+  console.error(errorMsg);
+
+  // Em produção, mostrar erro mas não interromper completamente
+  if (import.meta.env.PROD) {
+    console.error("Configuração inválida. Entre em contato com o suporte.");
+    // Não fazer throw - permitir que o app carregue mesmo sem Supabase
+  }
 }
 
 // Import the supabase client like this:

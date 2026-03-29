@@ -9,6 +9,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
 import { RoleProtectedRoute } from "./components/auth/RoleProtectedRoute";
 import { BottomNavigation } from "./components/ui/bottom-navigation";
+import { FloatingActionButton } from "./components/ui/floating-action-button";
 import { PageLoader } from "./components/ui/page-loader";
 import { ErrorBoundary } from "./components/ui/error-boundary";
 import { AnalyticsTracker } from "./components/AnalyticsTracker";
@@ -186,6 +187,7 @@ const App = () => (
             </Suspense>
             </ErrorBoundary>
             <BottomNavigation />
+            <FloatingActionButton />
           </TooltipProvider>
         </AuthProvider>
       </BrowserRouter>

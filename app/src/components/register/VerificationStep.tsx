@@ -202,7 +202,7 @@ export const VerificationStep = ({
               )}
             </Card>
 
-            {/* Termos */}
+            {/* Termos e LGPD */}
             <div className="space-y-4">
               <div className="flex items-start space-x-2">
                 <Checkbox
@@ -211,15 +211,16 @@ export const VerificationStep = ({
                   onCheckedChange={(checked) => onUpdate({ termsAccepted: !!checked })}
                 />
                 <Label htmlFor="terms" className="text-sm leading-relaxed">
-                  Aceito os{" "}
-                  <Link to="#" className="text-primary hover:underline">
-                    termos de uso
+                  Li e aceito os{" "}
+                  <Link to="/termos" target="_blank" className="text-primary hover:underline font-medium">
+                    Termos de Uso
                   </Link>{" "}
-                  e{" "}
-                  <Link to="#" className="text-primary hover:underline">
-                    política de privacidade
+                  e a{" "}
+                  <Link to="/privacidade" target="_blank" className="text-primary hover:underline font-medium">
+                    Política de Privacidade
                   </Link>
-                  , e autorizo o compartilhamento dos meus dados com prestadores/produtores para fins de contratação de serviços agrícolas.
+                  , e <strong>autorizo o tratamento dos meus dados pessoais</strong> (nome, CPF/CNPJ, e-mail, telefone e localização) pela Field Machine, conforme a{" "}
+                  <span className="font-medium">Lei Geral de Proteção de Dados (LGPD)</span>, para as seguintes finalidades: criação de conta, intermediação de aluguéis de máquinas agrícolas, compartilhamento com proprietários e locatários para contratação de serviços, e comunicação sobre reservas.
                 </Label>
               </div>
               {errors.termsAccepted && (

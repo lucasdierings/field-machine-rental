@@ -100,10 +100,9 @@
         const debugDiv = document.getElementById('mobile-debug');
         const logsDiv = document.getElementById('debug-logs');
         let hasError = false;
-        let moduleLoadStarted = false;
 
         function showError(message, type = 'error') {
-          if (type === 'error') hasError = true;
+          hasError = true;
           const entry = document.createElement('div');
           entry.style.cssText = 'padding:10px; margin:5px 0; background:' + (type === 'error' ? '#ef4444' : '#3b82f6') + '; border-radius:4px; font-size:11px;';
           entry.textContent = new Date().toLocaleTimeString() + ' - ' + message;
@@ -124,28 +123,17 @@
 
           // Check Capacitor
           if (window.Capacitor) {
-            showError('✓ Capacitor detectado: ' + window.Capacitor.getPlatform(), 'info');
+            showError('✓ Capacitor detectado: v' + window.Capacitor.getPlatform(), 'info');
           } else {
             showError('✗ Capacitor NÃO detectado', 'error');
           }
-
-          // Log current URL and scheme
-          showError('📍 URL: ' + window.location.href, 'info');
-          showError('📍 Protocol: ' + window.location.protocol, 'info');
         } catch (e) {
           showError('Erro na inicialização: ' + e.message);
         }
 
-        // Capture uncaught errors (BEFORE module loads)
+        // Capture uncaught errors
         window.addEventListener('error', (e) => {
-          // Check if it's a module loading error
-          if (e.filename && e.filename.includes('index-') && e.filename.includes('.js')) {
-            showError('🚨 ERRO AO CARREGAR BUNDLE: ' + e.message);
-            showError('   Arquivo: ' + e.filename);
-            showError('   Linha: ' + e.lineno);
-          } else {
-            showError('ERROR: ' + e.message + (e.filename ? ' at ' + e.filename + ':' + e.lineno : ''));
-          }
+          showError('ERROR: ' + e.message + ' at ' + e.filename + ':' + e.lineno);
         });
 
         // Capture promise rejections
@@ -153,31 +141,14 @@
           showError('PROMISE ERROR: ' + (e.reason?.message || e.reason));
         });
 
-        // Detect when scripts start loading
-        const observer = new MutationObserver((mutations) => {
-          mutations.forEach((mutation) => {
-            mutation.addedNodes.forEach((node) => {
-              if (node.tagName === 'SCRIPT' && node.src && node.src.includes('index-')) {
-                moduleLoadStarted = true;
-                showError('📦 Bundle detectado: ' + node.src, 'info');
-              }
-            });
-          });
-        });
-        observer.observe(document.documentElement, { childList: true, subtree: true });
-
-        // Check if React mounted after 5 seconds (reduzido para 5s)
+        // Check if React mounted after 7 seconds (mais tempo para Suspense)
         setTimeout(() => {
           const root = document.getElementById('root');
-
-          if (!moduleLoadStarted) {
-            showError('⚠️ Bundle nunca foi carregado pelo navegador!', 'error');
-          }
 
           // Verificar se há algum conteúdo renderizado
           if (!root || root.children.length === 0) {
             showError('✗ React não renderizou - #root vazio!');
-            showError('Possível: Bundle não executou ou ErrorBoundary ativo', 'error');
+            showError('Possível: Suspense travado ou ErrorBoundary ativo', 'error');
           } else {
             // Verificar se é só o loader ou se tem conteúdo real
             const hasRealContent = root.textContent && root.textContent.length > 20;
@@ -192,9 +163,9 @@
               }, 3000);
             }
           }
-        }, 5000);
+        }, 7000);
 
-        // Emergency mode: se após 8s ainda não renderizou, mostrar tela de emergência
+        // Emergency mode: se após 10s ainda não renderizou, mostrar tela de emergência
         setTimeout(() => {
           const root = document.getElementById('root');
           const hasContent = root && root.children.length > 0 && root.textContent && root.textContent.length > 20;
@@ -205,7 +176,7 @@
               document.getElementById('emergency-mode').style.display = 'block';
             }, 1000);
           }
-        }, 8000);
+        }, 10000);
       })();
     </script>
 
