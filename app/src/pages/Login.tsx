@@ -10,9 +10,25 @@ import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { Header } from "@/components/ui/header";
 import { Footer } from "@/components/ui/footer";
-import { Eye, EyeOff, Loader2 } from "lucide-react";
+import { Eye, EyeOff, Loader2, Fingerprint } from "lucide-react";
 import { BiometricLogin } from "@/components/auth/BiometricLogin";
-import { isBiometricAvailable, isBiometricEnabled, saveBiometricSession, setBiometricEnabled } from "@/lib/biometric";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  isBiometricAvailable,
+  isBiometricEnabled,
+  saveBiometricCredentials,
+  setBiometricEnabled,
+  wasBiometricAsked,
+  markBiometricAsked,
+  getBiometricLabel,
+} from "@/lib/biometric";
 
 export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
@@ -22,6 +38,10 @@ export default function Login() {
     password: "",
     rememberMe: false
   });
+  const [bioDialogOpen, setBioDialogOpen] = useState(false);
+  const [bioType, setBioType] = useState('');
+  const [pendingRedirect, setPendingRedirect] = useState<string | null>(null);
+  const [pendingSession, setPendingSession] = useState<{ email: string; refreshToken: string } | null>(null);
 
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -93,35 +113,32 @@ export default function Login() {
         const isOwner = roles.includes('owner'); // Prestador de serviço
         const isRenter = roles.includes('renter'); // Produtor
 
-        // Save biometric session if enabled
+        // Determine redirect target
+        let redirectTarget = "/dashboard";
+        if (isAdmin) redirectTarget = "/admin";
+        else if (isRenter && !isOwner) redirectTarget = "/servicos-agricolas";
+
+        // Check biometric setup
         if (data.session?.refresh_token) {
           const bioEnabled = await isBiometricEnabled();
           if (bioEnabled) {
-            await saveBiometricSession(data.session.refresh_token);
+            await saveBiometricCredentials(data.user.email || formData.email, data.session.refresh_token);
+            navigate(redirectTarget, { replace: true });
           } else {
-            // Offer biometric setup on first successful login
-            const { available } = await isBiometricAvailable();
-            if (available) {
-              const wantsBio = window.confirm(
-                'Deseja usar biometria (Face ID / digital) para acessar mais rapido?'
-              );
-              if (wantsBio) {
-                await setBiometricEnabled(true);
-                await saveBiometricSession(data.session.refresh_token);
-              }
+            const alreadyAsked = await wasBiometricAsked();
+            const { available, type } = await isBiometricAvailable();
+            if (available && !alreadyAsked) {
+              // Show biometric setup dialog before redirecting
+              setBioType(type);
+              setPendingRedirect(redirectTarget);
+              setPendingSession({ email: data.user.email || formData.email, refreshToken: data.session.refresh_token });
+              setBioDialogOpen(true);
+            } else {
+              navigate(redirectTarget, { replace: true });
             }
           }
-        }
-
-        // Lógica de redirecionamento
-        if (isAdmin) {
-          navigate("/admin", { replace: true });
-        } else if (isOwner) {
-          navigate("/dashboard", { replace: true });
-        } else if (isRenter) {
-          navigate("/servicos-agricolas", { replace: true });
         } else {
-          navigate("/dashboard", { replace: true });
+          navigate(redirectTarget, { replace: true });
         }
       }
     } catch (error: any) {
@@ -133,6 +150,22 @@ export default function Login() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleBioDialogAccept = async () => {
+    if (pendingSession) {
+      await setBiometricEnabled(true);
+      await saveBiometricCredentials(pendingSession.email, pendingSession.refreshToken);
+      await markBiometricAsked();
+    }
+    setBioDialogOpen(false);
+    if (pendingRedirect) navigate(pendingRedirect, { replace: true });
+  };
+
+  const handleBioDialogDecline = async () => {
+    await markBiometricAsked();
+    setBioDialogOpen(false);
+    if (pendingRedirect) navigate(pendingRedirect, { replace: true });
   };
 
   const handleGoogleLogin = async () => {
@@ -325,6 +358,29 @@ export default function Login() {
       </main>
 
       <Footer />
+
+      {/* Biometric setup dialog */}
+      <Dialog open={bioDialogOpen} onOpenChange={(open) => { if (!open) handleBioDialogDecline(); }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader className="items-center text-center space-y-4">
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
+              <Fingerprint className="h-8 w-8 text-primary" />
+            </div>
+            <DialogTitle>Acesso rapido disponivel!</DialogTitle>
+            <DialogDescription>
+              Deseja usar {getBiometricLabel(bioType)} para entrar mais rapido na proxima vez?
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex-row gap-2 sm:justify-between">
+            <Button variant="ghost" onClick={handleBioDialogDecline}>
+              Agora nao
+            </Button>
+            <Button onClick={handleBioDialogAccept} className="bg-primary hover:bg-primary/90">
+              Ativar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

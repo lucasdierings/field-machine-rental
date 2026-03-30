@@ -1,13 +1,13 @@
 /**
  * Biometric authentication service
- * Works only on native platforms (iOS/Android) via Capacitor
+ * Uses NativeBiometric for secure Keychain/Keystore storage
  * All imports are dynamic to avoid build errors on web
  */
 
 const BIOMETRIC_ENABLED_KEY = 'fieldmachine_biometric_enabled';
-const BIOMETRIC_SESSION_KEY = 'fieldmachine_biometric_session';
+const BIOMETRIC_ASKED_KEY = 'fieldmachine_biometric_asked';
+const CREDENTIALS_SERVER = 'com.fieldmachine.auth';
 
-// Check if running inside Capacitor native shell
 function isNativeCheck(): boolean {
   try {
     return !!(window as any).Capacitor?.isNativePlatform?.();
@@ -20,7 +20,9 @@ export function isNativePlatform(): boolean {
   return isNativeCheck();
 }
 
-async function getBiometricPlugin() {
+// ─── Plugin loaders (dynamic to avoid web build errors) ─────────────────────
+
+async function getNativeBiometric() {
   if (!isNativeCheck()) return null;
   try {
     const mod = await import('capacitor-native-biometric');
@@ -40,54 +42,63 @@ async function getPreferences() {
   }
 }
 
-// Fallback to localStorage when Preferences plugin is unavailable
-async function getStoredValue(key: string): Promise<string | null> {
+// ─── Preferences helpers ────────────────────────────────────────────────────
+
+async function getPref(key: string): Promise<string | null> {
   const prefs = await getPreferences();
-  if (prefs) {
+  if (!prefs) return null;
+  try {
     const { value } = await prefs.get({ key });
     return value;
+  } catch {
+    return null;
   }
-  return localStorage.getItem(key);
 }
 
-async function setStoredValue(key: string, value: string): Promise<void> {
+async function setPref(key: string, value: string): Promise<void> {
   const prefs = await getPreferences();
-  if (prefs) {
-    await prefs.set({ key, value });
-  } else {
-    localStorage.setItem(key, value);
-  }
+  if (!prefs) return;
+  await prefs.set({ key, value });
 }
 
-async function removeStoredValue(key: string): Promise<void> {
+async function removePref(key: string): Promise<void> {
   const prefs = await getPreferences();
-  if (prefs) {
-    await prefs.remove({ key });
-  } else {
-    localStorage.removeItem(key);
-  }
+  if (!prefs) return;
+  await prefs.remove({ key });
 }
 
+// ─── Public API ─────────────────────────────────────────────────────────────
+
+/**
+ * Check if device supports biometric auth
+ */
 export async function isBiometricAvailable(): Promise<{ available: boolean; type: string }> {
-  const plugin = await getBiometricPlugin();
+  const plugin = await getNativeBiometric();
   if (!plugin) return { available: false, type: '' };
 
   try {
     const result = await plugin.isAvailable();
-    return { available: result.isAvailable, type: result.biometryType || 'biometria' };
+    return {
+      available: result.isAvailable,
+      type: result.biometryType?.toString() || 'biometria',
+    };
   } catch {
     return { available: false, type: '' };
   }
 }
 
-export async function authenticateWithBiometric(): Promise<boolean> {
-  const plugin = await getBiometricPlugin();
+/**
+ * Save credentials securely in Keychain/Keystore (requires biometric to retrieve)
+ */
+export async function saveBiometricCredentials(email: string, refreshToken: string): Promise<boolean> {
+  const plugin = await getNativeBiometric();
   if (!plugin) return false;
 
   try {
-    await plugin.authenticate({
-      reason: 'Confirme sua identidade para acessar o FieldMachine',
-      cancelTitle: 'Usar senha',
+    await plugin.setCredentials({
+      username: email,
+      password: refreshToken,
+      server: CREDENTIALS_SERVER,
     });
     return true;
   } catch {
@@ -95,49 +106,104 @@ export async function authenticateWithBiometric(): Promise<boolean> {
   }
 }
 
+/**
+ * Prompt biometric auth and return saved credentials
+ */
+export async function getBiometricCredentials(): Promise<{ email: string; refreshToken: string } | null> {
+  const plugin = await getNativeBiometric();
+  if (!plugin) return null;
+
+  try {
+    // This triggers the biometric prompt (Face ID / Touch ID / fingerprint)
+    await plugin.verifyIdentity({
+      reason: 'Confirme sua identidade para acessar o FieldMachine',
+      title: 'Autenticacao',
+      subtitle: 'Use biometria para entrar',
+      description: '',
+    });
+
+    // If biometric succeeded, get the stored credentials
+    const credentials = await plugin.getCredentials({ server: CREDENTIALS_SERVER });
+    return {
+      email: credentials.username,
+      refreshToken: credentials.password,
+    };
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Remove saved credentials from Keychain/Keystore
+ */
+export async function removeBiometricCredentials(): Promise<void> {
+  const plugin = await getNativeBiometric();
+  if (!plugin) return;
+
+  try {
+    await plugin.deleteCredentials({ server: CREDENTIALS_SERVER });
+  } catch {
+    // Credentials may not exist, that's fine
+  }
+}
+
+/**
+ * Check if user has enabled biometric login
+ */
 export async function isBiometricEnabled(): Promise<boolean> {
   if (!isNativeCheck()) return false;
   try {
-    const value = await getStoredValue(BIOMETRIC_ENABLED_KEY);
+    const value = await getPref(BIOMETRIC_ENABLED_KEY);
     return value === 'true';
   } catch {
     return false;
   }
 }
 
+/**
+ * Enable or disable biometric login preference
+ */
 export async function setBiometricEnabled(enabled: boolean): Promise<void> {
   if (!isNativeCheck()) return;
-  await setStoredValue(BIOMETRIC_ENABLED_KEY, enabled ? 'true' : 'false');
+  await setPref(BIOMETRIC_ENABLED_KEY, enabled ? 'true' : 'false');
 }
 
-export async function saveBiometricSession(refreshToken: string): Promise<void> {
-  if (!isNativeCheck()) return;
-  await setStoredValue(BIOMETRIC_SESSION_KEY, refreshToken);
-}
-
-export async function getBiometricSession(): Promise<string | null> {
-  if (!isNativeCheck()) return null;
+/**
+ * Check if we already asked the user about biometric setup
+ */
+export async function wasBiometricAsked(): Promise<boolean> {
+  if (!isNativeCheck()) return true; // Don't ask on web
   try {
-    return await getStoredValue(BIOMETRIC_SESSION_KEY);
+    const value = await getPref(BIOMETRIC_ASKED_KEY);
+    return value === 'true';
   } catch {
-    return null;
+    return false;
   }
 }
 
-export async function clearBiometricSession(): Promise<void> {
+/**
+ * Mark that we asked about biometric setup
+ */
+export async function markBiometricAsked(): Promise<void> {
   if (!isNativeCheck()) return;
-  await removeStoredValue(BIOMETRIC_SESSION_KEY);
+  await setPref(BIOMETRIC_ASKED_KEY, 'true');
 }
 
+/**
+ * Full cleanup on logout
+ */
+export async function clearBiometricData(): Promise<void> {
+  await removeBiometricCredentials();
+  await removePref(BIOMETRIC_ENABLED_KEY);
+  await removePref(BIOMETRIC_ASKED_KEY);
+}
+
+/**
+ * Get human-readable label for biometric type
+ */
 export function getBiometricLabel(type: string): string {
-  switch (type?.toLowerCase()) {
-    case 'faceid':
-    case 'face':
-      return 'Face ID';
-    case 'touchid':
-    case 'fingerprint':
-      return 'digital';
-    default:
-      return 'biometria';
-  }
+  const lower = type?.toLowerCase() || '';
+  if (lower.includes('face')) return 'Face ID';
+  if (lower.includes('finger') || lower.includes('touch')) return 'digital';
+  return 'biometria';
 }

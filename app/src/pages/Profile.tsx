@@ -13,7 +13,16 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { LocationSelector } from "@/components/ui/location-selector";
 import { Loader2, User, Phone, Mail, MapPin, CreditCard, Upload, FileCheck, Fingerprint, Settings } from "lucide-react";
-import { isNativePlatform, isBiometricAvailable, isBiometricEnabled, setBiometricEnabled, clearBiometricSession } from "@/lib/biometric";
+import {
+  isNativePlatform,
+  isBiometricAvailable,
+  isBiometricEnabled,
+  setBiometricEnabled,
+  saveBiometricCredentials,
+  removeBiometricCredentials,
+  getBiometricLabel,
+  getBiometricCredentials,
+} from "@/lib/biometric";
 import { Switch } from "@/components/ui/switch";
 
 // Lazy load Documents page
@@ -407,9 +416,12 @@ const Profile = () => {
 };
 
 function BiometricSettingsCard() {
+  const { toast } = useToast();
+  const { user } = useAuth();
   const [bioAvailable, setBioAvailable] = useState(false);
   const [bioEnabled, setBioEnabled] = useState(false);
   const [bioType, setBioType] = useState('');
+  const [toggling, setToggling] = useState(false);
 
   useEffect(() => {
     async function check() {
@@ -426,12 +438,35 @@ function BiometricSettingsCard() {
   }, []);
 
   const handleToggle = async (checked: boolean) => {
-    await setBiometricEnabled(checked);
-    setBioEnabled(checked);
-    if (!checked) {
-      await clearBiometricSession();
+    setToggling(true);
+    try {
+      if (checked) {
+        // Verify biometric works before enabling
+        const creds = await getBiometricCredentials();
+        if (!creds) {
+          // First time — save current session
+          const { data: { session } } = await supabase.auth.getSession();
+          if (session?.refresh_token) {
+            await saveBiometricCredentials(user?.email || '', session.refresh_token);
+          }
+        }
+        await setBiometricEnabled(true);
+        setBioEnabled(true);
+        toast({ title: `${getBiometricLabel(bioType)} ativado`, description: 'Voce pode usar biometria para entrar.' });
+      } else {
+        await removeBiometricCredentials();
+        await setBiometricEnabled(false);
+        setBioEnabled(false);
+        toast({ title: 'Biometria desativada' });
+      }
+    } catch {
+      toast({ title: 'Erro ao alterar configuracao', variant: 'destructive' });
+    } finally {
+      setToggling(false);
     }
   };
+
+  const label = getBiometricLabel(bioType);
 
   if (!isNativePlatform()) {
     return (
@@ -464,12 +499,12 @@ function BiometricSettingsCard() {
         {bioAvailable ? (
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
-              <Label>Entrar com {bioType || 'biometria'}</Label>
+              <Label>Entrar com {label}</Label>
               <p className="text-xs text-muted-foreground">
-                Use {bioType || 'biometria'} para acessar o app mais rapido
+                Use Face ID, digital ou senha do celular para acessar sua conta rapidamente
               </p>
             </div>
-            <Switch checked={bioEnabled} onCheckedChange={handleToggle} />
+            <Switch checked={bioEnabled} onCheckedChange={handleToggle} disabled={toggling} />
           </div>
         ) : (
           <p className="text-sm text-muted-foreground">
