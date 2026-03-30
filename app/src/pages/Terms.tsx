@@ -16,7 +16,7 @@ const Terms = () => {
             <main className="container mx-auto px-4 py-8 pt-24 max-w-4xl">
                 <h1 className="text-4xl font-bold mb-2">Termos de Uso</h1>
                 <p className="text-muted-foreground mb-8">
-                    Última atualização: {new Date().toLocaleDateString('pt-BR')}
+                    Última atualização: 30/03/2026
                 </p>
 
                 <Card className="mb-8">
@@ -198,7 +198,7 @@ const Terms = () => {
                                 Em caso de conflitos entre usuários, recomendamos primeiro tentar resolver diretamente ou através da nossa equipe de suporte. Se não houver acordo, as partes podem recorrer à mediação ou arbitragem.
                             </p>
                             <p>
-                                <strong>Foro:</strong> Fica eleito o foro da comarca de [CIDADE/ESTADO] para dirimir quaisquer questões oriundas destes Termos de Uso.
+                                <strong>Foro:</strong> Fica eleito o foro da comarca de Curitiba/PR para dirimir quaisquer questões oriundas destes Termos de Uso.
                             </p>
                         </section>
 
@@ -241,8 +241,8 @@ const Terms = () => {
                             </p>
                             <div className="bg-muted p-4 rounded-lg mt-4">
                                 <p><strong>E-mail:</strong> contato@fieldmachine.com.br</p>
-                                <p><strong>Suporte:</strong> suporte@fieldmachine.com.br</p>
-                                <p><strong>Endereço:</strong> [Inserir endereço da empresa]</p>
+                                <p><strong>Telefone:</strong> (45) 99144-7004</p>
+                                <p><strong>Localização:</strong> Curitiba, Paraná</p>
                             </div>
                         </section>
 

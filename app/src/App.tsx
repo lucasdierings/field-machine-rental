@@ -31,6 +31,7 @@ const Terms = lazy(() => import("./pages/Terms"));
 const Privacy = lazy(() => import("./pages/Privacy"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const Support = lazy(() => import("./pages/Support"));
+const Help = lazy(() => import("./pages/Help"));
 const Status = lazy(() => import("./pages/Status"));
 
 // Auth pages
@@ -124,6 +125,7 @@ const App = () => (
                 <Route path="/verificar-email" element={<VerifyEmail />} />
                 <Route path="/onboarding" element={<Onboarding />} />
                 <Route path="/como-funciona" element={<HowItWorks />} />
+                <Route path="/ajuda" element={<Help />} />
                 <Route path="/suporte" element={<Support />} />
                 <Route path="/status" element={<Status />} />
 

@@ -1,5 +1,6 @@
+import { Link } from "react-router-dom";
 import { Separator } from "@/components/ui/separator";
-import { Facebook, Instagram, Twitter, Mail, Phone, MapPin } from "lucide-react";
+import { Mail, Phone, MapPin, MessageCircle } from "lucide-react";
 export const Footer = () => {
   return <footer className="bg-muted/50 border-t border-border">
       <div className="container mx-auto px-4 py-12">
@@ -13,15 +14,12 @@ export const Footer = () => {
               A plataforma que conecta proprietários de máquinas agrícolas com produtores rurais de forma rápida e segura.
             </p>
             <div className="flex space-x-3">
-              <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center cursor-pointer hover:bg-primary/20 transition-colors">
-                <Facebook className="h-4 w-4 text-primary" />
-              </div>
-              <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center cursor-pointer hover:bg-primary/20 transition-colors">
-                <Instagram className="h-4 w-4 text-primary" />
-              </div>
-              <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center cursor-pointer hover:bg-primary/20 transition-colors">
-                <Twitter className="h-4 w-4 text-primary" />
-              </div>
+              <a href="https://wa.me/5545991447004" target="_blank" rel="noopener noreferrer" className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center hover:bg-primary/20 transition-colors">
+                <MessageCircle className="h-4 w-4 text-primary" />
+              </a>
+              <a href="mailto:contato@fieldmachine.com.br" className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center hover:bg-primary/20 transition-colors">
+                <Mail className="h-4 w-4 text-primary" />
+              </a>
             </div>
           </div>
 
@@ -29,20 +27,17 @@ export const Footer = () => {
           <div className="space-y-4">
             <h3 className="font-semibold text-foreground">Empresa</h3>
             <div className="space-y-2 text-sm">
-              <a href="#" className="block text-muted-foreground hover:text-primary transition-colors">Sobre nós</a>
-              <a href="#" className="block text-muted-foreground hover:text-primary transition-colors">Como funciona</a>
-              <a href="#" className="block text-muted-foreground hover:text-primary transition-colors">Carreiras</a>
-              <a href="#" className="block text-muted-foreground hover:text-primary transition-colors">Imprensa</a>
+              <Link to="/sobre" className="block text-muted-foreground hover:text-primary transition-colors">Sobre nós</Link>
+              <Link to="/como-funciona" className="block text-muted-foreground hover:text-primary transition-colors">Como funciona</Link>
             </div>
           </div>
 
           <div className="space-y-4">
             <h3 className="font-semibold text-foreground">Suporte</h3>
             <div className="space-y-2 text-sm">
-              <a href="#" className="block text-muted-foreground hover:text-primary transition-colors">Central de ajuda</a>
-              <a href="#" className="block text-muted-foreground hover:text-primary transition-colors">Termos de uso</a>
-              <a href="#" className="block text-muted-foreground hover:text-primary transition-colors">Política de privacidade</a>
-              <a href="#" className="block text-muted-foreground hover:text-primary transition-colors">Segurança</a>
+              <Link to="/ajuda" className="block text-muted-foreground hover:text-primary transition-colors">Central de ajuda</Link>
+              <Link to="/termos" className="block text-muted-foreground hover:text-primary transition-colors">Termos de uso</Link>
+              <Link to="/privacidade" className="block text-muted-foreground hover:text-primary transition-colors">Política de privacidade</Link>
             </div>
           </div>
 
@@ -50,14 +45,14 @@ export const Footer = () => {
           <div className="space-y-4">
             <h3 className="font-semibold text-foreground">Contato</h3>
             <div className="space-y-3 text-sm text-muted-foreground">
-              <div className="flex items-center space-x-2">
+              <a href="tel:+5545991447004" className="flex items-center space-x-2 hover:text-primary transition-colors">
                 <Phone className="h-4 w-4" />
                 <span>(45) 99144-7004</span>
-              </div>
-              <div className="flex items-center space-x-2">
+              </a>
+              <a href="mailto:contato@fieldmachine.com.br" className="flex items-center space-x-2 hover:text-primary transition-colors">
                 <Mail className="h-4 w-4" />
                 <span>contato@fieldmachine.com.br</span>
-              </div>
+              </a>
               <div className="flex items-center space-x-2">
                 <MapPin className="h-4 w-4" />
                 <span>Curitiba, Paraná</span>
