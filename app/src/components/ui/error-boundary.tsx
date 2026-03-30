@@ -22,14 +22,16 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    // Sempre logar erros, mesmo em produção
     console.error('Error caught by boundary:', error, errorInfo);
 
-    // Em produção, também mostrar alert para debug mobile
-    if (import.meta.env.PROD) {
-      setTimeout(() => {
-        alert(`Erro capturado: ${error.message}`);
-      }, 100);
+    // Store error for admin debug overlay
+    if (window.__APP_ERRORS) {
+      window.__APP_ERRORS.push({
+        type: 'react',
+        message: error.message,
+        file: errorInfo.componentStack?.split('\n')[1]?.trim(),
+        time: new Date().toISOString(),
+      });
     }
 
     this.props.onError?.(error, errorInfo);
@@ -60,7 +62,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
             ⚠️ Algo deu errado
           </h2>
           <p style={{ fontSize: '14px', color: '#666', marginBottom: '24px', maxWidth: '400px' }}>
-            {this.state.error?.message || 'Ocorreu um erro inesperado.'}
+            Estamos com um problema temporario. Nossa equipe ja foi notificada e estamos trabalhando para resolver.
           </p>
           <button
             style={{
@@ -78,8 +80,10 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
           >
             Recarregar App
           </button>
-          <button
+          <a
+            href="/status"
             style={{
+              display: 'inline-block',
               marginTop: '16px',
               padding: '8px 16px',
               backgroundColor: 'transparent',
@@ -87,12 +91,12 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
               border: '1px solid #ddd',
               borderRadius: '8px',
               fontSize: '14px',
+              textDecoration: 'none',
               cursor: 'pointer',
             }}
-            onClick={() => this.setState({ hasError: false, error: null })}
           >
-            Tentar novamente sem recarregar
-          </button>
+            Verificar status dos sistemas
+          </a>
         </section>
       );
     }

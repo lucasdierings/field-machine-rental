@@ -53,159 +53,33 @@
   <body>
     <div id="root"></div>
 
-    <!-- Mobile Debug Overlay (only visible on errors) -->
-    <div id="mobile-debug" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.95); color:#fff; padding:20px; overflow-y:auto; z-index:999999; font-family:monospace; font-size:12px;">
-      <h2 style="color:#ef4444; margin-bottom:20px;">⚠️ Erro Detectado</h2>
-      <div id="debug-logs"></div>
-      <button onclick="document.getElementById('mobile-debug').style.display='none'" style="position:fixed; top:10px; right:10px; padding:10px 20px; background:#10b981; color:white; border:none; border-radius:4px;">Fechar</button>
-    </div>
-
-    <!-- Emergency Mode (shown if app fails to load after 10s) -->
-    <div id="emergency-mode" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:#ffffff; color:#000; padding:30px; overflow-y:auto; z-index:999998; font-family:-apple-system, sans-serif;">
-      <div style="max-width:500px; margin:0 auto;">
-        <h1 style="color:#ef4444; font-size:28px; margin-bottom:20px; text-align:center;">🚨 Modo de Emergência</h1>
-        <p style="font-size:16px; color:#666; margin-bottom:30px; text-align:center;">O aplicativo não conseguiu carregar corretamente.</p>
-
-        <div style="background:#f3f4f6; padding:20px; border-radius:8px; margin-bottom:20px;">
-          <h3 style="font-size:18px; margin-bottom:15px; color:#374151;">Possíveis causas:</h3>
-          <ul style="margin-left:20px; color:#6b7280; line-height:1.8;">
-            <li>Conexão com internet instável</li>
-            <li>Servidor Supabase não respondendo</li>
-            <li>Erro no carregamento dos componentes</li>
-            <li>Problema de compatibilidade do navegador</li>
-          </ul>
-        </div>
-
-        <div style="display:flex; flex-direction:column; gap:12px;">
-          <button onclick="window.location.reload()" style="width:100%; padding:16px; background:#16a34a; color:#fff; border:none; border-radius:8px; font-size:16px; font-weight:600; cursor:pointer;">
-            🔄 Recarregar App
-          </button>
-          <button onclick="localStorage.clear(); window.location.reload()" style="width:100%; padding:16px; background:#3b82f6; color:#fff; border:none; border-radius:8px; font-size:16px; font-weight:600; cursor:pointer;">
-            🧹 Limpar Cache e Recarregar
-          </button>
-          <button onclick="document.getElementById('emergency-mode').style.display='none'; document.getElementById('mobile-debug').style.display='block'" style="width:100%; padding:16px; background:#6b7280; color:#fff; border:none; border-radius:8px; font-size:16px; font-weight:600; cursor:pointer;">
-            🐛 Ver Logs de Debug
-          </button>
-        </div>
-
-        <p style="margin-top:30px; font-size:12px; color:#9ca3af; text-align:center;">
-          Se o problema persistir, entre em contato com o suporte técnico.
-        </p>
-      </div>
-    </div>
-
     <script>
-      // Mobile error capture for iOS debugging
+      // Error capture — logs to console only, visible debug is handled by React (admin-only)
       (function() {
-        const debugDiv = document.getElementById('mobile-debug');
-        const logsDiv = document.getElementById('debug-logs');
-        let hasError = false;
-        let moduleLoadStarted = false;
-
-        function showError(message, type = 'error') {
-          if (type === 'error') hasError = true;
-          const entry = document.createElement('div');
-          entry.style.cssText = 'padding:10px; margin:5px 0; background:' + (type === 'error' ? '#ef4444' : '#3b82f6') + '; border-radius:4px; font-size:11px;';
-          entry.textContent = new Date().toLocaleTimeString() + ' - ' + message;
-          logsDiv.appendChild(entry);
-          debugDiv.style.display = 'block';
-        }
-
-        // Check environment
-        try {
-          // Test localStorage
-          try {
-            localStorage.setItem('__test', '1');
-            localStorage.removeItem('__test');
-            showError('✓ localStorage OK', 'info');
-          } catch (e) {
-            showError('✗ localStorage FALHOU: ' + e.message);
-          }
-
-          // Check Capacitor
-          if (window.Capacitor) {
-            showError('✓ Capacitor detectado: ' + window.Capacitor.getPlatform(), 'info');
-          } else {
-            showError('✗ Capacitor NÃO detectado', 'error');
-          }
-
-          // Log current URL and scheme
-          showError('📍 URL: ' + window.location.href, 'info');
-          showError('📍 Protocol: ' + window.location.protocol, 'info');
-        } catch (e) {
-          showError('Erro na inicialização: ' + e.message);
-        }
-
-        // Capture uncaught errors (BEFORE module loads)
-        window.addEventListener('error', (e) => {
-          // Check if it's a module loading error
-          if (e.filename && e.filename.includes('index-') && e.filename.includes('.js')) {
-            showError('🚨 ERRO AO CARREGAR BUNDLE: ' + e.message);
-            showError('   Arquivo: ' + e.filename);
-            showError('   Linha: ' + e.lineno);
-          } else {
-            showError('ERROR: ' + e.message + (e.filename ? ' at ' + e.filename + ':' + e.lineno : ''));
-          }
+        window.__APP_ERRORS = [];
+        window.addEventListener('error', function(e) {
+          var err = { type: 'error', message: e.message, file: e.filename, line: e.lineno, time: new Date().toISOString() };
+          window.__APP_ERRORS.push(err);
+          console.error('[FieldMachine Debug]', err);
+        });
+        window.addEventListener('unhandledrejection', function(e) {
+          var err = { type: 'promise', message: e.reason?.message || String(e.reason), time: new Date().toISOString() };
+          window.__APP_ERRORS.push(err);
+          console.error('[FieldMachine Debug]', err);
         });
 
-        // Capture promise rejections
-        window.addEventListener('unhandledrejection', (e) => {
-          showError('PROMISE ERROR: ' + (e.reason?.message || e.reason));
-        });
-
-        // Detect when scripts start loading
-        const observer = new MutationObserver((mutations) => {
-          mutations.forEach((mutation) => {
-            mutation.addedNodes.forEach((node) => {
-              if (node.tagName === 'SCRIPT' && node.src && node.src.includes('index-')) {
-                moduleLoadStarted = true;
-                showError('📦 Bundle detectado: ' + node.src, 'info');
-              }
-            });
-          });
-        });
-        observer.observe(document.documentElement, { childList: true, subtree: true });
-
-        // Check if React mounted after 5 seconds (reduzido para 5s)
-        setTimeout(() => {
-          const root = document.getElementById('root');
-
-          if (!moduleLoadStarted) {
-            showError('⚠️ Bundle nunca foi carregado pelo navegador!', 'error');
-          }
-
-          // Verificar se há algum conteúdo renderizado
+        // Fallback: if React doesn't render after 10s, show recovery screen
+        setTimeout(function() {
+          var root = document.getElementById('root');
           if (!root || root.children.length === 0) {
-            showError('✗ React não renderizou - #root vazio!');
-            showError('Possível: Bundle não executou ou ErrorBoundary ativo', 'error');
-          } else {
-            // Verificar se é só o loader ou se tem conteúdo real
-            const hasRealContent = root.textContent && root.textContent.length > 20;
-
-            if (!hasRealContent && !hasError) {
-              showError('⚠️ Suspense pode estar travado - apenas loader visível', 'error');
-            } else if (!hasError) {
-              showError('✓ React renderizado OK!', 'info');
-              // Auto-hide after 3 seconds if no errors
-              setTimeout(() => {
-                debugDiv.style.display = 'none';
-              }, 3000);
-            }
+            root.innerHTML = '<div style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px;text-align:center;font-family:-apple-system,sans-serif;background:#fff">'
+              + '<h2 style="font-size:22px;font-weight:600;color:#374151;margin-bottom:12px">Estamos com um problema temporario</h2>'
+              + '<p style="font-size:14px;color:#6b7280;margin-bottom:24px;max-width:400px">Nossa equipe ja foi notificada. Tente recarregar ou verifique o status dos nossos sistemas.</p>'
+              + '<button onclick="location.reload()" style="padding:12px 24px;background:#16a34a;color:#fff;border:none;border-radius:8px;font-size:16px;font-weight:500;cursor:pointer;margin-bottom:12px">Recarregar</button>'
+              + '<a href="/status" style="padding:8px 16px;color:#6b7280;border:1px solid #d1d5db;border-radius:8px;font-size:14px;text-decoration:none">Verificar status dos sistemas</a>'
+              + '</div>';
           }
-        }, 5000);
-
-        // Emergency mode: se após 8s ainda não renderizou, mostrar tela de emergência
-        setTimeout(() => {
-          const root = document.getElementById('root');
-          const hasContent = root && root.children.length > 0 && root.textContent && root.textContent.length > 20;
-
-          if (!hasContent) {
-            showError('⚠️ ATIVANDO MODO DE EMERGÊNCIA', 'error');
-            setTimeout(() => {
-              document.getElementById('emergency-mode').style.display = 'block';
-            }, 1000);
-          }
-        }, 8000);
+        }, 10000);
       })();
     </script>
 

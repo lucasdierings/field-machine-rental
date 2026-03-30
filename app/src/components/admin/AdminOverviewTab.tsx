@@ -1,10 +1,12 @@
+import { useEffect, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Users, Tractor, TrendingUp, Activity, Handshake } from 'lucide-react';
+import { Users, Tractor, TrendingUp, Activity, Handshake, Inbox } from 'lucide-react';
 import {
   PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer,
   BarChart, Bar, XAxis, YAxis, CartesianGrid,
   LineChart, Line,
 } from 'recharts';
+import { supabase } from '@/integrations/supabase/client';
 
 interface DashboardStats {
   total_users: number;
@@ -52,6 +54,29 @@ export function AdminOverviewTab({
   userGrowth,
   calculateConversionRate,
 }: AdminOverviewTabProps) {
+  const [ticketCounts, setTicketCounts] = useState({ open: 0, in_progress: 0 });
+
+  useEffect(() => {
+    async function loadTicketCounts() {
+      try {
+        const { count: openCount } = await supabase
+          .from('support_tickets')
+          .select('*', { count: 'exact', head: true })
+          .eq('status', 'open');
+
+        const { count: progressCount } = await supabase
+          .from('support_tickets')
+          .select('*', { count: 'exact', head: true })
+          .eq('status', 'in_progress');
+
+        setTicketCounts({ open: openCount || 0, in_progress: progressCount || 0 });
+      } catch {
+        // Silent fail
+      }
+    }
+    loadTicketCounts();
+  }, []);
+
   return (
     <div className="space-y-8">
       {/* KPI Cards */}
@@ -117,6 +142,26 @@ export function AdminOverviewTab({
             <div className="text-2xl font-bold">{calculateConversionRate()}%</div>
             <p className="text-xs text-muted-foreground">
               {stats?.completed_bookings || 0} reservas concluídas
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card className={`border-l-4 ${ticketCounts.open > 0 ? 'border-l-red-500' : 'border-l-gray-300'}`}>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Chamados Suporte</CardTitle>
+            <Inbox className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{ticketCounts.open}</div>
+            <p className="text-xs text-muted-foreground">
+              {ticketCounts.open > 0 ? (
+                <span className="text-red-600">{ticketCounts.open} aberto{ticketCounts.open > 1 ? 's' : ''}</span>
+              ) : (
+                'Nenhum aberto'
+              )}
+              {ticketCounts.in_progress > 0 && (
+                <> · {ticketCounts.in_progress} em andamento</>
+              )}
             </p>
           </CardContent>
         </Card>

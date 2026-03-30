@@ -13,6 +13,7 @@ import { FloatingActionButton } from "./components/ui/floating-action-button";
 import { PageLoader } from "./components/ui/page-loader";
 import { ErrorBoundary } from "./components/ui/error-boundary";
 import { AnalyticsTracker } from "./components/AnalyticsTracker";
+import { AdminDebugOverlay } from "./components/AdminDebugOverlay";
 
 // ─── Lazy-loaded pages ───────────────────────────────────────────────────────
 // Each page is loaded on-demand, reducing the initial bundle size significantly.
@@ -30,6 +31,7 @@ const Terms = lazy(() => import("./pages/Terms"));
 const Privacy = lazy(() => import("./pages/Privacy"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const Support = lazy(() => import("./pages/Support"));
+const Status = lazy(() => import("./pages/Status"));
 
 // Auth pages
 const Login = lazy(() => import("./pages/Login"));
@@ -123,6 +125,7 @@ const App = () => (
                 <Route path="/onboarding" element={<Onboarding />} />
                 <Route path="/como-funciona" element={<HowItWorks />} />
                 <Route path="/suporte" element={<Support />} />
+                <Route path="/status" element={<Status />} />
 
                 {/* Old Routes Redirects (301-like) */}
                 <Route path="/buscar" element={<Navigate to="/servicos-agricolas" replace />} />
@@ -188,6 +191,7 @@ const App = () => (
             </ErrorBoundary>
             <BottomNavigation />
             <FloatingActionButton />
+            <AdminDebugOverlay />
           </TooltipProvider>
         </AuthProvider>
       </BrowserRouter>
