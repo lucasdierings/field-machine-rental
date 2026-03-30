@@ -1134,12 +1134,15 @@ export type Database = {
           full_name: string | null
           id: string
           phone: string | null
+          profile_completed: boolean | null
+          profile_completion_step: number | null
           profile_image: string | null
           rating: number | null
           total_rentals: number | null
           total_services: number | null
           total_transactions: number | null
           updated_at: string
+          user_type: string | null
           user_types: string[] | null
           verified: boolean | null
         }
@@ -1152,12 +1155,15 @@ export type Database = {
           full_name?: string | null
           id?: string
           phone?: string | null
+          profile_completed?: boolean | null
+          profile_completion_step?: number | null
           profile_image?: string | null
           rating?: number | null
           total_rentals?: number | null
           total_services?: number | null
           total_transactions?: number | null
           updated_at?: string
+          user_type?: string | null
           user_types?: string[] | null
           verified?: boolean | null
         }
@@ -1170,12 +1176,15 @@ export type Database = {
           full_name?: string | null
           id?: string
           phone?: string | null
+          profile_completed?: boolean | null
+          profile_completion_step?: number | null
           profile_image?: string | null
           rating?: number | null
           total_rentals?: number | null
           total_services?: number | null
           total_transactions?: number | null
           updated_at?: string
+          user_type?: string | null
           user_types?: string[] | null
           verified?: boolean | null
         }

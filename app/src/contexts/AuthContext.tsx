@@ -13,6 +13,7 @@ interface UserProfile {
     email: string | null;
     user_types: string[] | null;
     verified: boolean | null;
+    profile_completed: boolean | null;
     created_at: string;
     updated_at: string;
 }

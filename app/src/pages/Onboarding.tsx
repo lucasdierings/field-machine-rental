@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 import { SplashScreen } from '@/components/onboarding/SplashScreen';
@@ -23,6 +23,8 @@ export const Onboarding = () => {
     const navigate = useNavigate();
     const { toast } = useToast();
     const { state, nextStep, prevStep, updateFormData, setEmailVerified } = useOnboarding();
+    const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+    const [isSigningUp, setIsSigningUp] = useState(false);
 
     // Validate Step 2 (Registration)
     const validateRegistration = (): { valid: boolean; errors: Record<string, string> } => {
@@ -66,6 +68,7 @@ export const Onboarding = () => {
     // Handle Step 2 Next (Create Account)
     const handleRegisterNext = async () => {
         const validation = validateRegistration();
+        setValidationErrors(validation.errors);
 
         if (!validation.valid) {
             const firstError = Object.values(validation.errors)[0];
@@ -77,6 +80,7 @@ export const Onboarding = () => {
             return;
         }
 
+        setIsSigningUp(true);
         try {
             // Create user with Supabase Auth (this sets the password)
             const { data, error } = await supabase.auth.signUp({
@@ -123,6 +127,8 @@ export const Onboarding = () => {
                 description: error.message,
                 variant: 'destructive',
             });
+        } finally {
+            setIsSigningUp(false);
         }
     };
 
@@ -292,10 +298,11 @@ export const Onboarding = () => {
                     <OnboardingStepTwo
                         key="register"
                         formData={state.formData}
-                        errors={{}} // Will implement validation feedback
+                        errors={validationErrors}
                         onUpdate={updateFormData}
                         onNext={handleRegisterNext}
                         onPrev={prevStep}
+                        isLoading={isSigningUp}
                     />
                 )}
 
