@@ -19,10 +19,10 @@ export const ProtectedRoute = ({ children, redirectTo = "/login" }: ProtectedRou
     return <Navigate to={redirectTo} state={{ from: location }} replace />;
   }
 
-  // Redirect to onboarding if profile is not completed
-  // Allow access to onboarding itself to avoid redirect loop
+  // Redirect to onboarding only if no profile exists yet (new user)
+  // Existing users (profile exists) are never redirected, even if profile_completed is null
   const isOnboardingRoute = location.pathname.startsWith("/onboarding");
-  if (!isOnboardingRoute && profile && !profile.profile_completed) {
+  if (!isOnboardingRoute && !profile) {
     return <Navigate to="/onboarding" replace />;
   }
 
