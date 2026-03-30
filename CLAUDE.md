@@ -39,13 +39,21 @@ npm run run:ios      # Full build+sync+open workflow
 # Same pattern for Android: sync:android, open:android, run:android
 ```
 
+### Tests (Vitest)
+```bash
+cd app
+npm run test             # Run all tests once
+npm run test:watch       # Watch mode (re-runs on save)
+npm run test:coverage    # Coverage report (text + HTML)
+```
+
 ### Validation before commit
 ```bash
-cd app && npm run lint && npx tsc --noEmit && npm run build
+cd app && npm run lint && npm run test && npx tsc --noEmit && npm run build
 cd ../site && npm run build
 ```
 
-No test framework is currently configured (Vitest is planned).
+Pre-commit hook (Husky + lint-staged) auto-runs lint + type-check on staged `.ts/.tsx` files.
 
 ## Architecture
 
@@ -113,6 +121,7 @@ No test framework is currently configured (Vitest is planned).
 - **Don't bypass RLS** — all DB operations go through the authenticated client
 - **Don't use `any` type** — TypeScript strict mode is enforced (`noUnusedLocals`, `noUnusedParameters`)
 - **Don't forget loading/error states** — TanStack Query hooks return `isLoading`, `error` — always handle them
+- **Write tests for new utils/hooks** — test files go in `__tests__/` next to the source (e.g., `lib/__tests__/validation.test.ts`)
 - **Don't duplicate validation** — reuse Zod schemas from `lib/validation.ts`
 - **Don't add dependencies without checking** — the project already has 50+ packages; check if existing ones cover the need
 - **Test builds before pushing** — `npm run build` in both `app/` and `site/`

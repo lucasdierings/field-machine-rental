@@ -53,10 +53,9 @@ jobs:
         working-directory: ./site
         run: npm run build
 
-      # Optional: Run tests when implemented
-      # - name: Run tests
-      #   working-directory: ./app
-      #   run: npm run test
+      - name: Run tests
+        working-directory: ./app
+        run: npm run test
 
   # TypeScript type checking
   type-check:
