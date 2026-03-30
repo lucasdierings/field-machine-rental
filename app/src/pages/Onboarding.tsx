@@ -132,30 +132,43 @@ export const Onboarding = () => {
         }
     };
 
-    // Verify Email Code
-    const handleVerifyEmail = async (code: string) => {
+    // Check if email was verified (user clicked magic link)
+    const handleVerifyEmail = async () => {
         try {
-            const { data, error } = await supabase.auth.verifyOtp({
-                email: state.formData.email,
-                token: code,
-                type: 'signup'
-            });
+            const { data: { session }, error } = await supabase.auth.getSession();
 
             if (error) throw error;
 
-            if (data.session) {
+            if (session?.user?.email_confirmed_at) {
                 setEmailVerified(true);
                 toast({
                     title: 'Email verificado!',
                     description: 'Bem-vindo ao FieldMachine!',
                 });
+            } else {
+                // Try refreshing the session in case user just clicked the link
+                const { data: refreshed } = await supabase.auth.refreshSession();
+                if (refreshed.session?.user?.email_confirmed_at) {
+                    setEmailVerified(true);
+                    toast({
+                        title: 'Email verificado!',
+                        description: 'Bem-vindo ao FieldMachine!',
+                    });
+                } else {
+                    throw new Error('Email ainda nao verificado. Clique no link enviado para seu email.');
+                }
             }
         } catch (error: any) {
-            throw new Error(error.message || 'Código inválido');
+            toast({
+                title: 'Email nao verificado',
+                description: error.message || 'Clique no link enviado para seu email.',
+                variant: 'destructive',
+            });
+            throw error;
         }
     };
 
-    // Resend Email
+    // Resend verification email
     const handleResendEmail = async () => {
         try {
             const { error } = await supabase.auth.resend({
@@ -166,27 +179,18 @@ export const Onboarding = () => {
             if (error) throw error;
 
             toast({
-                title: 'Email reenviado!',
+                title: 'Link reenviado!',
                 description: 'Verifique sua caixa de entrada.',
             });
         } catch (error: any) {
             log('Resend error:', error);
             toast({
-                title: 'Erro ao reenviar email',
+                title: 'Erro ao reenviar',
                 description: error.message,
                 variant: 'destructive',
             });
             throw error;
         }
-    };
-
-    // Send SMS (placeholder for future Twilio integration)
-    const handleSendSMS = async () => {
-        toast({
-            title: 'SMS não disponível',
-            description: 'Em breve você poderá receber o código por SMS.',
-            variant: 'default',
-        });
     };
 
     // Change Email
@@ -313,7 +317,6 @@ export const Onboarding = () => {
                         onUpdate={updateFormData}
                         onVerifyEmail={handleVerifyEmail}
                         onResendEmail={handleResendEmail}
-                        onSendSMS={handleSendSMS}
                         onChangeEmail={handleChangeEmail}
                         onFinalize={handleFinalize}
                         onPrev={prevStep}

@@ -11,6 +11,8 @@ import { useToast } from "@/hooks/use-toast";
 import { Header } from "@/components/ui/header";
 import { Footer } from "@/components/ui/footer";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
+import { BiometricLogin } from "@/components/auth/BiometricLogin";
+import { isBiometricAvailable, isBiometricEnabled, saveBiometricSession, setBiometricEnabled } from "@/lib/biometric";
 
 export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
@@ -91,17 +93,34 @@ export default function Login() {
         const isOwner = roles.includes('owner'); // Prestador de serviço
         const isRenter = roles.includes('renter'); // Produtor
 
+        // Save biometric session if enabled
+        if (data.session?.refresh_token) {
+          const bioEnabled = await isBiometricEnabled();
+          if (bioEnabled) {
+            await saveBiometricSession(data.session.refresh_token);
+          } else {
+            // Offer biometric setup on first successful login
+            const { available } = await isBiometricAvailable();
+            if (available) {
+              const wantsBio = window.confirm(
+                'Deseja usar biometria (Face ID / digital) para acessar mais rapido?'
+              );
+              if (wantsBio) {
+                await setBiometricEnabled(true);
+                await saveBiometricSession(data.session.refresh_token);
+              }
+            }
+          }
+        }
+
         // Lógica de redirecionamento
         if (isAdmin) {
           navigate("/admin", { replace: true });
         } else if (isOwner) {
-          // Se for prestador (ou ambos), vai para o dashboard
           navigate("/dashboard", { replace: true });
         } else if (isRenter) {
-          // Se for apenas produtor, vai para a busca
           navigate("/servicos-agricolas", { replace: true });
         } else {
-          // Fallback
           navigate("/dashboard", { replace: true });
         }
       }
@@ -248,6 +267,8 @@ export default function Login() {
                 )}
               </Button>
             </form>
+
+            <BiometricLogin />
 
             <div className="relative">
               <div className="absolute inset-0 flex items-center">

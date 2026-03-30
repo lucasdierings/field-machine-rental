@@ -1,12 +1,9 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { CheckCircle2, Mail, AlertCircle } from 'lucide-react';
+import { CheckCircle2, Mail, Loader2, RefreshCw } from 'lucide-react';
 import { StepIndicator } from './StepIndicator';
-import { PinInput } from './PinInput';
-import { ResendTimer } from './ResendTimer';
-import { FallbackOptions } from './FallbackOptions';
 import { EmailChangeDialog } from './EmailChangeDialog';
 import { fadeIn } from '@/animations/onboarding';
 import { RegisterFormData } from '@/hooks/useRegisterForm';
@@ -28,41 +25,49 @@ export const OnboardingStepThree = ({
     onUpdate,
     onVerifyEmail,
     onResendEmail,
-    onSendSMS,
     onChangeEmail,
     onFinalize,
     onPrev,
     isSubmitting = false
 }: OnboardingStepThreeProps) => {
-    const [pinValue, setPinValue] = useState('');
-    const [isVerifying, setIsVerifying] = useState(false);
     const [isEmailChangeDialogOpen, setIsEmailChangeDialogOpen] = useState(false);
-    const [verificationError, setVerificationError] = useState('');
+    const [isResending, setIsResending] = useState(false);
+    const [isChecking, setIsChecking] = useState(false);
+    const [resendCooldown, setResendCooldown] = useState(0);
 
-    const handlePinComplete = async (pin: string) => {
-        setIsVerifying(true);
-        setVerificationError('');
+    const startCooldown = useCallback(() => {
+        setResendCooldown(60);
+        const interval = setInterval(() => {
+            setResendCooldown((prev) => {
+                if (prev <= 1) {
+                    clearInterval(interval);
+                    return 0;
+                }
+                return prev - 1;
+            });
+        }, 1000);
+    }, []);
 
+    const handleResend = async () => {
+        setIsResending(true);
         try {
-            await onVerifyEmail(pin);
-            onUpdate({ emailVerified: true });
-        } catch (error: any) {
-            setVerificationError(error.message || 'Código inválido. Tente novamente.');
-            setPinValue(''); // Clear PIN on error
+            await onResendEmail();
+            startCooldown();
         } finally {
-            setIsVerifying(false);
+            setIsResending(false);
         }
     };
 
-    const handleResend = async () => {
-        setVerificationError('');
-        await onResendEmail();
-    };
-
-    const handleSendSMS = async () => {
-        if (onSendSMS) {
-            setVerificationError('');
-            await onSendSMS();
+    const handleCheckVerification = async () => {
+        setIsChecking(true);
+        try {
+            // Pass empty string — the parent will check session status
+            await onVerifyEmail('');
+            onUpdate({ emailVerified: true });
+        } catch {
+            // Not verified yet — parent handles the error
+        } finally {
+            setIsChecking(false);
         }
     };
 
@@ -85,7 +90,6 @@ export const OnboardingStepThree = ({
                     <CardHeader className="space-y-3 pb-4">
                         {formData.emailVerified ? (
                             <>
-                                {/* Success State */}
                                 <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
                                     <CheckCircle2 className="h-10 w-10 text-green-600" />
                                 </div>
@@ -93,12 +97,11 @@ export const OnboardingStepThree = ({
                                     Email Verificado!
                                 </CardTitle>
                                 <CardDescription className="text-center text-sm sm:text-base">
-                                    Sua conta está pronta. Vamos começar?
+                                    Sua conta esta pronta. Vamos comecar?
                                 </CardDescription>
                             </>
                         ) : (
                             <>
-                                {/* Pending State */}
                                 <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
                                     <Mail className="h-10 w-10 text-primary" />
                                 </div>
@@ -106,7 +109,7 @@ export const OnboardingStepThree = ({
                                     Verifique seu email
                                 </CardTitle>
                                 <CardDescription className="text-center text-sm sm:text-base">
-                                    Enviamos um código de 6 dígitos para
+                                    Enviamos um link de verificacao para
                                 </CardDescription>
                                 <div className="flex items-center justify-center gap-2">
                                     <p className="font-medium text-sm sm:text-base">{formData.email}</p>
@@ -123,75 +126,91 @@ export const OnboardingStepThree = ({
                         )}
                     </CardHeader>
 
-                    <CardContent className="space-y-6">
+                    <CardContent className="space-y-4">
                         {!formData.emailVerified ? (
                             <>
-                                {/* Info Alert */}
-                                <div className="rounded-lg bg-blue-50 p-4 text-sm text-blue-900">
-                                    <p>Verifique sua caixa de entrada e pasta de spam.</p>
+                                {/* Instructions */}
+                                <div className="rounded-lg bg-blue-50 p-4 space-y-2">
+                                    <p className="text-sm text-blue-900 font-medium">
+                                        Clique no link no email para ativar sua conta
+                                    </p>
+                                    <p className="text-xs text-blue-700">
+                                        Verifique tambem sua pasta de spam ou lixo eletronico
+                                    </p>
                                 </div>
 
-                                {/* PIN Input */}
-                                <div className="space-y-4">
-                                    <PinInput
-                                        value={pinValue}
-                                        onChange={setPinValue}
-                                        onComplete={handlePinComplete}
-                                        disabled={isVerifying}
-                                    />
-
-                                    {/* Error Message */}
-                                    {verificationError && (
-                                        <div className="flex items-center gap-2 rounded-lg bg-red-50 p-3 text-sm text-red-900">
-                                            <AlertCircle className="h-4 w-4 flex-shrink-0" />
-                                            <p>{verificationError}</p>
-                                        </div>
+                                {/* Check verification button */}
+                                <Button
+                                    onClick={handleCheckVerification}
+                                    disabled={isChecking}
+                                    className="w-full bg-primary hover:bg-primary/90"
+                                >
+                                    {isChecking ? (
+                                        <>
+                                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                            Verificando...
+                                        </>
+                                    ) : (
+                                        'Ja verifiquei, continuar'
                                     )}
+                                </Button>
 
-                                    {/* Resend Timer */}
-                                    <div className="flex justify-center">
-                                        <ResendTimer onResend={handleResend} />
-                                    </div>
+                                {/* Resend link */}
+                                <div className="flex justify-center">
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={handleResend}
+                                        disabled={isResending || resendCooldown > 0}
+                                        className="text-sm text-muted-foreground"
+                                    >
+                                        {isResending ? (
+                                            <>
+                                                <Loader2 className="mr-2 h-3 w-3 animate-spin" />
+                                                Reenviando...
+                                            </>
+                                        ) : resendCooldown > 0 ? (
+                                            `Reenviar link (${resendCooldown}s)`
+                                        ) : (
+                                            <>
+                                                <RefreshCw className="mr-2 h-3 w-3" />
+                                                Reenviar link
+                                            </>
+                                        )}
+                                    </Button>
                                 </div>
 
-                                {/* Fallback Options */}
-                                {formData.phone && onSendSMS && (
-                                    <FallbackOptions
-                                        email={formData.email || ''}
-                                        phone={formData.phone}
-                                        onSendSMS={handleSendSMS}
-                                    />
-                                )}
+                                {/* Back button */}
+                                <Button
+                                    variant="outline"
+                                    onClick={onPrev}
+                                    className="w-full"
+                                >
+                                    Voltar
+                                </Button>
                             </>
                         ) : (
                             <>
-                                {/* Success Message */}
                                 <div className="rounded-lg bg-green-50 p-4 text-center text-sm text-green-900">
                                     <p>Seu email foi confirmado com sucesso!</p>
                                 </div>
 
-                                {/* Finalize Button */}
                                 <Button
                                     onClick={onFinalize}
                                     disabled={isSubmitting}
                                     className="w-full bg-primary text-lg font-medium py-6 hover:bg-primary/90"
                                     size="lg"
                                 >
-                                    {isSubmitting ? 'Finalizando...' : 'Começar a Usar FieldMachine'}
+                                    {isSubmitting ? (
+                                        <>
+                                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                            Finalizando...
+                                        </>
+                                    ) : (
+                                        'Comecar a Usar FieldMachine'
+                                    )}
                                 </Button>
                             </>
-                        )}
-
-                        {/* Back Button */}
-                        {!formData.emailVerified && (
-                            <Button
-                                variant="outline"
-                                onClick={onPrev}
-                                className="w-full"
-                                disabled={isVerifying}
-                            >
-                                Voltar
-                            </Button>
                         )}
                     </CardContent>
                 </Card>
