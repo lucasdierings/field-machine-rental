@@ -115,11 +115,33 @@ npm run lint         # ESLint + Next.js lint
 2. **www vs non-www**: Falta redirect 301 na Cloudflare (www → non-www)
 3. **Programmatic SEO**: Oportunidade de criar páginas estáticas por categoria de máquina para captura orgânica
 4. **app/.gitignore**: Contém `package-lock.json` — avaliar se deve ser removido para consistência do CI
+5. **app/ lint**: ~243 erros pré-existentes de `no-explicit-any` e `no-unused-vars` (CI usa `continue-on-error: true` para lint, não bloqueia deploy)
+
+## Armadilhas Comuns (evitar regressões)
+
+### app/ — ESLint flat config
+- O `app/eslint.config.js` usa **flat config** com `typescript-eslint` (não `@typescript-eslint/eslint-plugin`)
+- Regras como `explicit-function-return-types` **não existem** neste setup — só existem no plugin clássico
+- Antes de adicionar regras TS, verificar se existem em `tseslint.configs.recommended`
+
+### site/ — Static export (`output: 'export'`)
+- O site usa `output: 'export'` no `next.config.ts` → gera HTML estático, sem servidor Node
+- **Route handlers** (como `app/og/route.tsx`) devem usar `export const dynamic = 'force-static'` — NUNCA `runtime = 'nodejs'`
+- **Arquivos com JSX** devem ter extensão `.tsx`, não `.ts`
+- **OG images** (Satori/`next/og`):
+  - Todo `<div>` com mais de um filho precisa de `display: 'flex'` explícito
+  - Evitar caracteres especiais (✓, →, etc.) que dependem de fontes externas — usar ASCII (`-`, `*`)
+  - `<br />` não funciona bem; usar flex column com divs separados
+
+### site/ — Next.js Link
+- Usar `<Link>` de `next/link` para navegação interna, nunca `<a href="/">`
+- `<a>` é aceitável apenas para links externos ou âncoras (`#section`)
 
 ## Para Agentes de IA
 
 - Sempre rode `npm install` dentro do subprojeto correto (app/ ou site/), nunca na raiz
-- Teste builds localmente antes de commitar: `npm run build` em app/ e site/
+- **OBRIGATÓRIO**: Teste builds localmente antes de commitar: `npm run build` em app/ e site/
+- **OBRIGATÓRIO**: Rode `npx tsc --noEmit` em ambos subprojetos (CI roda type-check separado)
 - Ao criar workflows GitHub Actions, lembre do `cache-dependency-path` (monorepo sem root lock file)
 - Branches de trabalho devem seguir o padrão `claude/nome-da-task` para gerar preview automaticamente
 - Consulte este arquivo antes de fazer alterações estruturais

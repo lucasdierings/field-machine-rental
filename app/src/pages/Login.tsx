@@ -212,7 +212,6 @@ export default function Login() {
                   Clique no ícone para mostrar/ocultar a senha
                 </p>
                 </div>
-              </div>
 
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">

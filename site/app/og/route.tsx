@@ -1,6 +1,6 @@
 import { ImageResponse } from 'next/og';
 
-export const runtime = 'nodejs';
+export const dynamic = 'force-static';
 
 export async function GET() {
   return new ImageResponse(
@@ -60,6 +60,7 @@ export async function GET() {
           {/* Logo */}
           <div
             style={{
+              display: 'flex',
               fontSize: 80,
               fontWeight: 900,
               letterSpacing: '-2px',
@@ -71,15 +72,17 @@ export async function GET() {
           {/* Subtitle */}
           <div
             style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
               fontSize: 40,
               fontWeight: 600,
               color: '#d1d5db',
               lineHeight: 1.4,
             }}
           >
-            Plataforma de Serviços
-            <br />
-            para o Agronegócio
+            <div>Plataforma de Serviços</div>
+            <div>para o Agronegócio</div>
           </div>
 
           {/* Description */}
@@ -107,9 +110,9 @@ export async function GET() {
               fontWeight: 600,
             }}
           >
-            <div>✓ Sem taxas</div>
-            <div>✓ Pagamento direto</div>
-            <div>✓ Avaliações reais</div>
+            <div>- Sem taxas</div>
+            <div>- Pagamento direto</div>
+            <div>- Avaliações reais</div>
           </div>
         </div>
       </div>
