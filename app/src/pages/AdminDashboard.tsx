@@ -77,6 +77,12 @@ const AdminDashboard = () => {
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
       const thirtyDaysAgoISO = thirtyDaysAgo.toISOString();
 
+      // New users in last 30 days
+      const { count: newUsersCount } = await supabase
+        .from('user_profiles')
+        .select('*', { count: 'exact', head: true })
+        .gte('created_at', thirtyDaysAgoISO);
+
       const { data: activeUserData } = await supabase
         .from('bookings')
         .select('renter_id, owner_id, created_at')
@@ -212,7 +218,7 @@ const AdminDashboard = () => {
       setStats({
         total_users: totalUsers || 0,
         active_users_30d: activeUserSet.size,
-        new_users_30d: 0,
+        new_users_30d: newUsersCount || 0,
         total_machines: totalMachines || 0,
         available_machines: availableMachines || 0,
         total_bookings: totalBookings,
@@ -227,6 +233,11 @@ const AdminDashboard = () => {
       if (import.meta.env.DEV) {
         console.error('Failed to load stats:', error);
       }
+      toast({
+        title: "Erro ao carregar estatísticas",
+        description: "Algumas métricas podem não estar disponíveis. Recarregue a página.",
+        variant: "destructive",
+      });
     }
   };
 

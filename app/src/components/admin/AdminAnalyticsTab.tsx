@@ -4,9 +4,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Activity, Eye, Mouse, Users, Clock, Search, FileText, LogIn, UserPlus } from 'lucide-react';
+import { Activity, Eye, Users, Clock, Search, FileText, LogIn, UserPlus } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { useToast } from '@/hooks/use-toast';
 
 // Helper functions
 const getEventIcon = (eventType: string) => {
@@ -76,6 +77,7 @@ const AdminAnalyticsTab = () => {
   const [eventSummary, setEventSummary] = useState<EventSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [timeRange, setTimeRange] = useState('7d');
+  const { toast } = useToast();
 
   const [metrics, setMetrics] = useState({
     uniqueVisitors: 0,
@@ -160,6 +162,11 @@ const AdminAnalyticsTab = () => {
       if (import.meta.env.DEV) {
         console.error('Failed to load analytics:', error);
       }
+      toast({
+        title: "Erro ao carregar analytics",
+        description: "Não foi possível buscar os eventos de análise.",
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
     }

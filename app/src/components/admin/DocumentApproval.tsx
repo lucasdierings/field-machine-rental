@@ -95,8 +95,10 @@ export const DocumentApproval = () => {
             );
 
             setDocuments(docsWithUrl);
-        } catch (error: any) {
-            console.error("Erro ao carregar documentos:", error);
+        } catch (error: unknown) {
+            if (import.meta.env.DEV) {
+                console.error("Erro ao carregar documentos:", error);
+            }
             toast({
                 title: "Erro ao carregar",
                 description: "Não foi possível buscar os documentos pendentes.",
