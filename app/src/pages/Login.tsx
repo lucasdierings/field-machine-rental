@@ -11,6 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Header } from "@/components/ui/header";
 import { Footer } from "@/components/ui/footer";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
+import { translateSupabaseAuthError } from "@/lib/supabaseErrors";
 
 export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
@@ -45,13 +46,8 @@ export default function Login() {
       });
 
       if (error) {
-        if (error.message.includes('Invalid login credentials')) {
-          toast({
-            title: "Credenciais inválidas",
-            description: "Email ou senha incorretos",
-            variant: "destructive",
-          });
-        } else if (error.message.includes('Email not confirmed')) {
+        // Email não confirmado mantém ação especial de "Verificar Agora"
+        if (/email not confirmed|email_not_confirmed/i.test(error.message)) {
           toast({
             title: "Email não verificado",
             description: "Você precisa confirmar seu email antes de entrar.",
@@ -66,11 +62,10 @@ export default function Login() {
               </Button>
             )
           });
-          // Optional: Auto redirect after toast or just let user click
         } else {
           toast({
             title: "Erro no login",
-            description: error.message,
+            description: translateSupabaseAuthError(error),
             variant: "destructive",
           });
         }
