@@ -67,17 +67,19 @@ export function useMachine(id: string | undefined) {
 
       let ownerData = null;
       if (machineData.owner_id) {
+        // Public view: nome + flag de verificado, sem dados sensíveis
         const { data: profile } = await supabase
-          .from('user_profiles')
-          .select('full_name, verified')
+          .from('user_profiles_public' as any)
+          .select('full_name, profile_image, verified')
           .eq('auth_user_id', machineData.owner_id)
           .maybeSingle();
 
-        if (profile) {
+        const typedProfile = profile as { full_name: string | null; profile_image: string | null; verified: boolean | null } | null;
+        if (typedProfile) {
           ownerData = {
-            full_name: profile.full_name,
-            avatar_url: '',
-            isVerified: profile.verified === true,
+            full_name: typedProfile.full_name,
+            avatar_url: typedProfile.profile_image || '',
+            isVerified: typedProfile.verified === true,
           };
         }
       }
