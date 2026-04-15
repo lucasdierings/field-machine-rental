@@ -13,6 +13,7 @@ import { Loader2, ShieldCheck, ShieldAlert } from "lucide-react";
 import { getDocumentVerificationStatus } from "@/lib/userVerification";
 import { MachineFormFields } from "@/components/machines/MachineFormFields";
 import { MachineImageUploader, type MachineImageState } from "@/components/machines/MachineImageUploader";
+import { validateMachineForm } from "@/lib/schemas/machineSchema";
 
 export default function AddMachine() {
   const navigate = useNavigate();
@@ -127,31 +128,13 @@ export default function AddMachine() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Validação de campos obrigatórios
-    if (!formData.name || !formData.category || !formData.brand) {
+    // Validação centralizada via Zod — vê src/lib/schemas/machineSchema.ts
+    const validationError = validateMachineForm(formData);
+    if (validationError) {
       toast({
-        title: "Campos obrigatórios",
-        description: "Preencha todos os campos marcados com *",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    if (!formData.location.city || !formData.location.state) {
-      toast({
-        title: "Localização obrigatória",
-        description: "Informe a cidade e estado da máquina",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    // Validação de pelo menos um preço
-    if (!formData.price_hour && !formData.price_day && !formData.price_hectare) {
-      toast({
-        title: "Preço obrigatório",
-        description: "Informe pelo menos um tipo de preço (hora, dia ou hectare)",
-        variant: "destructive"
+        title: validationError.title,
+        description: validationError.description,
+        variant: "destructive",
       });
       return;
     }
@@ -176,7 +159,7 @@ export default function AddMachine() {
         .eq("auth_user_id", userId)
         .single();
 
-      if (profileError) {
+      if (profileError && import.meta.env.DEV) {
         console.error("[AddMachine] Erro ao buscar perfil:", profileError);
       }
 
@@ -210,12 +193,12 @@ export default function AddMachine() {
 
       // Confirmar que temos uma sessão válida
       const { data: sessionData } = await supabase.auth.getSession();
-      console.log("[AddMachine] Session check:", {
-        hasSession: !!sessionData.session,
-        sessionUserId: sessionData.session?.user?.id,
-        contextUserId: userId,
-        match: sessionData.session?.user?.id === userId,
-      });
+      if (import.meta.env.DEV) {
+        console.log("[AddMachine] Session check:", {
+          hasSession: !!sessionData.session,
+          match: sessionData.session?.user?.id === userId,
+        });
+      }
 
       if (!sessionData.session) {
         toast({
@@ -245,7 +228,9 @@ export default function AddMachine() {
         service_cities: formData.service_cities
       };
 
-      console.log("[AddMachine] Inserindo machineData:", machineData);
+      if (import.meta.env.DEV) {
+        console.log("[AddMachine] Inserindo machineData:", machineData);
+      }
 
       let machineId: string | undefined;
 
@@ -295,7 +280,9 @@ export default function AddMachine() {
             .upload(fileName, img.file);
 
           if (uploadError) {
-            console.error('Error uploading:', uploadError);
+            if (import.meta.env.DEV) {
+              console.error('Error uploading:', uploadError);
+            }
             continue;
           }
 
@@ -335,13 +322,15 @@ export default function AddMachine() {
 
       navigate("/minhas-maquinas");
     } catch (error: any) {
-      console.error("[AddMachine] Erro ao salvar:", {
-        message: error.message,
-        code: error.code,
-        details: error.details,
-        hint: error.hint,
-        status: error.status,
-      });
+      if (import.meta.env.DEV) {
+        console.error("[AddMachine] Erro ao salvar:", {
+          message: error.message,
+          code: error.code,
+          details: error.details,
+          hint: error.hint,
+          status: error.status,
+        });
+      }
 
       let errorMessage = error.message || "Erro ao cadastrar máquina. Tente novamente.";
       if (error.code === "23505") {

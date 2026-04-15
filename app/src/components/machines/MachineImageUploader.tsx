@@ -1,7 +1,18 @@
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Upload, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { validateFileSize, validateImageType } from "@/lib/validation";
 
 export interface MachineImageState {
     id?: string;
@@ -19,6 +30,7 @@ interface MachineImageUploaderProps {
 export function MachineImageUploader({ images, onAdd, onRemove }: MachineImageUploaderProps) {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const { toast } = useToast();
+    const [pendingRemoveIndex, setPendingRemoveIndex] = useState<number | null>(null);
 
     const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
         const files = Array.from(e.target.files || []);
@@ -33,13 +45,13 @@ export function MachineImageUploader({ images, onAdd, onRemove }: MachineImageUp
         }
 
         const validFiles = files.filter(file => {
-            const isImage = file.type.startsWith('image/');
-            const isValidSize = file.size <= 5 * 1024 * 1024; // 5MB
+            const isImage = validateImageType(file);
+            const isValidSize = validateFileSize(file, 5); // 5MB
 
             if (!isImage) {
                 toast({
                     title: "Arquivo inválido",
-                    description: `${file.name} não é uma imagem`,
+                    description: `${file.name} não é uma imagem (JPEG, PNG ou WebP)`,
                     variant: "destructive"
                 });
             }
@@ -67,6 +79,13 @@ export function MachineImageUploader({ images, onAdd, onRemove }: MachineImageUp
         if (fileInputRef.current) fileInputRef.current.value = '';
     };
 
+    const confirmRemove = () => {
+        if (pendingRemoveIndex !== null) {
+            onRemove(pendingRemoveIndex);
+            setPendingRemoveIndex(null);
+        }
+    };
+
     return (
         <div>
             <h3 className="text-lg font-medium mb-4">Fotos da Máquina</h3>
@@ -75,7 +94,7 @@ export function MachineImageUploader({ images, onAdd, onRemove }: MachineImageUp
                     <input
                         ref={fileInputRef}
                         type="file"
-                        accept="image/*"
+                        accept="image/jpeg,image/png,image/webp"
                         multiple
                         onChange={handleImageSelect}
                         className="hidden"
@@ -92,7 +111,7 @@ export function MachineImageUploader({ images, onAdd, onRemove }: MachineImageUp
                         Selecionar Fotos ({images.length}/3)
                     </Button>
                     <p className="text-xs text-muted-foreground mt-2 text-center">
-                        Envie até 3 fotos da máquina (máx. 5MB cada)
+                        Envie até 3 fotos da máquina (JPEG/PNG/WebP, máx. 5MB cada)
                     </p>
                 </div>
 
@@ -109,8 +128,9 @@ export function MachineImageUploader({ images, onAdd, onRemove }: MachineImageUp
                                     type="button"
                                     size="sm"
                                     variant="destructive"
-                                    className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
-                                    onClick={() => onRemove(index)}
+                                    aria-label={`Remover foto ${index + 1}`}
+                                    className="absolute top-2 right-2 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity"
+                                    onClick={() => setPendingRemoveIndex(index)}
                                 >
                                     <X className="h-4 w-4" />
                                 </Button>
@@ -124,6 +144,27 @@ export function MachineImageUploader({ images, onAdd, onRemove }: MachineImageUp
                     </div>
                 )}
             </div>
+
+            <AlertDialog
+                open={pendingRemoveIndex !== null}
+                onOpenChange={(open) => !open && setPendingRemoveIndex(null)}
+            >
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Remover foto?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            Esta foto será removida do anúncio. Para fotos já salvas, a
+                            remoção só é efetivada ao clicar em &ldquo;Salvar&rdquo;.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                        <AlertDialogAction onClick={confirmRemove}>
+                            Remover
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
     );
 }

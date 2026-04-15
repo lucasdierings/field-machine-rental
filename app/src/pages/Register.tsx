@@ -25,6 +25,7 @@ const Register = () => {
     nextStep,
     prevStep,
     goToStep,
+    resetForm,
   } = useRegisterForm();
 
   const stepTitles = [
@@ -189,6 +190,9 @@ const Register = () => {
         title: "Cadastro concluído!",
         description: "Bem-vindo ao FieldMachine.",
       });
+
+      // Limpa rascunho persistido no localStorage após sucesso
+      resetForm();
 
       // Redirect to main dashboard (as everyone can do everything)
       navigate("/dashboard");
