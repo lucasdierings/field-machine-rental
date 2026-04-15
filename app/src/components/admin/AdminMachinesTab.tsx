@@ -55,12 +55,13 @@ const AdminMachinesTab = () => {
         try {
             setLoading(true);
 
+            // Não dá para fazer join Supabase entre `machines` e `user_profiles`
+            // porque o FK de machines.owner_id aponta para auth.users (não para
+            // user_profiles diretamente). Buscamos as duas tabelas separadamente
+            // e fazemos o merge em memória.
             let query = supabase
                 .from('machines')
-                .select(`
-          *,
-          owner:users(full_name, email)
-        `, { count: 'exact' });
+                .select('*', { count: 'exact' });
 
             // Apply filters
             if (searchTerm) {
@@ -76,23 +77,48 @@ const AdminMachinesTab = () => {
             const to = from + itemsPerPage - 1;
 
             query = query
-                .range(from, to)
-                .order('created_at', { ascending: false });
+                .order('created_at', { ascending: false })
+                .range(from, to);
 
-            const { data, error, count } = await query;
+            const { data: machinesData, error, count } = await query;
 
             if (error) throw error;
 
-            // Transform data to match interface (handling potential join issues)
-            const formattedMachines = data?.map((machine: any) => ({
+            // Busca perfis dos proprietários em uma única query
+            const ownerIds = Array.from(
+                new Set(
+                    (machinesData ?? [])
+                        .map((m: any) => m.owner_id)
+                        .filter((id: string | null): id is string => !!id)
+                )
+            );
+
+            const ownerById: Record<string, { full_name: string; email: string }> = {};
+            if (ownerIds.length > 0) {
+                const { data: profiles } = await supabase
+                    .from('user_profiles')
+                    .select('auth_user_id, full_name, email')
+                    .in('auth_user_id', ownerIds);
+
+                (profiles ?? []).forEach((p: any) => {
+                    ownerById[p.auth_user_id] = {
+                        full_name: p.full_name ?? 'Sem nome',
+                        email: p.email ?? '',
+                    };
+                });
+            }
+
+            const formattedMachines: Machine[] = (machinesData ?? []).map((machine: any) => ({
                 ...machine,
-                owner: machine.owner // Supabase returns joined data here
-            })) || [];
+                owner: machine.owner_id ? ownerById[machine.owner_id] : undefined,
+            }));
 
             setMachines(formattedMachines);
             setTotalMachines(count || 0);
         } catch (error) {
-            console.error('Failed to load machines:', error);
+            if (import.meta.env.DEV) {
+                console.error('Failed to load machines:', error);
+            }
             toast({
                 title: "Erro",
                 description: "Falha ao carregar máquinas.",

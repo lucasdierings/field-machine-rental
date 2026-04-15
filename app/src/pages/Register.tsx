@@ -11,6 +11,7 @@ import { StepIndicator } from "@/components/register/StepIndicator";
 import { Header } from "@/components/ui/header";
 import { Footer } from "@/components/ui/footer";
 import { useToast } from "@/hooks/use-toast";
+import { translateSupabaseAuthError } from "@/lib/supabaseErrors";
 
 const Register = () => {
   const navigate = useNavigate();
@@ -25,6 +26,7 @@ const Register = () => {
     nextStep,
     prevStep,
     goToStep,
+    resetForm,
   } = useRegisterForm();
 
   const stepTitles = [
@@ -61,11 +63,13 @@ const Register = () => {
 
       return { success: true };
 
-    } catch (error: any) {
-      console.error("Erro ao criar conta (FULL):", error);
+    } catch (error: unknown) {
+      if (import.meta.env.DEV) {
+        console.error("Erro ao criar conta:", error);
+      }
       toast({
         title: "Erro ao criar conta",
-        description: `${error.message} (Code: ${error.code || 'N/A'})`,
+        description: translateSupabaseAuthError(error),
         variant: "destructive",
       });
       throw error;
@@ -90,10 +94,10 @@ const Register = () => {
           description: "Email confirmado com sucesso!",
         });
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         title: "Código inválido",
-        description: "Verifique o código e tente novamente.",
+        description: translateSupabaseAuthError(error),
         variant: "destructive",
       });
       throw error;
@@ -115,11 +119,13 @@ const Register = () => {
         description: "Verifique sua caixa de entrada.",
       });
 
-    } catch (error: any) {
-      console.error("Erro ao reenviar email:", error);
+    } catch (error: unknown) {
+      if (import.meta.env.DEV) {
+        console.error("Erro ao reenviar email:", error);
+      }
       toast({
         title: "Erro ao reenviar email",
-        description: error.message,
+        description: translateSupabaseAuthError(error),
         variant: "destructive",
       });
       throw error;
@@ -190,14 +196,19 @@ const Register = () => {
         description: "Bem-vindo ao FieldMachine.",
       });
 
+      // Limpa rascunho persistido no localStorage após sucesso
+      resetForm();
+
       // Redirect to main dashboard (as everyone can do everything)
       navigate("/dashboard");
 
-    } catch (error: any) {
-      console.error("Erro na finalização:", error);
+    } catch (error: unknown) {
+      if (import.meta.env.DEV) {
+        console.error("Erro na finalização:", error);
+      }
       toast({
         title: "Erro ao finalizar",
-        description: error.message,
+        description: translateSupabaseAuthError(error),
         variant: "destructive",
       });
     } finally {

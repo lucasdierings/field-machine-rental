@@ -116,7 +116,7 @@ export default function Dashboard() {
   }, [userMachines, bookings, userId]);
 
   return (
-    <div className="min-h-screen bg-background pb-16 md:pb-0">
+    <div className="min-h-screen bg-background pb-20 md:pb-0">
       <Header />
 
       <main className="pt-16 pb-24">

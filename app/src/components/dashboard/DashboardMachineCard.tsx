@@ -30,7 +30,8 @@ export const DashboardMachineCard = memo(({ machine, revenue, reservations }: Da
                         {(machine.machine_images && machine.machine_images[0]?.image_url) ? (
                             <img
                                 src={machine.machine_images[0].image_url}
-                                alt={machine.name}
+                                alt={machine.name || `${machine.brand ?? ""} ${machine.model ?? ""}`.trim() || "Máquina"}
+                                loading="lazy"
                                 className="w-full h-full object-cover"
                             />
                         ) : (

@@ -48,7 +48,7 @@ export function MachineImageGallery({ images, machineName, selectedImage, onSele
                             onClick={() => onSelectImage(idx)}
                             className={`shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 ${selectedImage === idx ? 'border-primary' : 'border-transparent'}`}
                         >
-                            <img src={img} alt="" className="w-full h-full object-cover" />
+                            <img src={img} alt={`${machineName} - miniatura ${idx + 1}`} className="w-full h-full object-cover" />
                         </button>
                     ))}
                 </div>

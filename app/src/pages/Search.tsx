@@ -164,7 +164,7 @@ const Search = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                   <Input
                     placeholder="Localização"
                     value={location}
@@ -265,13 +265,6 @@ const Search = () => {
                   isExpanded={showAdvancedFilters}
                   onToggle={() => setShowAdvancedFilters(!showAdvancedFilters)}
                 />
-
-                <div className="flex justify-end pt-4 border-t">
-                  <Button onClick={handleSearch} size="lg" className="bg-gradient-primary w-full md:w-auto">
-                    <SearchIcon className="h-4 w-4 mr-2" />
-                    Buscar Equipamentos
-                  </Button>
-                </div>
               </CardContent>
             </Card>
           </div>

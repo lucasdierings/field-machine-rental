@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Heart, Bell } from "lucide-react";
+import { Bell } from "lucide-react";
 import { Link } from "react-router-dom";
 import { AuthButton } from "../auth/AuthButton";
 import { MobileMenu } from "./mobile-menu";
@@ -37,13 +37,6 @@ export const Header = () => {
 
           {/* User Actions */}
           <div className="flex items-center space-x-2 md:space-x-3">
-            <Button variant="ghost" size="sm" className="hidden md:flex" asChild>
-              <Link to="/favoritos">
-                <Heart className="h-4 w-4 mr-2" />
-                Favoritos
-              </Link>
-            </Button>
-
             <Button variant="ghost" size="sm" className="hidden md:flex" asChild>
               <Link to="/alertas">
                 <Bell className="h-4 w-4 mr-2" />

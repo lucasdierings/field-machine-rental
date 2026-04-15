@@ -1,4 +1,4 @@
-import { lazy, Suspense } from "react";
+import { Suspense } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -11,49 +11,51 @@ import { RoleProtectedRoute } from "./components/auth/RoleProtectedRoute";
 import { BottomNavigation } from "./components/ui/bottom-navigation";
 import { PageLoader } from "./components/ui/page-loader";
 import { ErrorBoundary } from "./components/ui/error-boundary";
+import { lazyWithRetry } from "@/lib/lazyWithRetry";
 
 // ─── Lazy-loaded pages ───────────────────────────────────────────────────────
 // Each page is loaded on-demand, reducing the initial bundle size significantly.
+// `lazyWithRetry` força reload do index.html quando um chunk velho não existe
+// mais (cenário típico após deploy enquanto o usuário está com a aba aberta).
 
 // Public pages
-const Index = lazy(() => import("./pages/Index"));
-const Search = lazy(() => import("./pages/Search"));
-const Machines = lazy(() => import("./pages/Machines"));
-const Categories = lazy(() => import("./pages/Categories"));
-const HowItWorks = lazy(() => import("./pages/HowItWorks"));
-const MachineDetails = lazy(() => import("./pages/MachineDetails"));
-const About = lazy(() => import("./pages/About"));
-const Contact = lazy(() => import("./pages/Contact"));
-const Terms = lazy(() => import("./pages/Terms"));
-const Privacy = lazy(() => import("./pages/Privacy"));
-const NotFound = lazy(() => import("./pages/NotFound"));
+const Index = lazyWithRetry(() => import("./pages/Index"));
+const Search = lazyWithRetry(() => import("./pages/Search"));
+const Machines = lazyWithRetry(() => import("./pages/Machines"));
+const Categories = lazyWithRetry(() => import("./pages/Categories"));
+const HowItWorks = lazyWithRetry(() => import("./pages/HowItWorks"));
+const MachineDetails = lazyWithRetry(() => import("./pages/MachineDetails"));
+const About = lazyWithRetry(() => import("./pages/About"));
+const Contact = lazyWithRetry(() => import("./pages/Contact"));
+const Terms = lazyWithRetry(() => import("./pages/Terms"));
+const Privacy = lazyWithRetry(() => import("./pages/Privacy"));
+const NotFound = lazyWithRetry(() => import("./pages/NotFound"));
 
 // Auth pages
-const Login = lazy(() => import("./pages/Login"));
-const Register = lazy(() => import("./pages/Register"));
-const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
-const VerifyEmail = lazy(() => import("./pages/VerifyEmail"));
-const Onboarding = lazy(() => import("./pages/Onboarding").then(m => ({ default: m.Onboarding })));
+const Login = lazyWithRetry(() => import("./pages/Login"));
+const Register = lazyWithRetry(() => import("./pages/Register"));
+const ForgotPassword = lazyWithRetry(() => import("./pages/ForgotPassword"));
+const ResetPassword = lazyWithRetry(() => import("./pages/ResetPassword"));
+const VerifyEmail = lazyWithRetry(() => import("./pages/VerifyEmail"));
+const Onboarding = lazyWithRetry(() => import("./pages/Onboarding").then(m => ({ default: m.Onboarding })));
 
 // Protected pages
-const RentMyMachine = lazy(() => import("./pages/RentMyMachine"));
-const Favorites = lazy(() => import("./pages/Favorites"));
-const Alerts = lazy(() => import("./pages/Alerts"));
-const Dashboard = lazy(() => import("./pages/Dashboard"));
-const Bookings = lazy(() => import("./pages/Bookings"));
-const AddMachine = lazy(() => import("./pages/AddMachine"));
-const OnboardingDashboard = lazy(() => import("./pages/OnboardingDashboard"));
-const Profile = lazy(() => import("./pages/Profile"));
-const MyMachines = lazy(() => import("./pages/MyMachines"));
-const Documents = lazy(() => import("./pages/Documents"));
-const ReviewBooking = lazy(() => import("./pages/ReviewBooking"));
-const Chat = lazy(() => import("./pages/Chat"));
+const RentMyMachine = lazyWithRetry(() => import("./pages/RentMyMachine"));
+const Alerts = lazyWithRetry(() => import("./pages/Alerts"));
+const Dashboard = lazyWithRetry(() => import("./pages/Dashboard"));
+const Bookings = lazyWithRetry(() => import("./pages/Bookings"));
+const AddMachine = lazyWithRetry(() => import("./pages/AddMachine"));
+const Profile = lazyWithRetry(() => import("./pages/Profile"));
+const MyMachines = lazyWithRetry(() => import("./pages/MyMachines"));
+const Documents = lazyWithRetry(() => import("./pages/Documents"));
+const ReviewBooking = lazyWithRetry(() => import("./pages/ReviewBooking"));
+const Chat = lazyWithRetry(() => import("./pages/Chat"));
 
 // Admin pages
-const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
+const AdminDashboard = lazyWithRetry(() => import("./pages/AdminDashboard"));
 
 // Dev/test pages
-const SupabaseConnectionTest = lazy(() => import("./components/SupabaseConnectionTest"));
+const SupabaseConnectionTest = lazyWithRetry(() => import("./components/SupabaseConnectionTest"));
 
 // ─── Query Client ────────────────────────────────────────────────────────────
 
@@ -115,6 +117,7 @@ const App = () => (
                 <Route path="/entrar" element={<Login />} />
                 <Route path="/cadastro" element={<Register />} />
                 <Route path="/recuperar-senha" element={<ForgotPassword />} />
+                <Route path="/reset-password" element={<ResetPassword />} />
                 <Route path="/verificar-email" element={<VerifyEmail />} />
                 <Route path="/onboarding" element={<Onboarding />} />
                 <Route path="/como-funciona" element={<HowItWorks />} />
@@ -130,9 +133,6 @@ const App = () => (
                 <Route path="/oferecer-servicos" element={
                   <ProtectedRoute><RentMyMachine /></ProtectedRoute>
                 } />
-                <Route path="/favoritos" element={
-                  <ProtectedRoute><Favorites /></ProtectedRoute>
-                } />
                 <Route path="/alertas" element={
                   <ProtectedRoute><Alerts /></ProtectedRoute>
                 } />
@@ -147,9 +147,6 @@ const App = () => (
                 } />
                 <Route path="/edit-machine/:id" element={
                   <ProtectedRoute><AddMachine /></ProtectedRoute>
-                } />
-                <Route path="/dashboard/onboarding" element={
-                  <ProtectedRoute><OnboardingDashboard /></ProtectedRoute>
                 } />
                 <Route path="/dashboard/perfil" element={
                   <ProtectedRoute><Profile /></ProtectedRoute>

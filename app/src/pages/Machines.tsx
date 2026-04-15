@@ -71,11 +71,16 @@ const Machines = () => {
   const { data: machineQueryResult, isLoading: loading } = useQuery({
     queryKey: ['machines-list'],
     queryFn: async () => {
+      // TODO: substituir por cursor-based pagination (useInfiniteQuery) quando
+      // os filtros/ordenação forem movidos para o servidor. Por ora mantemos
+      // um teto generoso e ordenamos pelos mais recentes para que novas
+      // máquinas apareçam primeiro.
       const { data, error } = await supabase
         .from('machines')
         .select('*')
         .eq('status', 'available')
-        .limit(50);
+        .order('created_at', { ascending: false })
+        .limit(200);
 
       if (error) throw error;
 
