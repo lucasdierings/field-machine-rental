@@ -6,18 +6,30 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Search, Filter, Download, Eye, CheckCircle, XCircle, Edit } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog';
+import { Search, Filter, Download, Eye, CheckCircle, XCircle, Phone, Mail, IdCard, MapPin, Calendar } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface User {
   id: string;
+  auth_user_id: string;
   full_name: string;
   email: string | null; // Now available in user_profiles
   cpf_cnpj: string | null;
+  phone: string | null;
+  address: { city?: string; state?: string; address?: string; cep?: string } | string | null;
   user_types: string[] | null;
   verified: boolean | null;
   created_at: string;
   total_transactions?: number | null;
+  total_rentals?: number | null;
+  total_services?: number | null;
 }
 
 const AdminUsersTab = () => {
@@ -28,6 +40,7 @@ const AdminUsersTab = () => {
   const [filterVerified, setFilterVerified] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [totalUsers, setTotalUsers] = useState(0);
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const { toast } = useToast();
 
   const usersPerPage = 10;
@@ -307,12 +320,18 @@ const AdminUsersTab = () => {
                     <TableCell>{formatDate(user.created_at)}</TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
-                        <Button variant="ghost" size="sm">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          aria-label={`Ver detalhes de ${user.full_name}`}
+                          onClick={() => setSelectedUser(user)}
+                        >
                           <Eye className="h-4 w-4" />
                         </Button>
                         <Button
                           variant="ghost"
                           size="sm"
+                          aria-label={user.verified ? `Remover verificação de ${user.full_name}` : `Verificar ${user.full_name}`}
                           onClick={() => toggleUserVerification(user.id, user.verified)}
                         >
                           {user.verified ? (
@@ -320,9 +339,6 @@ const AdminUsersTab = () => {
                           ) : (
                             <CheckCircle className="h-4 w-4 text-green-500" />
                           )}
-                        </Button>
-                        <Button variant="ghost" size="sm">
-                          <Edit className="h-4 w-4" />
                         </Button>
                       </div>
                     </TableCell>
@@ -361,6 +377,105 @@ const AdminUsersTab = () => {
           </div>
         </div>
       </CardContent>
+
+      {/* User Details Dialog */}
+      <Dialog
+        open={selectedUser !== null}
+        onOpenChange={(open) => !open && setSelectedUser(null)}
+      >
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>{selectedUser?.full_name || "Usuário"}</DialogTitle>
+            <DialogDescription>
+              Detalhes do usuário cadastrado na plataforma.
+            </DialogDescription>
+          </DialogHeader>
+
+          {selectedUser && (
+            <div className="space-y-4 mt-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <p className="text-xs font-semibold text-muted-foreground uppercase">Tipos</p>
+                  {getUserTypeBadge(selectedUser.user_types)}
+                </div>
+                <div className="space-y-1">
+                  <p className="text-xs font-semibold text-muted-foreground uppercase">Status</p>
+                  {selectedUser.verified ? (
+                    <Badge variant="default" className="gap-1">
+                      <CheckCircle className="h-3 w-3" />
+                      Verificado
+                    </Badge>
+                  ) : (
+                    <Badge variant="secondary" className="gap-1">
+                      <XCircle className="h-3 w-3" />
+                      Não verificado
+                    </Badge>
+                  )}
+                </div>
+              </div>
+
+              <div className="space-y-3 border-t pt-4">
+                <div className="flex items-center gap-2 text-sm">
+                  <Mail className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                  <span className="break-all">{selectedUser.email || "Sem email"}</span>
+                </div>
+                {selectedUser.phone && (
+                  <div className="flex items-center gap-2 text-sm">
+                    <Phone className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                    <span>{selectedUser.phone}</span>
+                  </div>
+                )}
+                {selectedUser.cpf_cnpj && (
+                  <div className="flex items-center gap-2 text-sm">
+                    <IdCard className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                    <span>{selectedUser.cpf_cnpj}</span>
+                  </div>
+                )}
+                {(() => {
+                  const addr = typeof selectedUser.address === "string"
+                    ? (() => {
+                        try {
+                          return JSON.parse(selectedUser.address as string);
+                        } catch {
+                          return null;
+                        }
+                      })()
+                    : selectedUser.address;
+                  if (!addr || !addr.city) return null;
+                  return (
+                    <div className="flex items-center gap-2 text-sm">
+                      <MapPin className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                      <span>
+                        {[addr.address, addr.city, addr.state].filter(Boolean).join(", ")}
+                        {addr.cep ? ` — ${addr.cep}` : ""}
+                      </span>
+                    </div>
+                  );
+                })()}
+                <div className="flex items-center gap-2 text-sm">
+                  <Calendar className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                  <span>Cadastrado em {formatDate(selectedUser.created_at)}</span>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-3 gap-4 border-t pt-4">
+                <div className="text-center">
+                  <p className="text-2xl font-bold">{selectedUser.total_transactions ?? 0}</p>
+                  <p className="text-xs text-muted-foreground">Transações</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-2xl font-bold">{selectedUser.total_rentals ?? 0}</p>
+                  <p className="text-xs text-muted-foreground">Aluguéis</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-2xl font-bold">{selectedUser.total_services ?? 0}</p>
+                  <p className="text-xs text-muted-foreground">Serviços</p>
+                </div>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 };
