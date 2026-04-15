@@ -32,6 +32,7 @@ const NotFound = lazy(() => import("./pages/NotFound"));
 const Login = lazy(() => import("./pages/Login"));
 const Register = lazy(() => import("./pages/Register"));
 const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
+const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const VerifyEmail = lazy(() => import("./pages/VerifyEmail"));
 const Onboarding = lazy(() => import("./pages/Onboarding").then(m => ({ default: m.Onboarding })));
 
@@ -113,6 +114,7 @@ const App = () => (
                 <Route path="/entrar" element={<Login />} />
                 <Route path="/cadastro" element={<Register />} />
                 <Route path="/recuperar-senha" element={<ForgotPassword />} />
+                <Route path="/reset-password" element={<ResetPassword />} />
                 <Route path="/verificar-email" element={<VerifyEmail />} />
                 <Route path="/onboarding" element={<Onboarding />} />
                 <Route path="/como-funciona" element={<HowItWorks />} />

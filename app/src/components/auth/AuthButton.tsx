@@ -75,10 +75,10 @@ export const AuthButton = () => {
 
   const handleLogout = async () => {
     try {
-      // Clear any cached data
-      localStorage.clear();
-      sessionStorage.clear();
-
+      // supabase.auth.signOut() já limpa os tokens de sessão do storage
+      // usado pelo cliente. NÃO chamar localStorage.clear()/sessionStorage.clear()
+      // aqui porque isso removeria também preferências do usuário, cache de
+      // componentes e dados de outras aplicações que compartilhem o domínio.
       const { error } = await supabase.auth.signOut();
 
       if (error) {
@@ -87,14 +87,25 @@ export const AuthButton = () => {
           description: error.message,
           variant: "destructive",
         });
-      } else {
-        toast({
-          title: "Logout realizado",
-          description: "Até logo!",
-        });
-        // Force reload to clear all state
-        window.location.href = '/';
+        return;
       }
+
+      // Remove explicitamente rascunhos conhecidos (cadastro), mas sem
+      // tocar em outras chaves do storage.
+      try {
+        localStorage.removeItem("fm:register-draft");
+      } catch {
+        // noop
+      }
+
+      toast({
+        title: "Logout realizado",
+        description: "Até logo!",
+      });
+
+      // Usa navegação do React Router em vez de window.location para
+      // evitar flash de recarregamento completo.
+      navigate("/");
     } catch (error) {
       toast({
         title: "Erro ao sair",

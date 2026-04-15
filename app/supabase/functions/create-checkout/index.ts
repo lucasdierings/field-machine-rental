@@ -1,10 +1,32 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
 
-const corsHeaders = {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+// Lista de origins autorizados para chamar esta function.
+// Inclui produção, previews do Cloudflare Pages e localhost para dev.
+const ALLOWED_ORIGINS = [
+    'https://fieldmachine.com.br',
+    'https://www.fieldmachine.com.br',
+    'https://field-machine-rental.pages.dev',
+    'http://localhost:5173',
+    'http://localhost:8080',
+]
+
+const isAllowedOrigin = (origin: string | null): boolean => {
+    if (!origin) return false
+    if (ALLOWED_ORIGINS.includes(origin)) return true
+    // Permite previews do Cloudflare Pages (*.field-machine-rental.pages.dev)
+    if (/^https:\/\/[a-z0-9-]+\.field-machine-rental\.pages\.dev$/.test(origin)) {
+        return true
+    }
+    return false
 }
+
+const buildCorsHeaders = (origin: string | null): Record<string, string> => ({
+    'Access-Control-Allow-Origin': isAllowedOrigin(origin) ? origin! : ALLOWED_ORIGINS[0],
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Vary': 'Origin',
+})
 
 /**
  * Confirma uma reserva entre as partes (modelo peer-to-peer).
@@ -12,8 +34,22 @@ const corsHeaders = {
  * fora da plataforma (similar ao BlaBlaCar).
  */
 serve(async (req: Request) => {
+    const origin = req.headers.get('origin')
+    const corsHeaders = buildCorsHeaders(origin)
+
     if (req.method === 'OPTIONS') {
         return new Response('ok', { headers: corsHeaders })
+    }
+
+    // Bloqueia origins não autorizados em chamadas reais.
+    if (!isAllowedOrigin(origin)) {
+        return new Response(
+            JSON.stringify({ error: 'Origin not allowed' }),
+            {
+                headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+                status: 403,
+            }
+        )
     }
 
     try {
