@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, MapPin, Star, Calendar, Ruler, Fuel, Settings, User, CheckCircle2, Share2, Heart, Handshake, AlertCircle } from "lucide-react";
+import { Loader2, MapPin, Star, Calendar, Ruler, Fuel, Settings, User, CheckCircle2, Share2, Handshake, AlertCircle } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { SEO } from "@/components/SEO";
 import { MachineImageGallery } from "@/components/machines/MachineImageGallery";
@@ -289,13 +289,9 @@ const MachineDetails = () => {
                                 : 'Localização não informada'}
                         </div>
                         <div className="ml-auto flex gap-2">
-                            <Button variant="ghost" size="sm" className="gap-1 md:gap-2 h-8 md:h-9">
+                            <Button variant="ghost" size="sm" className="gap-1 md:gap-2 h-8 md:h-9" aria-label="Compartilhar anúncio">
                                 <Share2 className="h-4 w-4" />
                                 <span className="hidden sm:inline">Compartilhar</span>
-                            </Button>
-                            <Button variant="ghost" size="sm" className="gap-1 md:gap-2 h-8 md:h-9">
-                                <Heart className="h-4 w-4" />
-                                <span className="hidden sm:inline">Salvar</span>
                             </Button>
                         </div>
                     </div>
@@ -322,7 +318,7 @@ const MachineDetails = () => {
                                             Verificado
                                         </Badge>
                                     ) : (
-                                        <Badge variant="outline" className="gap-1 text-xs border-amber-300 text-amber-700 bg-amber-50">
+                                        <Badge variant="outline" className="gap-1 text-xs border-amber-400 text-amber-900 bg-amber-100">
                                             <AlertCircle className="h-3 w-3" />
                                             Não Verificado
                                         </Badge>

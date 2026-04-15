@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Menu, X, Home, Search, Grid3X3, HelpCircle, Truck, Heart, Bell, LogIn, UserPlus } from "lucide-react";
+import { Menu, Home, Search, Grid3X3, HelpCircle, Truck, Bell, LogIn, UserPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Separator } from "@/components/ui/separator";
@@ -14,7 +14,6 @@ const menuItems = [
 ];
 
 const userItems = [
-  { icon: Heart, label: "Favoritos", path: "/favoritos" },
   { icon: Bell, label: "Alertas", path: "/alertas" },
 ];
 

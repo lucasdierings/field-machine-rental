@@ -1,16 +1,14 @@
-import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
-import { 
-  MapPin, 
-  Star, 
-  Heart, 
-  MessageCircle, 
-  Eye, 
-  Clock, 
+import {
+  MapPin,
+  Star,
+  MessageCircle,
+  Eye,
+  Clock,
   Calendar,
   CheckCircle,
   Wrench
@@ -23,8 +21,6 @@ interface MachineResultCardProps {
 }
 
 export const MachineResultCard = ({ machine, viewMode }: MachineResultCardProps) => {
-  const [isFavorited, setIsFavorited] = useState(false);
-
   // Mock data for demonstration
   const mockImages = [
     '/placeholder.svg',
@@ -76,19 +72,6 @@ export const MachineResultCard = ({ machine, viewMode }: MachineResultCardProps)
           </Badge>
         </div>
 
-        {/* Favorite Button */}
-        <Button
-          variant="outline"
-          size="icon"
-          className="absolute top-2 right-2 h-8 w-8 bg-white/90 hover:bg-white"
-          onClick={() => setIsFavorited(!isFavorited)}
-        >
-          <Heart
-            className={`h-4 w-4 ${
-              isFavorited ? 'fill-red-500 text-red-500' : 'text-gray-600'
-            }`}
-          />
-        </Button>
       </div>
 
       <CardContent className={`p-4 ${isListView ? 'flex-1' : ''}`}>

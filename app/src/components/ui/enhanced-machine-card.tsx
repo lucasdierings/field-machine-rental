@@ -65,7 +65,8 @@ export const EnhancedMachineCard = memo(function EnhancedMachineCard({
             <div className="relative aspect-[16/10] overflow-hidden bg-muted">
                 <img
                     src={machine.images[0]}
-                    alt={machine.name}
+                    alt={`${machine.name}${machine.brand ? ` - ${machine.brand}` : ""}`}
+                    loading="lazy"
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     onError={(e) => {
                         (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1625246333195-78d9c38ad449?w=800&h=600&fit=crop';

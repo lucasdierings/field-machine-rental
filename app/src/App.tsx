@@ -37,12 +37,10 @@ const Onboarding = lazy(() => import("./pages/Onboarding").then(m => ({ default:
 
 // Protected pages
 const RentMyMachine = lazy(() => import("./pages/RentMyMachine"));
-const Favorites = lazy(() => import("./pages/Favorites"));
 const Alerts = lazy(() => import("./pages/Alerts"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const Bookings = lazy(() => import("./pages/Bookings"));
 const AddMachine = lazy(() => import("./pages/AddMachine"));
-const OnboardingDashboard = lazy(() => import("./pages/OnboardingDashboard"));
 const Profile = lazy(() => import("./pages/Profile"));
 const MyMachines = lazy(() => import("./pages/MyMachines"));
 const Documents = lazy(() => import("./pages/Documents"));
@@ -130,9 +128,6 @@ const App = () => (
                 <Route path="/oferecer-servicos" element={
                   <ProtectedRoute><RentMyMachine /></ProtectedRoute>
                 } />
-                <Route path="/favoritos" element={
-                  <ProtectedRoute><Favorites /></ProtectedRoute>
-                } />
                 <Route path="/alertas" element={
                   <ProtectedRoute><Alerts /></ProtectedRoute>
                 } />
@@ -147,9 +142,6 @@ const App = () => (
                 } />
                 <Route path="/edit-machine/:id" element={
                   <ProtectedRoute><AddMachine /></ProtectedRoute>
-                } />
-                <Route path="/dashboard/onboarding" element={
-                  <ProtectedRoute><OnboardingDashboard /></ProtectedRoute>
                 } />
                 <Route path="/dashboard/perfil" element={
                   <ProtectedRoute><Profile /></ProtectedRoute>
