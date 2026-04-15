@@ -63,14 +63,14 @@
 
 **Variáveis necessárias no Cloudflare:**
 ```
-VITE_SUPABASE_URL=https://uynscjoomsiryqnyeohm.supabase.co
-VITE_SUPABASE_PUBLISHABLE_KEY=eyJhbGci...
+VITE_SUPABASE_URL=<URL_DO_SEU_PROJETO_SUPABASE>
+VITE_SUPABASE_PUBLISHABLE_KEY=<SUA_ANON_KEY>
 ```
 
 **Para o site (Next.js):**
 ```
-NEXT_PUBLIC_SUPABASE_URL=https://uynscjoomsiryqnyeohm.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGci...
+NEXT_PUBLIC_SUPABASE_URL=<URL_DO_SEU_PROJETO_SUPABASE>
+NEXT_PUBLIC_SUPABASE_ANON_KEY=<SUA_ANON_KEY>
 ```
 
 ### 4. **SEO e Meta Tags**
@@ -108,8 +108,8 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGci...
 1. Ir em **Settings** → **Environment Variables**
 2. Adicionar variáveis de **Production**:
    ```
-   VITE_SUPABASE_URL=https://uynscjoomsiryqnyeohm.supabase.co
-   VITE_SUPABASE_PUBLISHABLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV5bnNjam9vbXNpcnlxbnllb2htIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc3MzQ4NjcsImV4cCI6MjA3MzMxMDg2N30.NefR4o3XLW8uN3UHeLIpiU7tBA--SRkO0U6o0m6Vn-4
+   VITE_SUPABASE_URL=<URL_DO_SEU_PROJETO_SUPABASE>
+   VITE_SUPABASE_PUBLISHABLE_KEY=<SUA_ANON_KEY>
    ```
 3. Verificar **Build settings**:
    - Build command: `npm run build`
@@ -119,13 +119,19 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGci...
 #### Para o Site (`fieldmachine-site`)
 1. Verificar variáveis de ambiente:
    ```
-   NEXT_PUBLIC_SUPABASE_URL=https://uynscjoomsiryqnyeohm.supabase.co
-   NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV5bnNjam9vbXNpcnlxbnllb2htIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc3MzQ4NjcsImV4cCI6MjA3MzMxMDg2N30.NefR4o3XLW8uN3UHeLIpiU7tBA--SRkO0U6o0m6Vn-4
+   NEXT_PUBLIC_SUPABASE_URL=<URL_DO_SEU_PROJETO_SUPABASE>
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=<SUA_ANON_KEY>
    ```
 2. Build settings:
    - Build command: `npm run build`
    - Build output directory: `out`
    - Root directory: `site`
+
+> **Importante**: nunca commitar a `VITE_SUPABASE_PUBLISHABLE_KEY` ou
+> `NEXT_PUBLIC_SUPABASE_ANON_KEY` em arquivos versionados. Use os
+> placeholders acima e configure os valores reais apenas no painel do
+> Cloudflare/Supabase ou em arquivos `.env.local` (que estão no
+> `.gitignore`).
 
 ### No Repositório
 
@@ -220,7 +226,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGci...
 
 ## 📞 SUPORTE
 
-**Supabase Project:** uynscjoomsiryqnyeohm
+**Supabase Project:** ver `app/supabase/config.toml`
 **GitHub Repo:** lucasdierings/field-machine-rental
 **Cloudflare Projects:**
 - fieldmachine-site (www)

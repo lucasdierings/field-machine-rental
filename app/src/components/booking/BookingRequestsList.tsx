@@ -31,7 +31,7 @@ interface Booking {
     owner_id: string;
     machines?: { name: string; category: string; brand?: string };
     machine?: { name: string; category: string };
-    renter?: { full_name: string; phone?: string; avatar_url?: string; verified?: boolean };
+    renter?: { full_name: string; phone?: string; profile_image?: string | null; verified?: boolean };
 }
 
 interface BookingRequestsListProps {

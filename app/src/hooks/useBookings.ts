@@ -30,11 +30,15 @@ export function useUserBookings(role: 'renter' | 'owner') {
         ...bookingsList.map((b: any) => b.owner_id),
       ].filter(Boolean))];
 
-      let profileMap: Record<string, { full_name: string; phone?: string; avatar_url?: string; verified?: boolean }> = {};
+      let profileMap: Record<string, { full_name: string; phone?: string; profile_image?: string | null; verified?: boolean }> = {};
       if (userIds.length > 0) {
+        // RLS "Booking partners can view profile" autoriza phone para
+        // contrapartes de uma booking; "Users can view own profile" para o
+        // próprio user. avatar_url não existe em user_profiles — coluna
+        // correta é profile_image.
         const { data: profiles } = await supabase
           .from('user_profiles')
-          .select('auth_user_id, full_name, phone, avatar_url, verified')
+          .select('auth_user_id, full_name, phone, profile_image, verified')
           .in('auth_user_id', userIds);
         profileMap = Object.fromEntries((profiles || []).map((p: any) => [p.auth_user_id, p]));
       }
@@ -73,11 +77,15 @@ export function useAllUserBookings() {
         ...bookingsList.map((b: any) => b.owner_id),
       ].filter(Boolean))];
 
-      let profileMap: Record<string, { full_name: string; phone?: string; avatar_url?: string; verified?: boolean }> = {};
+      let profileMap: Record<string, { full_name: string; phone?: string; profile_image?: string | null; verified?: boolean }> = {};
       if (userIds.length > 0) {
+        // RLS "Booking partners can view profile" autoriza phone para
+        // contrapartes de uma booking; "Users can view own profile" para o
+        // próprio user. avatar_url não existe em user_profiles — coluna
+        // correta é profile_image.
         const { data: profiles } = await supabase
           .from('user_profiles')
-          .select('auth_user_id, full_name, phone, avatar_url, verified')
+          .select('auth_user_id, full_name, phone, profile_image, verified')
           .in('auth_user_id', userIds);
         profileMap = Object.fromEntries((profiles || []).map((p: any) => [p.auth_user_id, p]));
       }

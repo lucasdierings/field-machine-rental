@@ -54,8 +54,8 @@ field-machine-rental/
 
 #### Variáveis de Ambiente (Production)
 ```env
-VITE_SUPABASE_URL=https://uynscjoomsiryqnyeohm.supabase.co
-VITE_SUPABASE_PUBLISHABLE_KEY=eyJhbGc...
+VITE_SUPABASE_URL=<URL_DO_SEU_PROJETO_SUPABASE>
+VITE_SUPABASE_PUBLISHABLE_KEY=<SUA_ANON_KEY>
 ```
 
 ---
@@ -69,8 +69,8 @@ VITE_SUPABASE_PUBLISHABLE_KEY=eyJhbGc...
 
 #### Variáveis de Ambiente (Production)
 ```env
-NEXT_PUBLIC_SUPABASE_URL=https://uynscjoomsiryqnyeohm.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGc...
+NEXT_PUBLIC_SUPABASE_URL=<URL_DO_SEU_PROJETO_SUPABASE>
+NEXT_PUBLIC_SUPABASE_ANON_KEY=<SUA_ANON_KEY>
 ```
 
 ---
@@ -320,13 +320,13 @@ Cloudflare Pages (fieldmachine-site)
 ### **Sync Local**
 
 ```bash
-# app/.env.local (para desenvolvimento)
-VITE_SUPABASE_URL=https://uynscjoomsiryqnyeohm.supabase.co
-VITE_SUPABASE_PUBLISHABLE_KEY=eyJhbGc...
+# app/.env.local (para desenvolvimento) — não commitar!
+VITE_SUPABASE_URL=<URL_DO_SEU_PROJETO_SUPABASE>
+VITE_SUPABASE_PUBLISHABLE_KEY=<SUA_ANON_KEY>
 
-# site/.env.local (para desenvolvimento)
-NEXT_PUBLIC_SUPABASE_URL=https://uynscjoomsiryqnyeohm.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGc...
+# site/.env.local (para desenvolvimento) — não commitar!
+NEXT_PUBLIC_SUPABASE_URL=<URL_DO_SEU_PROJETO_SUPABASE>
+NEXT_PUBLIC_SUPABASE_ANON_KEY=<SUA_ANON_KEY>
 ```
 
 ---

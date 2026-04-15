@@ -54,10 +54,10 @@ const ReviewBooking = () => {
 
             if (error) throw error;
 
-            // Step 2: fetch profiles
+            // Step 2: fetch profiles via public view (sem dados sensíveis)
             const profileAuthIds = [bookingData.renter_id, bookingData.owner_id].filter(Boolean);
             const { data: profiles } = await supabase
-                .from('user_profiles')
+                .from('user_profiles_public' as any)
                 .select('id, auth_user_id, full_name')
                 .in('auth_user_id', profileAuthIds);
 

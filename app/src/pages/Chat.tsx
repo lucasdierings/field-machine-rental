@@ -62,14 +62,14 @@ export default function Chat() {
         try {
             if (!currentUserId || !otherUserId) return;
 
-            // Load the other user's profile
+            // Load the other user's profile (only safe public columns)
             const { data: profile } = await supabase
-                .from("user_profiles")
+                .from("user_profiles_public" as any)
                 .select("full_name, profile_image, auth_user_id")
                 .eq("auth_user_id", otherUserId)
                 .single();
 
-            setOtherUser(profile);
+            setOtherUser(profile as { full_name: string; profile_image: string | null; auth_user_id: string } | null);
 
             // Load existing messages between the two users
             await loadMessages(currentUserId, otherUserId);

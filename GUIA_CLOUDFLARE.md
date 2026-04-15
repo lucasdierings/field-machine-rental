@@ -26,13 +26,17 @@ O app está em branco porque as **variáveis de ambiente não foram configuradas
 #### Variáveis de Produção (Production)
 ```
 Variable name: VITE_SUPABASE_URL
-Value: https://uynscjoomsiryqnyeohm.supabase.co
+Value: <URL_DO_SEU_PROJETO_SUPABASE>
 ```
 
 ```
 Variable name: VITE_SUPABASE_PUBLISHABLE_KEY
-Value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV5bnNjam9vbXNpcnlxbnllb2htIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc3MzQ4NjcsImV4cCI6MjA3MzMxMDg2N30.NefR4o3XLW8uN3UHeLIpiU7tBA--SRkO0U6o0m6Vn-4
+Value: <SUA_ANON_KEY>
 ```
+
+> ⚠️ **NUNCA cole o valor real da chave em arquivos versionados.**
+> Pegue ela em Supabase Dashboard → Project Settings → API → `anon` `public`
+> e configure direto no painel do Cloudflare.
 
 **⚠️ IMPORTANTE:** Selecione **Production** no dropdown de ambiente!
 
@@ -87,12 +91,12 @@ Adicione as seguintes variáveis em **Production**:
 
 ```
 Variable name: NEXT_PUBLIC_SUPABASE_URL
-Value: https://uynscjoomsiryqnyeohm.supabase.co
+Value: <URL_DO_SEU_PROJETO_SUPABASE>
 ```
 
 ```
 Variable name: NEXT_PUBLIC_SUPABASE_ANON_KEY
-Value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV5bnNjam9vbXNpcnlxbnllb2htIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc3MzQ4NjcsImV4cCI6MjA3MzMxMDg2N30.NefR4o3XLW8uN3UHeLIpiU7tBA--SRkO0U6o0m6Vn-4
+Value: <SUA_ANON_KEY>
 ```
 
 ### 3. Verificar Build Settings
