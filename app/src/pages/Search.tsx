@@ -14,6 +14,19 @@ import { useToast } from "@/hooks/use-toast";
 import { Search as SearchIcon, Filter, Bell } from "lucide-react";
 import { SEO } from "@/components/SEO";
 
+const DEFAULT_FILTERS: FilterValues = {
+  priceRange: [100, 2000],
+  distanceRadius: "50km",
+  powerRange: "Todas",
+  availability: "Qualquer",
+  yearRange: [2015, 2024],
+  minRating: 0,
+  minServices: 0,
+  verifiedOnly: false,
+  category: "Todas as categorias",
+  culture: "Selecionar cultura",
+};
+
 const Search = () => {
   const { toast } = useToast();
   const { userId, user } = useAuth();
@@ -36,20 +49,7 @@ const Search = () => {
   const [culture, setCulture] = useState("Selecionar cultura");
   const [operation, setOperation] = useState("Selecionar operação");
 
-  const defaultFilters: FilterValues = {
-    priceRange: [100, 2000],
-    distanceRadius: "50km",
-    powerRange: "Todas",
-    availability: "Qualquer",
-    yearRange: [2015, 2024],
-    minRating: 0,
-    minServices: 0,
-    verifiedOnly: false,
-    category: category,
-    culture: culture
-  };
-
-  const [filters, setFilters] = useState<FilterValues>(defaultFilters);
+  const [filters, setFilters] = useState<FilterValues>(DEFAULT_FILTERS);
 
   // SEO Logic
   let seoTitle = "Busca de Serviços Agrícolas";
@@ -88,28 +88,28 @@ const Search = () => {
     if (city) {
       const cityName = city.replace(/-/g, ' ');
       setLocation(cityName);
-      setSearchFilters(prev => ({ ...prev, location: cityName, ...defaultFilters }));
+      setSearchFilters(prev => ({ ...prev, location: cityName, ...DEFAULT_FILTERS }));
     }
 
     // Handle Category Landing Pages
     if (locationObj.pathname.includes('/servicos/colheita')) {
       setOperation("Colheita");
       setCategory("Colheitadeiras");
-      setSearchFilters(prev => ({ ...defaultFilters, location: prev?.location, category: "Colheitadeiras", operation: "Colheita" }));
+      setSearchFilters(prev => ({ ...DEFAULT_FILTERS, location: prev?.location, category: "Colheitadeiras", operation: "Colheita" }));
     } else if (locationObj.pathname.includes('/servicos/plantio')) {
       setOperation("Plantio");
       setCategory("Plantadeiras");
-      setSearchFilters(prev => ({ ...defaultFilters, location: prev?.location, category: "Plantadeiras", operation: "Plantio" }));
+      setSearchFilters(prev => ({ ...DEFAULT_FILTERS, location: prev?.location, category: "Plantadeiras", operation: "Plantio" }));
     } else if (locationObj.pathname.includes('/servicos/pulverizacao')) {
       setOperation("Pulverização");
       setCategory("Pulverizadores");
-      setSearchFilters(prev => ({ ...defaultFilters, location: prev?.location, category: "Pulverizadores", operation: "Pulverização" }));
+      setSearchFilters(prev => ({ ...DEFAULT_FILTERS, location: prev?.location, category: "Pulverizadores", operation: "Pulverização" }));
     } else if (locationObj.pathname.includes('/servicos/preparo-solo')) {
       setOperation("Preparo do solo");
-      setSearchFilters(prev => ({ ...defaultFilters, location: prev?.location, operation: "Preparo do solo" }));
+      setSearchFilters(prev => ({ ...DEFAULT_FILTERS, location: prev?.location, operation: "Preparo do solo" }));
     } else if (locationObj.pathname.includes('/servicos/transporte')) {
       setCategory("Transporte de Cargas");
-      setSearchFilters(prev => ({ ...defaultFilters, location: prev?.location, category: "Transporte de Cargas" }));
+      setSearchFilters(prev => ({ ...DEFAULT_FILTERS, location: prev?.location, category: "Transporte de Cargas" }));
     }
 
     if (locationParam) {
@@ -122,7 +122,7 @@ const Search = () => {
 
     if (locationParam || categoryParam) {
       setSearchFilters(prev => ({
-        ...defaultFilters,
+        ...DEFAULT_FILTERS,
         ...prev,
         location: locationParam || prev?.location || "",
         category: categoryParam || prev?.category || "Todas as categorias",

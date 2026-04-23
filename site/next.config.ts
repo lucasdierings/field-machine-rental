@@ -5,6 +5,10 @@ const nextConfig: NextConfig = {
   images: {
     unoptimized: true,     // Required for static export
   },
+  experimental: {
+    // Allows Next.js font downloads to work in sandboxed/CI environments
+    turbopackUseSystemTlsCerts: true,
+  },
 };
 
 export default nextConfig;
