@@ -5,6 +5,9 @@ const nextConfig: NextConfig = {
   images: {
     unoptimized: true,     // Required for static export
   },
+  experimental: {
+    turbopackUseSystemTlsCerts: true,  // Fix TLS for Google Fonts in CI/sandbox
+  },
 };
 
 export default nextConfig;
