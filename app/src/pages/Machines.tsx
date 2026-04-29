@@ -147,13 +147,13 @@ const Machines = () => {
 
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(
-        (m) =>
-          m.name.toLowerCase().includes(query) ||
-          m.brand.toLowerCase().includes(query) ||
-          m.model.toLowerCase().includes(query) ||
-          m.category.toLowerCase().includes(query)
-      );
+      filtered = filtered.filter((m) => {
+        const haystack = [m.name, m.brand, m.model, m.category]
+          .filter(Boolean)
+          .map((s) => String(s).toLowerCase())
+          .join(" ");
+        return haystack.includes(query);
+      });
     }
 
     if (selectedCategories.length > 0) {

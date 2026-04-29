@@ -18,6 +18,7 @@ interface FormData {
     brand: string;
     model: string;
     year: number;
+    description?: string;
     price_hour: string;
     price_day: string;
     price_hectare: string;
@@ -117,6 +118,21 @@ export function MachineFormFields({ formData, onChange }: MachineFormFieldsProps
                         </SelectContent>
                     </Select>
                 </div>
+            </div>
+
+            <div className="space-y-2">
+                <Label htmlFor="description">Descrição do Serviço</Label>
+                <Textarea
+                    id="description"
+                    value={formData.description || ""}
+                    onChange={(e) => onChange('description', e.target.value)}
+                    placeholder="Descreva o equipamento, condições de uso, implementos inclusos, diferenciais (ex.: ar-condicionado, GPS, piloto automático)..."
+                    rows={4}
+                    maxLength={2000}
+                />
+                <p className="text-xs text-muted-foreground">
+                    {(formData.description || "").length}/2000 caracteres — uma boa descrição aumenta as chances de contratação.
+                </p>
             </div>
 
             <div>

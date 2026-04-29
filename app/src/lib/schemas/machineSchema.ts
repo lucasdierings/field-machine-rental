@@ -30,6 +30,7 @@ export const machineFormSchema = z
     category: z.string().trim().min(1, "Categoria obrigatória"),
     brand: z.string().trim().min(1, "Marca obrigatória"),
     model: z.string().trim().optional(),
+    description: z.string().trim().max(2000, "Descrição muito longa").optional(),
     year: z
       .number()
       .refine((value) => validateManufacturingYear(value), {

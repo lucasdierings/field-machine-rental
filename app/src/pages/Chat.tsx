@@ -47,7 +47,14 @@ export default function Chat() {
             navigate("/login");
             return;
         }
-        initChat();
+        let cleanup: (() => void) | undefined;
+        initChat().then((unsubscribe) => {
+            cleanup = unsubscribe;
+        });
+        return () => {
+            cleanup?.();
+        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [otherUserId, currentUserId]);
 
     useEffect(() => {
@@ -58,9 +65,9 @@ export default function Chat() {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     };
 
-    const initChat = async () => {
+    const initChat = async (): Promise<(() => void) | undefined> => {
         try {
-            if (!currentUserId || !otherUserId) return;
+            if (!currentUserId || !otherUserId) return undefined;
 
             // Load the other user's profile (only safe public columns)
             const { data: profile } = await supabase
@@ -96,12 +103,20 @@ export default function Chat() {
                     (payload) => {
                         const msg = payload.new as Message;
                         if (msg.sender_id === otherUserId) {
-                            setMessages((prev) => [...prev, msg]);
-                            // Mark as read immediately
+                            setMessages((prev) => {
+                                if (prev.some((m) => m.id === msg.id)) return prev;
+                                return [...prev, msg];
+                            });
+                            // Mark as read immediately (fire and forget; errors logged in DEV only)
                             supabase
                                 .from("messages")
                                 .update({ read: true, read_at: new Date().toISOString() })
-                                .eq("id", msg.id);
+                                .eq("id", msg.id)
+                                .then(({ error }) => {
+                                    if (error && import.meta.env.DEV) {
+                                        console.error("Mark-as-read error:", error);
+                                    }
+                                });
                         }
                     }
                 )
@@ -111,9 +126,10 @@ export default function Chat() {
 
             return () => { supabase.removeChannel(channel); };
         } catch (error: any) {
-            console.error("Chat init error:", error);
+            if (import.meta.env.DEV) console.error("Chat init error:", error);
             toast({ title: "Erro ao carregar chat", variant: "destructive" });
             setLoading(false);
+            return undefined;
         }
     };
 
@@ -127,7 +143,7 @@ export default function Chat() {
             .order("created_at", { ascending: true });
 
         if (error) {
-            console.error("Load messages error:", error);
+            if (import.meta.env.DEV) console.error("Load messages error:", error);
         } else {
             setMessages(data || []);
         }
@@ -155,8 +171,12 @@ export default function Chat() {
 
             if (error) throw error;
 
-            // Optimistically add to messages list
-            setMessages((prev) => [...prev, data as Message]);
+            // Optimistically add to messages list (skip if already present)
+            setMessages((prev) => {
+                const incoming = data as Message;
+                if (prev.some((m) => m.id === incoming.id)) return prev;
+                return [...prev, incoming];
+            });
         } catch (error: any) {
             toast({
                 title: "Erro ao enviar mensagem",

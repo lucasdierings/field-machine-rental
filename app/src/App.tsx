@@ -173,7 +173,9 @@ const App = () => (
                   </ProtectedRoute>
                 } />
 
-                <Route path="/test-connection" element={<SupabaseConnectionTest />} />
+                {import.meta.env.DEV && (
+                  <Route path="/test-connection" element={<SupabaseConnectionTest />} />
+                )}
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </Suspense>

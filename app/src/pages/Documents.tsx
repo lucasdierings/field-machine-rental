@@ -10,6 +10,16 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, FileCheck, Clock, XCircle, Upload, Download, Trash2, FileText } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 const Documents = () => {
   const { toast } = useToast();
@@ -17,6 +27,7 @@ const Documents = () => {
   const queryClient = useQueryClient();
   const [uploading, setUploading] = useState(false);
   const [selectedDocType, setSelectedDocType] = useState<string>("");
+  const [pendingDelete, setPendingDelete] = useState<any | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { data: documents = [], isLoading } = useQuery({
@@ -171,8 +182,6 @@ const Documents = () => {
   };
 
   const handleDelete = async (doc: any) => {
-    if (!confirm("Deseja realmente excluir este documento?")) return;
-
     try {
       // Deletar do storage
       const { error: storageError } = await supabase.storage
@@ -201,6 +210,8 @@ const Documents = () => {
         description: error.message,
         variant: "destructive"
       });
+    } finally {
+      setPendingDelete(null);
     }
   };
 
@@ -292,9 +303,9 @@ const Documents = () => {
                     {documents.map((doc) => (
                       <div
                         key={doc.id}
-                        className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent/50 transition-colors"
+                        className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 border rounded-lg hover:bg-accent/50 transition-colors"
                       >
-                        <div className="flex items-start gap-3 flex-1">
+                        <div className="flex items-start gap-3 flex-1 min-w-0">
                           <FileText className="h-5 w-5 text-muted-foreground mt-1" />
                           <div className="flex-1">
                             <p className="font-medium">
@@ -311,7 +322,7 @@ const Documents = () => {
                             )}
                           </div>
                         </div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap sm:flex-shrink-0">
                           {getStatusBadge(doc.verified)}
                           <Button
                             size="sm"
@@ -323,7 +334,8 @@ const Documents = () => {
                           <Button
                             size="sm"
                             variant="outline"
-                            onClick={() => handleDelete(doc)}
+                            onClick={() => setPendingDelete(doc)}
+                            aria-label="Excluir documento"
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>
@@ -345,6 +357,26 @@ const Documents = () => {
         </div>
       </main>
       <Footer />
+
+      <AlertDialog
+        open={pendingDelete !== null}
+        onOpenChange={(open) => !open && setPendingDelete(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir documento?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta ação não pode ser desfeita. O documento será removido permanentemente da plataforma.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={() => pendingDelete && handleDelete(pendingDelete)}>
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

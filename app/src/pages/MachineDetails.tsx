@@ -171,6 +171,28 @@ const MachineDetails = () => {
             return;
         }
 
+        // Bloquear datas no passado
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const selected = new Date(`${startDate}T00:00:00`);
+        if (selected < today) {
+            toast({
+                title: "Data inválida",
+                description: "A data de início não pode ser no passado.",
+                variant: "destructive"
+            });
+            return;
+        }
+
+        if (!Number.isFinite(quantity) || quantity < 1) {
+            toast({
+                title: "Quantidade inválida",
+                description: "Informe uma quantidade maior ou igual a 1.",
+                variant: "destructive"
+            });
+            return;
+        }
+
         if (!userId) {
             toast({
                 title: "Login necessário",
@@ -178,6 +200,16 @@ const MachineDetails = () => {
                 variant: "destructive"
             });
             navigate('/login');
+            return;
+        }
+
+        // Proprietário não pode contratar a própria máquina
+        if (machine.owner_id === userId) {
+            toast({
+                title: "Operação não permitida",
+                description: "Você não pode solicitar serviço da sua própria máquina.",
+                variant: "destructive"
+            });
             return;
         }
 
@@ -363,9 +395,9 @@ const MachineDetails = () => {
                             <div className="flex gap-4">
                                 <User className="h-6 w-6 text-primary shrink-0" />
                                 <div>
-                                    <h3 className="font-medium">Operador {machine.operator_type === 'hired' ? 'Contratado' : 'Próprio'}</h3>
+                                    <h3 className="font-medium">Operador {machine.operator_type === 'employee' || machine.operator_type === 'hired' ? 'Contratado' : 'Próprio'}</h3>
                                     <p className="text-sm text-muted-foreground">
-                                        {machine.operator_type === 'hired'
+                                        {machine.operator_type === 'employee' || machine.operator_type === 'hired'
                                             ? 'O serviço é realizado por um operador contratado pelo proprietário.'
                                             : 'O próprio dono ou sua equipe realiza o serviço.'}
                                     </p>
@@ -393,7 +425,7 @@ const MachineDetails = () => {
                         {/* Specifications */}
                         <div className="pb-6 border-b">
                             <h2 className="text-lg md:text-xl font-semibold mb-4">Especificações Técnicas</h2>
-                            <div className="grid grid-cols-2 gap-3 md:gap-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
                                 <div className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg">
                                     <Settings className="h-5 w-5 text-primary shrink-0" />
                                     <div className="min-w-0">
@@ -436,6 +468,7 @@ const MachineDetails = () => {
                         quantity={quantity}
                         notes={notes}
                         bookingLoading={bookingLoading}
+                        isOwnMachine={!!userId && machine.owner_id === userId}
                         onStartDateChange={setStartDate}
                         onQuantityChange={setQuantity}
                         onNotesChange={setNotes}

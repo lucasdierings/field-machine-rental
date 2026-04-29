@@ -11,6 +11,7 @@ interface MachineBookingFormProps {
     quantity: number;
     notes: string;
     bookingLoading: boolean;
+    isOwnMachine?: boolean;
     onStartDateChange: (date: string) => void;
     onQuantityChange: (qty: number) => void;
     onNotesChange: (notes: string) => void;
@@ -24,12 +25,14 @@ export function MachineBookingForm({
     quantity,
     notes,
     bookingLoading,
+    isOwnMachine = false,
     onStartDateChange,
     onQuantityChange,
     onNotesChange,
     onBooking,
 }: MachineBookingFormProps) {
     const total = price * quantity;
+    const today = new Date().toISOString().split("T")[0];
 
     return (
         <div className="relative">
@@ -58,6 +61,7 @@ export function MachineBookingForm({
                                 type="date"
                                 className="w-full text-sm bg-transparent outline-none"
                                 value={startDate}
+                                min={today}
                                 onChange={(e) => onStartDateChange(e.target.value)}
                             />
                         </div>
@@ -86,14 +90,15 @@ export function MachineBookingForm({
                     <Button
                         className="w-full bg-gradient-primary h-12 text-base md:text-lg font-semibold"
                         onClick={onBooking}
-                        disabled={bookingLoading}
+                        disabled={bookingLoading || isOwnMachine}
+                        title={isOwnMachine ? "Você não pode solicitar a sua própria máquina" : undefined}
                     >
                         {bookingLoading ? (
                             <Loader2 className="animate-spin mr-2" />
                         ) : (
                             <MessageCircle className="mr-2 h-5 w-5" />
                         )}
-                        Solicitar Serviço
+                        {isOwnMachine ? "É sua máquina" : "Solicitar Serviço"}
                     </Button>
 
                     <div className="bg-muted/30 rounded-lg p-3 text-center">

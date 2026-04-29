@@ -47,7 +47,13 @@ const AdminUsersTab = () => {
 
   useEffect(() => {
     loadUsers();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPage, searchTerm, filterType, filterVerified]);
+
+  // Reset to first page whenever filters change so the user doesn't end up on an empty page
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, filterType, filterVerified]);
 
   const loadUsers = async () => {
     try {
@@ -219,13 +225,13 @@ const AdminUsersTab = () => {
         {/* Filters */}
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div className="flex flex-col gap-4 md:flex-row md:items-center">
-            <div className="relative">
+            <div className="relative w-full md:w-[300px]">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
                 placeholder="Buscar por nome, email ou CPF/CNPJ..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-9 w-[300px]"
+                className="pl-9 w-full"
               />
             </div>
 
@@ -261,7 +267,7 @@ const AdminUsersTab = () => {
         </div>
 
         {/* Users Table */}
-        <div className="rounded-md border">
+        <div className="rounded-md border overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow>
