@@ -78,11 +78,6 @@ export const DocumentApproval = () => {
 
                         if (signedData?.signedUrl) {
                             signedUrl = signedData.signedUrl;
-                        } else {
-                            const { data: publicData } = supabase.storage
-                                .from("user-documents")
-                                .getPublicUrl(doc.document_url);
-                            signedUrl = publicData?.publicUrl || "";
                         }
                     }
 
