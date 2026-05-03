@@ -2,9 +2,12 @@ name: Lint and Build
 
 on:
   push:
-    branches: [main, develop, 'claude/**']
+    branches: [main, dev, 'codex/**', 'claude/**']
   pull_request:
-    branches: [main, develop]
+    branches: [main, dev]
+
+permissions:
+  contents: read
 
 jobs:
   lint-and-build:
@@ -33,7 +36,7 @@ jobs:
         working-directory: ./app
         run: npm ci
 
-      - name: Run ESLint (app)
+      - name: Run ESLint (app, diagnostic until lint debt is fixed)
         working-directory: ./app
         run: npm run lint
         continue-on-error: true
@@ -50,7 +53,6 @@ jobs:
       - name: Run ESLint (site)
         working-directory: ./site
         run: npm run lint
-        continue-on-error: true
 
       - name: Build site
         working-directory: ./site
@@ -85,7 +87,7 @@ jobs:
 
       - name: Type check (app)
         working-directory: ./app
-        run: npx tsc --noEmit
+        run: npm run typecheck
 
       - name: Install dependencies (site)
         working-directory: ./site
@@ -93,4 +95,4 @@ jobs:
 
       - name: Type check (site)
         working-directory: ./site
-        run: npx tsc --noEmit
+        run: npm run typecheck

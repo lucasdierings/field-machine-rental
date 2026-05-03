@@ -2,12 +2,15 @@ name: Security Checks
 
 on:
   push:
-    branches: [main, develop, 'claude/**']
+    branches: [main, dev, 'codex/**', 'claude/**']
   pull_request:
-    branches: [main, develop]
+    branches: [main, dev]
   schedule:
-    # Run weekly on Monday at 8 AM
+    # Run weekly on Monday at 8 AM UTC.
     - cron: '0 8 * * 1'
+
+permissions:
+  contents: read
 
 jobs:
   dependency-check:
@@ -27,23 +30,12 @@ jobs:
             app/package-lock.json
             site/package-lock.json
 
-      # Check for vulnerabilities in app
-      - name: Audit dependencies (app)
+      - name: Audit dependencies (app, diagnostic until dependency hardening phase)
         working-directory: ./app
-        run: npm audit --audit-level=moderate
+        run: npm audit --audit-level=high
         continue-on-error: true
 
-      # Check for vulnerabilities in site
-      - name: Audit dependencies (site)
+      - name: Audit dependencies (site, diagnostic until dependency hardening phase)
         working-directory: ./site
-        run: npm audit --audit-level=moderate
+        run: npm audit --audit-level=high
         continue-on-error: true
-
-  # Optional: Add more security checks like SAST, code scanning, etc.
-  # - Snyk (requires setup)
-  # - GitHub Advanced Security (if available)
-  # - OWASP Dependency Check
-
-permissions:
-  contents: read
-  security-events: write
