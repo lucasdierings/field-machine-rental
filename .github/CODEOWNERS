@@ -1,0 +1,7 @@
+# Default owner for repository changes.
+* @lucasdierings
+
+# Security-sensitive areas should always be reviewed deliberately.
+/app/supabase/ @lucasdierings
+/supabase/ @lucasdierings
+/.github/ @lucasdierings
