@@ -83,7 +83,7 @@ export const KYCUpload = ({ userId, documents, onDocumentsChange }: KYCUploadPro
       const documentId = crypto.randomUUID();
       const fileExtension = file.name.split('.').pop();
       const fileName = `${documentId}.${fileExtension}`;
-      const filePath = `users/${userId}/${fileName}`;
+      const filePath = `${userId}/${fileName}`;
 
       // Upload to private bucket
       const { error: uploadError } = await supabase.storage
@@ -127,7 +127,7 @@ export const KYCUpload = ({ userId, documents, onDocumentsChange }: KYCUploadPro
     setDownloadingId(document.id);
 
     try {
-      const filePath = `users/${userId}/${document.id}.${document.fileName.split('.').pop()}`;
+      const filePath = `${userId}/${document.id}.${document.fileName.split('.').pop()}`;
 
       // Create signed URL for download
       const { data, error } = await supabase.storage
