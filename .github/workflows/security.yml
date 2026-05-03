@@ -30,12 +30,10 @@ jobs:
             app/package-lock.json
             site/package-lock.json
 
-      - name: Audit dependencies (app, diagnostic until dependency hardening phase)
+      - name: Audit dependencies (app)
         working-directory: ./app
-        run: npm audit --audit-level=high
-        continue-on-error: true
+        run: npm audit --audit-level=moderate
 
-      - name: Audit dependencies (site, diagnostic until dependency hardening phase)
+      - name: Audit dependencies (site)
         working-directory: ./site
-        run: npm audit --audit-level=high
-        continue-on-error: true
+        run: npm audit --audit-level=moderate
