@@ -46,4 +46,4 @@ sem taxas, sem intermediários e sem comissão sobre os serviços contratados.
 
 - Criar conta: https://app.fieldmachine.com.br/cadastro
 - Buscar serviços: https://app.fieldmachine.com.br/servicos-agricolas
-- Como funciona: https://app.fieldmachine.com.br/como-funciona
+- Como funciona: https://fieldmachine.com.br/#como-funciona
