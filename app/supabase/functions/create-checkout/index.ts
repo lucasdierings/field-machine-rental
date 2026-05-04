@@ -1,13 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
 
-<<<<<<< HEAD
-const corsHeaders = {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-}
-
-=======
 // Lista de origins autorizados para chamar esta function.
 // Inclui produção, previews do Cloudflare Pages e localhost para dev.
 const ALLOWED_ORIGINS = [
@@ -36,31 +29,19 @@ const buildCorsHeaders = (origin: string | null): Record<string, string> => ({
     'Vary': 'Origin',
 })
 
->>>>>>> origin/main
 /**
  * Confirma uma reserva entre as partes (modelo peer-to-peer).
  * O pagamento é combinado diretamente entre locatário e proprietário,
  * fora da plataforma (similar ao BlaBlaCar).
  */
 serve(async (req: Request) => {
-<<<<<<< HEAD
-=======
     const origin = req.headers.get('origin')
     const corsHeaders = buildCorsHeaders(origin)
 
->>>>>>> origin/main
     if (req.method === 'OPTIONS') {
         return new Response('ok', { headers: corsHeaders })
     }
 
-<<<<<<< HEAD
-    try {
-        const supabase = createClient(
-            Deno.env.get('SUPABASE_URL') ?? '',
-            Deno.env.get('SUPABASE_ANON_KEY') ?? ''
-        )
-
-=======
     // Bloqueia origins não autorizados em chamadas reais.
     if (!isAllowedOrigin(origin)) {
         return new Response(
@@ -73,43 +54,11 @@ serve(async (req: Request) => {
     }
 
     try {
-        const authHeader = req.headers.get('Authorization')
-        if (!authHeader?.startsWith('Bearer ')) {
-            return new Response(
-                JSON.stringify({ error: 'Authentication required' }),
-                {
-                    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-                    status: 401,
-                }
-            )
-        }
-
         const supabase = createClient(
             Deno.env.get('SUPABASE_URL') ?? '',
-            Deno.env.get('SUPABASE_ANON_KEY') ?? '',
-            {
-                auth: {
-                    persistSession: false,
-                    autoRefreshToken: false,
-                },
-                global: {
-                    headers: { Authorization: authHeader },
-                },
-            },
+            Deno.env.get('SUPABASE_ANON_KEY') ?? ''
         )
 
-        const { data: { user }, error: userError } = await supabase.auth.getUser()
-        if (userError || !user) {
-            return new Response(
-                JSON.stringify({ error: 'Invalid token' }),
-                {
-                    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-                    status: 401,
-                }
-            )
-        }
-
->>>>>>> origin/main
         const { bookingId, action } = await req.json()
 
         if (!bookingId) {
@@ -132,39 +81,15 @@ serve(async (req: Request) => {
             throw new Error('Booking not found')
         }
 
-<<<<<<< HEAD
         // Confirm booking (owner accepts the request)
         if (action === 'confirm') {
             await supabase
-=======
-        if (booking.owner_id !== user.id) {
-            return new Response(
-                JSON.stringify({ error: 'Only the machine owner can confirm or reject this booking' }),
-                {
-                    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-                    status: 403,
-                }
-            )
-        }
-
-        // Confirm booking (owner accepts the request)
-        if (action === 'confirm') {
-            const { error: updateError } = await supabase
->>>>>>> origin/main
                 .from('bookings')
                 .update({
                     status: 'confirmed',
                     payment_status: 'peer_to_peer'
                 })
                 .eq('id', bookingId)
-<<<<<<< HEAD
-=======
-                .eq('owner_id', user.id)
-
-            if (updateError) {
-                throw updateError
-            }
->>>>>>> origin/main
 
             return new Response(
                 JSON.stringify({
@@ -187,25 +112,13 @@ serve(async (req: Request) => {
 
         // Reject booking
         if (action === 'reject') {
-<<<<<<< HEAD
             await supabase
-=======
-            const { error: updateError } = await supabase
->>>>>>> origin/main
                 .from('bookings')
                 .update({
                     status: 'cancelled',
                     cancellation_reason: 'Recusado pelo proprietário'
                 })
                 .eq('id', bookingId)
-<<<<<<< HEAD
-=======
-                .eq('owner_id', user.id)
-
-            if (updateError) {
-                throw updateError
-            }
->>>>>>> origin/main
 
             return new Response(
                 JSON.stringify({
@@ -221,16 +134,9 @@ serve(async (req: Request) => {
 
         throw new Error('Invalid action. Use "confirm" or "reject".')
 
-<<<<<<< HEAD
     } catch (error: any) {
         return new Response(
             JSON.stringify({ error: error.message }),
-=======
-    } catch (error: unknown) {
-        const message = error instanceof Error ? error.message : 'Erro ao processar reserva'
-        return new Response(
-            JSON.stringify({ error: message }),
->>>>>>> origin/main
             {
                 headers: { ...corsHeaders, 'Content-Type': 'application/json' },
                 status: 400,

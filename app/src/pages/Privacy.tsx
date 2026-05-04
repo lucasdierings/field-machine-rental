@@ -1,7 +1,3 @@
-<<<<<<< HEAD
-
-=======
->>>>>>> origin/main
 import { Header } from "@/components/ui/header";
 import { EnhancedFooter } from "@/components/ui/enhanced-footer";
 import { SEO } from "@/components/SEO";
@@ -11,15 +7,6 @@ const Privacy = () => {
         <div className="min-h-screen bg-background">
             <SEO
                 title="Política de Privacidade"
-<<<<<<< HEAD
-                description="Entenda como coletamos e protegemos seus dados."
-                canonical="/privacidade"
-            />
-            <Header />
-            <main className="container mx-auto px-4 py-8 pt-24">
-                <h1 className="text-3xl font-bold mb-4">Política de Privacidade</h1>
-                <p>Conteúdo da página de Política de Privacidade...</p>
-=======
                 description="Entenda como o FieldMachine coleta, usa e protege seus dados pessoais de acordo com a LGPD."
                 canonical="/privacidade"
             />
@@ -196,7 +183,6 @@ const Privacy = () => {
                         </p>
                     </section>
                 </article>
->>>>>>> origin/main
             </main>
             <EnhancedFooter />
         </div>

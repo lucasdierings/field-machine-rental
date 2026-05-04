@@ -18,21 +18,14 @@ interface UserDocument {
     id: string;
     user_id: string;
     document_type: string;
-<<<<<<< HEAD
     document_path: string; // caminho no bucket (ex.: "doc123.pdf")
     document_url?: string; // URL pública ou assinada (preenchido dinamicamente)
     verified: boolean;
-    created_at: string;
-    user?: { full_name: string; email: string };
-=======
-    document_url: string;
-    verified: boolean | null;
     rejection_reason?: string | null;
     verified_at?: string | null;
-    created_at: string | null;
+    created_at: string;
     signedUrl?: string;
     user?: { full_name: string | null; email: string | null };
->>>>>>> origin/main
 }
 
 export const DocumentApproval = () => {
@@ -46,15 +39,6 @@ export const DocumentApproval = () => {
         loadDocuments();
     }, []);
 
-<<<<<<< HEAD
-    // Carrega documentos pendentes e gera URLs públicas/assinadas
-    const loadDocuments = async () => {
-        try {
-            const { data, error } = await supabase
-                .from("user_documents")
-                .select(`*, user:users(full_name, email)`)
-                .eq("verified", false)
-=======
     // Carrega documentos pendentes e gera URLs assinadas
     const loadDocuments = async () => {
         setLoading(true);
@@ -65,24 +49,10 @@ export const DocumentApproval = () => {
                 .select("*")
                 .eq("verified", false)
                 .is("rejection_reason", null)
->>>>>>> origin/main
                 .order("created_at", { ascending: true });
 
             if (error) throw error;
 
-<<<<<<< HEAD
-            const docsWithUrl = await Promise.all(
-                data.map(async (doc: any) => {
-                    const path = doc.document_path || doc.document_url;
-                    if (path) {
-                        const { data: publicData } = supabase.storage
-                            .from("user-documents")
-                            .getPublicUrl(path);
-                        const url = publicData?.publicUrl || "";
-                        return { ...doc, document_url: url };
-                    }
-                    return doc;
-=======
             const docList = docs || [];
 
             // Step 2: Busca perfis dos usuários
@@ -102,10 +72,11 @@ export const DocumentApproval = () => {
             const docsWithUrl = await Promise.all(
                 docList.map(async (doc: any) => {
                     let signedUrl = "";
-                    if (doc.document_url) {
+                    const path = doc.document_path || doc.document_url;
+                    if (path) {
                         const { data: signedData } = await supabase.storage
                             .from("user-documents")
-                            .createSignedUrl(doc.document_url, 3600);
+                            .createSignedUrl(path, 3600);
 
                         if (signedData?.signedUrl) {
                             signedUrl = signedData.signedUrl;
@@ -117,20 +88,14 @@ export const DocumentApproval = () => {
                         signedUrl,
                         user: profileMap[doc.user_id] || { full_name: null, email: null },
                     };
->>>>>>> origin/main
                 })
             );
 
             setDocuments(docsWithUrl);
-<<<<<<< HEAD
-        } catch (error: any) {
-            console.error("Erro ao carregar documentos:", error);
-=======
         } catch (error: unknown) {
             if (import.meta.env.DEV) {
                 console.error("Erro ao carregar documentos:", error);
             }
->>>>>>> origin/main
             toast({
                 title: "Erro ao carregar",
                 description: "Não foi possível buscar os documentos pendentes.",
@@ -141,21 +106,7 @@ export const DocumentApproval = () => {
         }
     };
 
-<<<<<<< HEAD
     // Aprovar documento
-    const handleApprove = async (docId: string) => {
-        try {
-            setProcessing(docId);
-            const { error } = await supabase
-                .from("user_documents")
-                .update({ verified: true })
-                .eq("id", docId);
-            if (error) throw error;
-            setDocuments((prev) => prev.filter((d) => d.id !== docId));
-            toast({ title: "Documento aprovado", description: "O usuário foi notificado." });
-        } catch (error: any) {
-            toast({ title: "Erro ao aprovar", description: error.message, variant: "destructive" });
-=======
     const handleApprove = async (docId: string) => {
         setProcessing(docId);
         try {
@@ -183,29 +134,12 @@ export const DocumentApproval = () => {
                 description: error.message,
                 variant: "destructive",
             });
->>>>>>> origin/main
         } finally {
             setProcessing(null);
         }
     };
 
-<<<<<<< HEAD
     // Rejeitar documento
-    const handleReject = async (docId: string) => {
-        if (!rejectReason) {
-            toast({ title: "Motivo obrigatório", description: "Informe o motivo da rejeição.", variant: "destructive" });
-            return;
-        }
-        try {
-            setProcessing(docId);
-            const { error } = await supabase.from("user_documents").delete().eq("id", docId);
-            if (error) throw error;
-            setDocuments((prev) => prev.filter((d) => d.id !== docId));
-            setRejectReason("");
-            toast({ title: "Documento rejeitado", description: "O documento foi removido." });
-        } catch (error: any) {
-            toast({ title: "Erro ao rejeitar", description: error.message, variant: "destructive" });
-=======
     const handleReject = async (docId: string) => {
         if (!rejectReason.trim()) {
             toast({
@@ -238,46 +172,27 @@ export const DocumentApproval = () => {
                 description: error.message,
                 variant: "destructive",
             });
->>>>>>> origin/main
         } finally {
             setProcessing(null);
         }
     };
 
-<<<<<<< HEAD
     // Baixar documento
     const handleDownload = async (doc: UserDocument) => {
         try {
-            const { data, error } = await supabase.storage
-                .from("user-documents")
-                .download(doc.document_path);
-            if (error) throw error;
-            const url = URL.createObjectURL(data);
-            const a = document.createElement("a");
-            a.href = url;
-            a.download = doc.document_path.split("/").pop() || "documento";
-            a.click();
-            URL.revokeObjectURL(url);
-        } catch (error: any) {
-            toast({ title: "Erro ao baixar", description: error.message, variant: "destructive" });
-        }
-    };
-
-=======
-    const handleDownload = async (doc: UserDocument) => {
-        try {
-            if (!doc.document_url) throw new Error("Caminho do documento não encontrado");
+            const path = doc.document_path || doc.document_url;
+            if (!path) throw new Error("Caminho do documento não encontrado");
 
             const { data, error } = await supabase.storage
                 .from("user-documents")
-                .download(doc.document_url);
+                .download(path);
 
             if (error) throw error;
 
             const url = URL.createObjectURL(data);
             const a = document.createElement("a");
             a.href = url;
-            a.download = doc.document_url.split("/").pop() || "documento";
+            a.download = path.split("/").pop() || "documento";
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
@@ -299,7 +214,6 @@ export const DocumentApproval = () => {
         return map[type] || type;
     };
 
->>>>>>> origin/main
     if (loading) {
         return (
             <div className="flex justify-center p-8">
@@ -321,30 +235,6 @@ export const DocumentApproval = () => {
 
     return (
         <div className="space-y-4">
-<<<<<<< HEAD
-            {documents.map((doc) => (
-                <Card key={doc.id}>
-                    <CardHeader className="pb-2">
-                        <div className="flex justify-between items-start">
-                            <div>
-                                <CardTitle className="text-lg">{doc.user?.full_name || "Usuário Desconhecido"}</CardTitle>
-                                <p className="text-sm text-muted-foreground">{doc.user?.email}</p>
-                            </div>
-                            <Badge variant="outline">{doc.document_type}</Badge>
-                        </div>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="flex items-center justify-between mt-2">
-                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                                <FileText className="h-4 w-4" />
-                                Enviado em {new Date(doc.created_at).toLocaleDateString()}
-                            </div>
-                            <div className="flex gap-2">
-                                {/* Visualizar */}
-                                <Dialog>
-                                    <DialogTrigger asChild>
-                                        <Button variant="outline" size="sm">
-=======
             <p className="text-sm text-muted-foreground">{documents.length} documento(s) aguardando análise</p>
             {documents.map((doc) => (
                 <Card key={doc.id}>
@@ -368,22 +258,10 @@ export const DocumentApproval = () => {
                                 <Dialog>
                                     <DialogTrigger asChild>
                                         <Button variant="outline" size="sm" className="w-full sm:w-auto">
->>>>>>> origin/main
                                             <Eye className="h-4 w-4 mr-2" />
                                             Visualizar
                                         </Button>
                                     </DialogTrigger>
-<<<<<<< HEAD
-                                    <DialogContent className="max-w-4xl h-[80vh]">
-                                        <DialogHeader>
-                                            <DialogTitle>Visualizar Documento</DialogTitle>
-                                        </DialogHeader>
-                                        <div className="flex-1 h-full bg-muted rounded-md overflow-hidden">
-                                            {doc.document_url?.endsWith('.png') || doc.document_url?.endsWith('.jpg') || doc.document_url?.endsWith('.jpeg') ? (
-                                                <img src={doc.document_url} alt="Documento" className="w-full h-full object-contain" />
-                                            ) : (
-                                                <iframe src={doc.document_url} className="w-full h-full" title="Documento" />
-=======
                                     <DialogContent className="h-[85vh] max-w-[95vw] sm:max-w-4xl">
                                         <DialogHeader>
                                             <DialogTitle>Documento — {doc.user?.full_name || "Usuário"}</DialogTitle>
@@ -399,22 +277,10 @@ export const DocumentApproval = () => {
                                                 <div className="flex items-center justify-center h-full text-muted-foreground">
                                                     URL não disponível
                                                 </div>
->>>>>>> origin/main
                                             )}
                                         </div>
                                     </DialogContent>
                                 </Dialog>
-<<<<<<< HEAD
-                                {/* Baixar */}
-                                <Button variant="secondary" size="sm" onClick={() => handleDownload(doc)}>
-                                    <Download className="h-4 w-4 mr-2" />
-                                    Baixar
-                                </Button>
-                                {/* Rejeitar */}
-                                <Dialog>
-                                    <DialogTrigger asChild>
-                                        <Button variant="destructive" size="sm">
-=======
 
                                 {/* Baixar */}
                                 <Button variant="secondary" size="sm" className="w-full sm:w-auto" onClick={() => handleDownload(doc)}>
@@ -426,7 +292,6 @@ export const DocumentApproval = () => {
                                 <Dialog>
                                     <DialogTrigger asChild>
                                         <Button variant="destructive" size="sm" className="w-full sm:w-auto" disabled={processing === doc.id}>
->>>>>>> origin/main
                                             <X className="h-4 w-4 mr-2" />
                                             Rejeitar
                                         </Button>
@@ -437,10 +302,6 @@ export const DocumentApproval = () => {
                                         </DialogHeader>
                                         <div className="space-y-4 py-4">
                                             <p className="text-sm text-muted-foreground">Informe o motivo da rejeição para o usuário.</p>
-<<<<<<< HEAD
-                                            <Textarea placeholder="Ex: Documento ilegível, data expirada..." value={rejectReason} onChange={(e) => setRejectReason(e.target.value)} />
-                                            <Button variant="destructive" className="w-full" onClick={() => handleReject(doc.id)} disabled={processing === doc.id}>
-=======
                                             <Textarea
                                                 placeholder="Ex: Documento ilegível, data expirada..."
                                                 value={rejectReason}
@@ -452,20 +313,11 @@ export const DocumentApproval = () => {
                                                 onClick={() => handleReject(doc.id)}
                                                 disabled={processing === doc.id}
                                             >
->>>>>>> origin/main
                                                 {processing === doc.id ? <Loader2 className="animate-spin" /> : "Confirmar Rejeição"}
                                             </Button>
                                         </div>
                                     </DialogContent>
                                 </Dialog>
-<<<<<<< HEAD
-                                {/* Aprovar */}
-                                <Button className="bg-green-600 hover:bg-green-700" size="sm" onClick={() => handleApprove(doc.id)} disabled={processing === doc.id}>
-                                    {processing === doc.id ? <Loader2 className="animate-spin" /> : (<>
-                                        <Check className="h-4 w-4 mr-2" />
-                                        Aprovar
-                                    </>)}
-=======
 
                                 {/* Aprovar */}
                                 <Button
@@ -482,7 +334,6 @@ export const DocumentApproval = () => {
                                             Aprovar
                                         </>
                                     )}
->>>>>>> origin/main
                                 </Button>
                             </div>
                         </div>

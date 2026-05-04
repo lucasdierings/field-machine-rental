@@ -1,7 +1,3 @@
-<<<<<<< HEAD
-import { useState } from "react";
-import { z } from "zod";
-=======
 import { useState, useEffect, useCallback } from "react";
 import { z } from "zod";
 import {
@@ -10,7 +6,6 @@ import {
   validatePhoneBR,
   validatePasswordStrength,
 } from "@/lib/validation";
->>>>>>> origin/main
 
 export type UserType = "producer" | "owner" | "both";
 
@@ -50,48 +45,6 @@ export interface RegisterFormData {
   profile_completion_step?: number;
 }
 
-<<<<<<< HEAD
-// Schemas
-const basicDataSchema = z.object({
-  fullName: z.string().min(3, "Nome deve ter pelo menos 3 caracteres"),
-  cpfCnpj: z.string().min(11, "CPF/CNPJ inválido"),
-  email: z.string().email("Email inválido"),
-  phone: z.string().min(10, "Telefone inválido"),
-  password: z.string().min(6, "Senha deve ter pelo menos 6 caracteres"),
-  confirmPassword: z.string(),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: "Senhas não coincidem",
-  path: ["confirmPassword"],
-});
-
-const locationSchema = z.object({
-  city: z.string().min(2, "Cidade obrigatória"),
-  state: z.string().min(2, "Estado obrigatório"),
-});
-
-export const useRegisterForm = () => {
-  const [currentStep, setCurrentStep] = useState(1);
-  const [formData, setFormData] = useState<RegisterFormData>({
-    userType: undefined,
-    fullName: "",
-    cpfCnpj: "",
-    email: "",
-    phone: "",
-    password: "",
-    confirmPassword: "",
-    hasWhatsapp: true,
-    cep: "",
-    address: "",
-    city: "",
-    state: "",
-    reference: "",
-    propertySize: "",
-    machinesCount: "",
-    emailVerified: false,
-    emailCode: "",
-    documentsUploaded: false,
-    termsAccepted: false,
-=======
 // Schemas — reusam validações centralizadas em lib/validation.ts
 const basicDataSchema = z
   .object({
@@ -207,20 +160,10 @@ export const useRegisterForm = () => {
   const [formData, setFormData] = useState<RegisterFormData>(() => {
     const draft = loadDraft();
     return draft ? { ...defaultFormData, ...draft } : defaultFormData;
->>>>>>> origin/main
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-<<<<<<< HEAD
-  const updateFormData = (updates: Partial<RegisterFormData>) => {
-    setFormData((prev) => ({ ...prev, ...updates }));
-    // Clear errors for updated fields
-    const newErrors = { ...errors };
-    Object.keys(updates).forEach((key) => delete newErrors[key]);
-    setErrors(newErrors);
-  };
-=======
   // Persiste rascunho automaticamente (exceto campos sensíveis)
   useEffect(() => {
     saveDraft(formData);
@@ -234,7 +177,6 @@ export const useRegisterForm = () => {
       return newErrors;
     });
   }, []);
->>>>>>> origin/main
 
   const validateStep = (step: number = currentStep): boolean => {
     try {
@@ -281,8 +223,6 @@ export const useRegisterForm = () => {
     }
   };
 
-<<<<<<< HEAD
-=======
   const resetForm = useCallback(() => {
     setFormData(defaultFormData);
     setCurrentStep(1);
@@ -290,7 +230,6 @@ export const useRegisterForm = () => {
     clearRegisterDraft();
   }, []);
 
->>>>>>> origin/main
   return {
     currentStep,
     formData,
@@ -299,11 +238,6 @@ export const useRegisterForm = () => {
     nextStep,
     prevStep,
     goToStep,
-<<<<<<< HEAD
-  };
-};
-=======
     resetForm,
   };
 };
->>>>>>> origin/main

@@ -1,14 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-<<<<<<< HEAD
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Users, Tractor, TrendingUp, Activity, BarChart3, FileCheck, Handshake } from 'lucide-react';
-=======
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { BarChart3, FileCheck, Tractor, TrendingUp, Users, Activity } from 'lucide-react';
->>>>>>> origin/main
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { useUserRole } from '@/hooks/useUserRole';
@@ -16,15 +10,7 @@ import AdminUsersTab from '@/components/admin/AdminUsersTab';
 import AdminAnalyticsTab from '@/components/admin/AdminAnalyticsTab';
 import AdminMachinesTab from '@/components/admin/AdminMachinesTab';
 import { DocumentApproval } from '@/components/admin/DocumentApproval';
-<<<<<<< HEAD
-import {
-  PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer,
-  BarChart, Bar, XAxis, YAxis, CartesianGrid,
-  LineChart, Line,
-} from 'recharts';
-=======
 import { AdminOverviewTab } from '@/components/admin/AdminOverviewTab';
->>>>>>> origin/main
 
 interface DashboardStats {
   total_users: number;
@@ -48,18 +34,10 @@ interface TransactionRow {
   renter_name: string;
   value: number;
   date: string;
-<<<<<<< HEAD
-}
-interface UserGrowthRow { month: string; users: number; }
-
-const COLORS = ['#22c55e', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4', '#ec4899', '#84cc16'];
-=======
   billing_type?: string;
   billing_quantity?: number;
 }
 interface UserGrowthRow { month: string; users: number; }
-
->>>>>>> origin/main
 
 const AdminDashboard = () => {
   const [stats, setStats] = useState<DashboardStats | null>(null);
@@ -98,15 +76,12 @@ const AdminDashboard = () => {
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
       const thirtyDaysAgoISO = thirtyDaysAgo.toISOString();
 
-<<<<<<< HEAD
-=======
       // New users in last 30 days
       const { count: newUsersCount } = await supabase
         .from('user_profiles')
         .select('*', { count: 'exact', head: true })
         .gte('created_at', thirtyDaysAgoISO);
 
->>>>>>> origin/main
       const { data: activeUserData } = await supabase
         .from('bookings')
         .select('renter_id, owner_id, created_at')
@@ -147,11 +122,7 @@ const AdminDashboard = () => {
       // 3. Bookings Stats
       const { data: bookingsData } = await supabase
         .from('bookings')
-<<<<<<< HEAD
-        .select('id, status, total_price, total_amount, created_at, machine_id, renter_id, machines(name)')
-=======
         .select('id, status, total_price, total_amount, negotiated_price, billing_type, billing_quantity, completed_at, created_at, machine_id, renter_id, machines(name)')
->>>>>>> origin/main
         .order('created_at', { ascending: false });
 
       const bookings = bookingsData as any[] || [];
@@ -160,16 +131,6 @@ const AdminDashboard = () => {
       const pendingBookings = bookings.filter(b => b.status === 'pending').length;
       const completedBookings = bookings.filter(b => b.status === 'completed').length;
 
-<<<<<<< HEAD
-      // Negotiations = value of completed bookings only
-      const totalNegotiations = bookings
-        .filter(b => b.status === 'completed')
-        .reduce((acc, curr) => acc + (Number(curr.total_price) || Number(curr.total_amount) || 0), 0);
-
-      const negotiations30d = bookings
-        .filter(b => b.status === 'completed' && new Date(b.created_at) >= thirtyDaysAgo)
-        .reduce((acc, curr) => acc + (Number(curr.total_price) || Number(curr.total_amount) || 0), 0);
-=======
       const totalNegotiations = bookings
         .filter(b => b.status === 'completed')
         .reduce((acc, curr) => acc + (Number(curr.negotiated_price) || Number(curr.total_price) || Number(curr.total_amount) || 0), 0);
@@ -177,7 +138,6 @@ const AdminDashboard = () => {
       const negotiations30d = bookings
         .filter(b => b.status === 'completed' && new Date(b.created_at) >= thirtyDaysAgo)
         .reduce((acc, curr) => acc + (Number(curr.negotiated_price) || Number(curr.total_price) || Number(curr.total_amount) || 0), 0);
->>>>>>> origin/main
 
       // Latest 5 completed transactions
       const completedList = bookings.filter(b => b.status === 'completed').slice(0, 5);
@@ -196,23 +156,6 @@ const AdminDashboard = () => {
           id: b.id,
           machine_name: b.machines?.name || 'Máquina',
           renter_name: renterMap[b.renter_id] || 'Usuário',
-<<<<<<< HEAD
-          value: Number(b.total_price) || Number(b.total_amount) || 0,
-          date: b.created_at,
-        }))
-      );
-
-      // 4. Users by city (top 10)
-      const { data: profilesCity } = await supabase
-        .from('user_profiles')
-        .select('city');
-
-      const cityMap: Record<string, number> = {};
-      (profilesCity || []).forEach((p: any) => {
-        const city = p.city?.trim();
-        if (city) cityMap[city] = (cityMap[city] || 0) + 1;
-      });
-=======
           value: Number(b.negotiated_price) || Number(b.total_price) || Number(b.total_amount) || 0,
           date: b.completed_at || b.created_at,
           billing_type: b.billing_type || null,
@@ -237,7 +180,6 @@ const AdminDashboard = () => {
         }
       });
 
->>>>>>> origin/main
       setCityData(
         Object.entries(cityMap)
           .sort((a, b) => b[1] - a[1])
@@ -275,11 +217,7 @@ const AdminDashboard = () => {
       setStats({
         total_users: totalUsers || 0,
         active_users_30d: activeUserSet.size,
-<<<<<<< HEAD
-        new_users_30d: 0,
-=======
         new_users_30d: newUsersCount || 0,
->>>>>>> origin/main
         total_machines: totalMachines || 0,
         available_machines: availableMachines || 0,
         total_bookings: totalBookings,
@@ -294,14 +232,11 @@ const AdminDashboard = () => {
       if (import.meta.env.DEV) {
         console.error('Failed to load stats:', error);
       }
-<<<<<<< HEAD
-=======
       toast({
         title: "Erro ao carregar estatísticas",
         description: "Algumas métricas podem não estar disponíveis. Recarregue a página.",
         variant: "destructive",
       });
->>>>>>> origin/main
     }
   };
 
@@ -323,15 +258,9 @@ const AdminDashboard = () => {
       {/* Header */}
       <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container mx-auto px-4 py-4">
-<<<<<<< HEAD
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-foreground">Painel Administrativo</h1>
-=======
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h1 className="text-2xl font-bold text-foreground sm:text-3xl">Painel Administrativo</h1>
->>>>>>> origin/main
               <p className="text-muted-foreground">FieldMachine Dashboard</p>
             </div>
             <Button variant="outline" onClick={() => navigate('/')} className="gap-2">
@@ -342,315 +271,6 @@ const AdminDashboard = () => {
         </div>
       </header>
 
-<<<<<<< HEAD
-      <main className="container mx-auto px-4 py-8">
-        <Tabs defaultValue="dashboard" className="space-y-8">
-          <TabsList className="grid w-full grid-cols-5">
-            <TabsTrigger value="dashboard" className="gap-2">
-              <BarChart3 className="h-4 w-4" />
-              Dashboard
-            </TabsTrigger>
-            <TabsTrigger value="users" className="gap-2">
-              <Users className="h-4 w-4" />
-              Usuários
-            </TabsTrigger>
-            <TabsTrigger value="machines" className="gap-2">
-              <Tractor className="h-4 w-4" />
-              Máquinas
-            </TabsTrigger>
-            <TabsTrigger value="analytics" className="gap-2">
-              <TrendingUp className="h-4 w-4" />
-              Analytics
-            </TabsTrigger>
-            <TabsTrigger value="documents" className="gap-2">
-              <FileCheck className="h-4 w-4" />
-              Documentos
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="dashboard" className="space-y-8">
-            {/* KPI Cards */}
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-              <Card className="border-l-4 border-l-blue-500">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Usuários Totais</CardTitle>
-                  <Users className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{stats?.total_users || 0}</div>
-                  <p className="text-xs text-green-600">
-                    {stats?.active_users_30d || 0} ativos nos últimos 30 dias
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card className="border-l-4 border-l-yellow-500">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Alertas de Busca</CardTitle>
-                  <Activity className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{stats?.search_alerts_count || 0}</div>
-                  <p className="text-xs text-muted-foreground">Usuários monitorando</p>
-                </CardContent>
-              </Card>
-
-              <Card className="border-l-4 border-l-green-500">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Máquinas Ativas</CardTitle>
-                  <Tractor className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{stats?.available_machines || 0}</div>
-                  <p className="text-xs text-muted-foreground">
-                    de {stats?.total_machines || 0} cadastradas
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card className="border-l-4 border-l-orange-500">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Negociações (30d)</CardTitle>
-                  <Handshake className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">
-                    R$ {(stats?.negotiations_30d || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                  </div>
-                  <p className="text-xs text-muted-foreground">
-                    Total: R$ {(stats?.total_negotiations || 0).toLocaleString('pt-BR')}
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card className="border-l-4 border-l-purple-500">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Taxa Conversão</CardTitle>
-                  <TrendingUp className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{calculateConversionRate()}%</div>
-                  <p className="text-xs text-muted-foreground">
-                    {stats?.completed_bookings || 0} reservas concluídas
-                  </p>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Quick Stats */}
-            <div className="grid gap-6 md:grid-cols-3">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Reservas</CardTitle>
-                  <CardDescription>Status atual</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-2">
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-muted-foreground">Total</span>
-                    <span className="font-bold">{stats?.total_bookings || 0}</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-muted-foreground">Pendentes</span>
-                    <span className="font-bold text-yellow-600">{stats?.pending_bookings || 0}</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-muted-foreground">Concluídas</span>
-                    <span className="font-bold text-green-600">{stats?.completed_bookings || 0}</span>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>Usuários</CardTitle>
-                  <CardDescription>Atividade</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-2">
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-muted-foreground">Total</span>
-                    <span className="font-bold">{stats?.total_users || 0}</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-muted-foreground">Ativos (30d)</span>
-                    <span className="font-bold text-green-600">{stats?.active_users_30d || 0}</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-muted-foreground">Inativos</span>
-                    <span className="font-bold text-yellow-600">
-                      {(stats?.total_users || 0) - (stats?.active_users_30d || 0)}
-                    </span>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>Negociações Realizadas</CardTitle>
-                  <CardDescription>Valor total de reservas concluídas</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-2">
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-muted-foreground">Total histórico</span>
-                    <span className="font-bold">
-                      R$ {(stats?.total_negotiations || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-muted-foreground">Últimos 30 dias</span>
-                    <span className="font-bold text-green-600">
-                      R$ {(stats?.negotiations_30d || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-muted-foreground">Reservas concluídas</span>
-                    <span className="font-bold text-green-600">{stats?.completed_bookings || 0}</span>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Charts Section */}
-            <div className="grid gap-6 md:grid-cols-2">
-              {/* User Growth Line Chart */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Crescimento de Usuários</CardTitle>
-                  <CardDescription>Novos cadastros por mês</CardDescription>
-                </CardHeader>
-                <CardContent className="h-[300px]">
-                  {userGrowth.length > 0 ? (
-                    <ResponsiveContainer width="100%" height="100%">
-                      <LineChart data={userGrowth} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                        <XAxis dataKey="month" tick={{ fontSize: 11 }} />
-                        <YAxis tick={{ fontSize: 11 }} allowDecimals={false} />
-                        <Tooltip />
-                        <Line
-                          type="monotone"
-                          dataKey="users"
-                          name="Usuários"
-                          stroke="#22c55e"
-                          strokeWidth={2}
-                          dot={{ fill: '#22c55e', r: 4 }}
-                          activeDot={{ r: 6 }}
-                        />
-                      </LineChart>
-                    </ResponsiveContainer>
-                  ) : (
-                    <div className="h-full flex items-center justify-center text-muted-foreground text-sm">
-                      Sem dados suficientes
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-
-              {/* Machines by Category Pie Chart */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Máquinas por Categoria</CardTitle>
-                  <CardDescription>Distribuição atual</CardDescription>
-                </CardHeader>
-                <CardContent className="h-[300px]">
-                  {categoryData.length > 0 ? (
-                    <ResponsiveContainer width="100%" height="100%">
-                      <PieChart>
-                        <Pie
-                          data={categoryData}
-                          cx="50%"
-                          cy="50%"
-                          innerRadius={60}
-                          outerRadius={100}
-                          paddingAngle={3}
-                          dataKey="value"
-                          nameKey="name"
-                          label={({ name, percent }) =>
-                            `${name} ${(percent * 100).toFixed(0)}%`
-                          }
-                          labelLine={false}
-                        >
-                          {categoryData.map((_, index) => (
-                            <Cell key={index} fill={COLORS[index % COLORS.length]} />
-                          ))}
-                        </Pie>
-                        <Tooltip formatter={(value: number) => [`${value} máquinas`, '']} />
-                        <Legend />
-                      </PieChart>
-                    </ResponsiveContainer>
-                  ) : (
-                    <div className="h-full flex items-center justify-center text-muted-foreground text-sm">
-                      Sem dados
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-
-              {/* Top 10 Cities Bar Chart */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Top 10 Cidades</CardTitle>
-                  <CardDescription>Usuários por cidade</CardDescription>
-                </CardHeader>
-                <CardContent className="h-[300px]">
-                  {cityData.length > 0 ? (
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart
-                        data={cityData}
-                        layout="vertical"
-                        margin={{ top: 5, right: 20, left: 60, bottom: 5 }}
-                      >
-                        <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                        <XAxis type="number" tick={{ fontSize: 11 }} allowDecimals={false} />
-                        <YAxis dataKey="city" type="category" tick={{ fontSize: 11 }} width={55} />
-                        <Tooltip />
-                        <Bar dataKey="users" name="Usuários" fill="#3b82f6" radius={[0, 4, 4, 0]} />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  ) : (
-                    <div className="h-full flex items-center justify-center text-muted-foreground text-sm">
-                      Sem dados de cidade nos perfis
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-
-              {/* Latest Transactions Table */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Últimas Negociações</CardTitle>
-                  <CardDescription>5 reservas concluídas mais recentes</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {transactions.length > 0 ? (
-                    <div className="space-y-1">
-                      <div className="grid grid-cols-3 text-xs font-semibold text-muted-foreground pb-2 border-b">
-                        <span>Máquina / Solicitante</span>
-                        <span className="text-center">Data</span>
-                        <span className="text-right">Valor</span>
-                      </div>
-                      {transactions.map((tx) => (
-                        <div key={tx.id} className="grid grid-cols-3 text-sm py-2 border-b last:border-0 items-center">
-                          <div>
-                            <p className="font-medium truncate">{tx.machine_name}</p>
-                            <p className="text-xs text-muted-foreground truncate">{tx.renter_name}</p>
-                          </div>
-                          <p className="text-xs text-muted-foreground text-center">
-                            {new Date(tx.date).toLocaleDateString('pt-BR')}
-                          </p>
-                          <p className="font-semibold text-green-600 text-right">
-                            R$ {tx.value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                          </p>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="h-[200px] flex items-center justify-center text-muted-foreground text-sm">
-                      Nenhuma negociação concluída ainda
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
-=======
       <main className="container mx-auto px-4 py-6 sm:py-8">
         <Tabs defaultValue="dashboard" className="space-y-6 sm:space-y-8">
           <div className="-mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0">
@@ -687,7 +307,6 @@ const AdminDashboard = () => {
               userGrowth={userGrowth}
               calculateConversionRate={calculateConversionRate}
             />
->>>>>>> origin/main
           </TabsContent>
 
           <TabsContent value="users">
