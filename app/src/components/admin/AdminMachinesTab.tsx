@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -47,11 +47,7 @@ const AdminMachinesTab = () => {
 
     const itemsPerPage = 10;
 
-    useEffect(() => {
-        loadMachines();
-    }, [currentPage, searchTerm, filterStatus]);
-
-    const loadMachines = async () => {
+    const loadMachines = useCallback(async () => {
         try {
             setLoading(true);
 
@@ -127,7 +123,11 @@ const AdminMachinesTab = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [currentPage, searchTerm, filterStatus, toast]);
+
+    useEffect(() => {
+        loadMachines();
+    }, [loadMachines]);
 
     const handleDelete = async (id: string) => {
         try {
