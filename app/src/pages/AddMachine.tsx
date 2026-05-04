@@ -15,6 +15,9 @@ import { MachineFormFields } from "@/components/machines/MachineFormFields";
 import { MachineImageUploader, type MachineImageState } from "@/components/machines/MachineImageUploader";
 import { validateMachineForm } from "@/lib/schemas/machineSchema";
 
+const normalizeOperatorType = (operatorType?: string | null) =>
+  operatorType === "hired" || operatorType === "employee" ? "hired" : "owner";
+
 export default function AddMachine() {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -40,6 +43,7 @@ export default function AddMachine() {
     category: "",
     brand: "",
     model: "",
+    description: "",
     year: new Date().getFullYear(),
     price_hour: "",
     price_day: "",
@@ -82,13 +86,14 @@ export default function AddMachine() {
           category: machine.category,
           brand: machine.brand || "",
           model: machine.model || "",
+          description: machine.description || "",
           year: machine.year || new Date().getFullYear(),
           price_hour: machine.price_hour?.toString() || "",
           price_day: machine.price_day?.toString() || "",
           price_hectare: machine.price_hectare?.toString() || "",
           location: (locationData as { city: string; state: string; address: string }) || { city: "", state: "", address: "" },
           radius_km: machine.radius_km || 50,
-          operator_type: (machine as any).operator_type || "owner",
+          operator_type: normalizeOperatorType((machine as any).operator_type),
           specifications: machine.specifications || {},
           service_cities: (machine as any).service_cities || []
         });
@@ -215,6 +220,7 @@ export default function AddMachine() {
         category: formData.category,
         brand: formData.brand,
         model: formData.model || null,
+        description: formData.description.trim() || null,
         year: formData.year,
         location: formData.location,
         radius_km: formData.radius_km,
@@ -223,7 +229,7 @@ export default function AddMachine() {
         price_hour: formData.price_hour ? parseFloat(formData.price_hour) : null,
         price_day: formData.price_day ? parseFloat(formData.price_day) : null,
         price_hectare: formData.price_hectare ? parseFloat(formData.price_hectare) : null,
-        operator_type: formData.operator_type,
+        operator_type: normalizeOperatorType(formData.operator_type),
         status: "available",
         service_cities: formData.service_cities
       };

@@ -17,6 +17,7 @@ interface FormData {
     category: string;
     brand: string;
     model: string;
+    description: string;
     year: number;
     price_hour: string;
     price_day: string;
@@ -113,9 +114,24 @@ export function MachineFormFields({ formData, onChange }: MachineFormFieldsProps
                         </SelectTrigger>
                         <SelectContent>
                             <SelectItem value="owner">O Próprio Dono</SelectItem>
-                            <SelectItem value="employee">Funcionário</SelectItem>
+                            <SelectItem value="hired">Operador contratado</SelectItem>
                         </SelectContent>
                     </Select>
+                </div>
+
+                <div className="space-y-2 md:col-span-2">
+                    <Label htmlFor="description">Descrição do Serviço</Label>
+                    <Textarea
+                        id="description"
+                        value={formData.description}
+                        onChange={(e) => onChange('description', e.target.value)}
+                        placeholder="Descreva a máquina, implementos disponíveis, tipo de serviço e condições de atendimento."
+                        rows={4}
+                        maxLength={2000}
+                    />
+                    <p className="text-xs text-muted-foreground text-right">
+                        {formData.description.length}/2000
+                    </p>
                 </div>
             </div>
 

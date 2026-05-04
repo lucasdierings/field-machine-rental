@@ -55,7 +55,9 @@ const Chat = lazyWithRetry(() => import("./pages/Chat"));
 const AdminDashboard = lazyWithRetry(() => import("./pages/AdminDashboard"));
 
 // Dev/test pages
-const SupabaseConnectionTest = lazyWithRetry(() => import("./components/SupabaseConnectionTest"));
+const SupabaseConnectionTest = import.meta.env.DEV
+  ? lazyWithRetry(() => import("./components/SupabaseConnectionTest"))
+  : null;
 
 // ─── Query Client ────────────────────────────────────────────────────────────
 
@@ -173,7 +175,9 @@ const App = () => (
                   </ProtectedRoute>
                 } />
 
-                <Route path="/test-connection" element={<SupabaseConnectionTest />} />
+                {SupabaseConnectionTest && (
+                  <Route path="/test-connection" element={<SupabaseConnectionTest />} />
+                )}
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </Suspense>
