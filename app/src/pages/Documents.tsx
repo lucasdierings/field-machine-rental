@@ -1,6 +1,7 @@
-import { useState, useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Header } from "@/components/ui/header";
 import { Footer } from "@/components/ui/footer";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,48 +10,40 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, FileCheck, Clock, XCircle, Upload, Download, Trash2, FileText } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 const Documents = () => {
-  const navigate = useNavigate();
   const { toast } = useToast();
-  const [loading, setLoading] = useState(true);
+  const { userId } = useAuth();
+  const queryClient = useQueryClient();
   const [uploading, setUploading] = useState(false);
-  const [documents, setDocuments] = useState<any[]>([]);
   const [selectedDocType, setSelectedDocType] = useState<string>("");
+  const [documentToDelete, setDocumentToDelete] = useState<any | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    loadDocuments();
-  }, []);
-
-  const loadDocuments = async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-
-      if (!user) {
-        navigate("/login");
-        return;
-      }
-
+  const { data: documents = [], isLoading } = useQuery({
+    queryKey: ['documents', userId],
+    queryFn: async () => {
       const { data, error } = await supabase
         .from("user_documents")
         .select("*")
-        .eq("user_id", user.id)
+        .eq("user_id", userId!)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-
-      setDocuments(data || []);
-    } catch (error: any) {
-      toast({
-        title: "Erro ao carregar documentos",
-        description: error.message,
-        variant: "destructive"
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
+      return data || [];
+    },
+    enabled: !!userId,
+  });
 
   const getStatusBadge = (verified: boolean) => {
     if (verified) {
@@ -118,11 +111,10 @@ const Documents = () => {
     setUploading(true);
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Usuário não autenticado");
+      if (!userId) throw new Error("Usuário não autenticado");
 
       // Upload para o bucket user-documents
-      const fileName = `${user.id}/${selectedDocType}_${Date.now()}.${file.name.split('.').pop()}`;
+      const fileName = `${userId}/${selectedDocType}_${Date.now()}.${file.name.split('.').pop()}`;
       const { error: uploadError } = await supabase.storage
         .from('user-documents')
         .upload(fileName, file);
@@ -130,11 +122,10 @@ const Documents = () => {
       if (uploadError) throw uploadError;
 
       // Inserir registro na tabela user_documents
-      // Usar diretamente o user.id do auth (não precisa buscar em public.users)
       const { error: dbError } = await supabase
         .from('user_documents')
         .insert({
-          user_id: user.id,  // ID do auth.users
+          user_id: userId,
           document_type: selectedDocType,
           document_url: fileName
         });
@@ -148,7 +139,7 @@ const Documents = () => {
 
       setSelectedDocType("");
       if (fileInputRef.current) fileInputRef.current.value = "";
-      loadDocuments();
+      queryClient.invalidateQueries({ queryKey: ['documents', userId] });
     } catch (error: any) {
       toast({
         title: "Erro no upload",
@@ -191,8 +182,6 @@ const Documents = () => {
   };
 
   const handleDelete = async (doc: any) => {
-    if (!confirm("Deseja realmente excluir este documento?")) return;
-
     try {
       // Deletar do storage
       const { error: storageError } = await supabase.storage
@@ -214,7 +203,8 @@ const Documents = () => {
         description: "Documento removido com sucesso"
       });
 
-      loadDocuments();
+      queryClient.invalidateQueries({ queryKey: ['documents', userId] });
+      setDocumentToDelete(null);
     } catch (error: any) {
       toast({
         title: "Erro ao excluir",
@@ -224,7 +214,7 @@ const Documents = () => {
     }
   };
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin" />
@@ -246,7 +236,7 @@ const Documents = () => {
             </CardHeader>
             <CardContent className="space-y-6">
               {/* Upload Section */}
-              <div className="border-2 border-dashed border-border rounded-lg p-6">
+              <div className="border-2 border-dashed border-border rounded-lg p-4 sm:p-6">
                 <h3 className="font-semibold mb-4 flex items-center gap-2">
                   <Upload className="h-5 w-5" />
                   Enviar Novo Documento
@@ -312,11 +302,11 @@ const Documents = () => {
                     {documents.map((doc) => (
                       <div
                         key={doc.id}
-                        className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent/50 transition-colors"
+                        className="flex flex-col gap-4 p-4 border rounded-lg hover:bg-accent/50 transition-colors sm:flex-row sm:items-center sm:justify-between"
                       >
-                        <div className="flex items-start gap-3 flex-1">
+                        <div className="flex min-w-0 flex-1 items-start gap-3">
                           <FileText className="h-5 w-5 text-muted-foreground mt-1" />
-                          <div className="flex-1">
+                          <div className="min-w-0 flex-1">
                             <p className="font-medium">
                               {getDocumentTypeName(doc.document_type)}
                             </p>
@@ -331,11 +321,12 @@ const Documents = () => {
                             )}
                           </div>
                         </div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex flex-wrap items-center gap-2 sm:justify-end">
                           {getStatusBadge(doc.verified)}
                           <Button
                             size="sm"
                             variant="outline"
+                            aria-label={`Baixar ${getDocumentTypeName(doc.document_type)}`}
                             onClick={() => handleDownload(doc)}
                           >
                             <Download className="h-4 w-4" />
@@ -343,7 +334,8 @@ const Documents = () => {
                           <Button
                             size="sm"
                             variant="outline"
-                            onClick={() => handleDelete(doc)}
+                            aria-label={`Excluir ${getDocumentTypeName(doc.document_type)}`}
+                            onClick={() => setDocumentToDelete(doc)}
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>
@@ -365,6 +357,26 @@ const Documents = () => {
         </div>
       </main>
       <Footer />
+
+      <AlertDialog open={!!documentToDelete} onOpenChange={(open) => !open && setDocumentToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir documento?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta ação remove o arquivo enviado e cancela a análise desse documento.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => documentToDelete && handleDelete(documentToDelete)}
+            >
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

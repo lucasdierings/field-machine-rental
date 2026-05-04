@@ -1,9 +1,14 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
+<<<<<<< HEAD
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Users, Tractor, TrendingUp, Activity, BarChart3, FileCheck, Handshake } from 'lucide-react';
+=======
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { BarChart3, FileCheck, Tractor, TrendingUp, Users, Activity } from 'lucide-react';
+>>>>>>> origin/main
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { useUserRole } from '@/hooks/useUserRole';
@@ -11,11 +16,15 @@ import AdminUsersTab from '@/components/admin/AdminUsersTab';
 import AdminAnalyticsTab from '@/components/admin/AdminAnalyticsTab';
 import AdminMachinesTab from '@/components/admin/AdminMachinesTab';
 import { DocumentApproval } from '@/components/admin/DocumentApproval';
+<<<<<<< HEAD
 import {
   PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer,
   BarChart, Bar, XAxis, YAxis, CartesianGrid,
   LineChart, Line,
 } from 'recharts';
+=======
+import { AdminOverviewTab } from '@/components/admin/AdminOverviewTab';
+>>>>>>> origin/main
 
 interface DashboardStats {
   total_users: number;
@@ -39,10 +48,18 @@ interface TransactionRow {
   renter_name: string;
   value: number;
   date: string;
+<<<<<<< HEAD
 }
 interface UserGrowthRow { month: string; users: number; }
 
 const COLORS = ['#22c55e', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4', '#ec4899', '#84cc16'];
+=======
+  billing_type?: string;
+  billing_quantity?: number;
+}
+interface UserGrowthRow { month: string; users: number; }
+
+>>>>>>> origin/main
 
 const AdminDashboard = () => {
   const [stats, setStats] = useState<DashboardStats | null>(null);
@@ -81,6 +98,15 @@ const AdminDashboard = () => {
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
       const thirtyDaysAgoISO = thirtyDaysAgo.toISOString();
 
+<<<<<<< HEAD
+=======
+      // New users in last 30 days
+      const { count: newUsersCount } = await supabase
+        .from('user_profiles')
+        .select('*', { count: 'exact', head: true })
+        .gte('created_at', thirtyDaysAgoISO);
+
+>>>>>>> origin/main
       const { data: activeUserData } = await supabase
         .from('bookings')
         .select('renter_id, owner_id, created_at')
@@ -121,7 +147,11 @@ const AdminDashboard = () => {
       // 3. Bookings Stats
       const { data: bookingsData } = await supabase
         .from('bookings')
+<<<<<<< HEAD
         .select('id, status, total_price, total_amount, created_at, machine_id, renter_id, machines(name)')
+=======
+        .select('id, status, total_price, total_amount, negotiated_price, billing_type, billing_quantity, completed_at, created_at, machine_id, renter_id, machines(name)')
+>>>>>>> origin/main
         .order('created_at', { ascending: false });
 
       const bookings = bookingsData as any[] || [];
@@ -130,6 +160,7 @@ const AdminDashboard = () => {
       const pendingBookings = bookings.filter(b => b.status === 'pending').length;
       const completedBookings = bookings.filter(b => b.status === 'completed').length;
 
+<<<<<<< HEAD
       // Negotiations = value of completed bookings only
       const totalNegotiations = bookings
         .filter(b => b.status === 'completed')
@@ -138,6 +169,15 @@ const AdminDashboard = () => {
       const negotiations30d = bookings
         .filter(b => b.status === 'completed' && new Date(b.created_at) >= thirtyDaysAgo)
         .reduce((acc, curr) => acc + (Number(curr.total_price) || Number(curr.total_amount) || 0), 0);
+=======
+      const totalNegotiations = bookings
+        .filter(b => b.status === 'completed')
+        .reduce((acc, curr) => acc + (Number(curr.negotiated_price) || Number(curr.total_price) || Number(curr.total_amount) || 0), 0);
+
+      const negotiations30d = bookings
+        .filter(b => b.status === 'completed' && new Date(b.created_at) >= thirtyDaysAgo)
+        .reduce((acc, curr) => acc + (Number(curr.negotiated_price) || Number(curr.total_price) || Number(curr.total_amount) || 0), 0);
+>>>>>>> origin/main
 
       // Latest 5 completed transactions
       const completedList = bookings.filter(b => b.status === 'completed').slice(0, 5);
@@ -156,6 +196,7 @@ const AdminDashboard = () => {
           id: b.id,
           machine_name: b.machines?.name || 'Máquina',
           renter_name: renterMap[b.renter_id] || 'Usuário',
+<<<<<<< HEAD
           value: Number(b.total_price) || Number(b.total_amount) || 0,
           date: b.created_at,
         }))
@@ -171,6 +212,32 @@ const AdminDashboard = () => {
         const city = p.city?.trim();
         if (city) cityMap[city] = (cityMap[city] || 0) + 1;
       });
+=======
+          value: Number(b.negotiated_price) || Number(b.total_price) || Number(b.total_amount) || 0,
+          date: b.completed_at || b.created_at,
+          billing_type: b.billing_type || null,
+          billing_quantity: b.billing_quantity || null,
+        }))
+      );
+
+      // 4. Usuários por cidade — apenas do perfil do usuário (address JSON)
+      const { data: profilesCity } = await supabase
+        .from('user_profiles')
+        .select('address');
+
+      const cityMap: Record<string, number> = {};
+
+      (profilesCity || []).forEach((p: any) => {
+        const addr = typeof p.address === 'string' ? JSON.parse(p.address) : p.address;
+        const city = addr?.city?.trim();
+        const state = addr?.state?.trim();
+        if (city) {
+          const label = state ? `${city}/${state}` : city;
+          cityMap[label] = (cityMap[label] || 0) + 1;
+        }
+      });
+
+>>>>>>> origin/main
       setCityData(
         Object.entries(cityMap)
           .sort((a, b) => b[1] - a[1])
@@ -208,7 +275,11 @@ const AdminDashboard = () => {
       setStats({
         total_users: totalUsers || 0,
         active_users_30d: activeUserSet.size,
+<<<<<<< HEAD
         new_users_30d: 0,
+=======
+        new_users_30d: newUsersCount || 0,
+>>>>>>> origin/main
         total_machines: totalMachines || 0,
         available_machines: availableMachines || 0,
         total_bookings: totalBookings,
@@ -223,6 +294,14 @@ const AdminDashboard = () => {
       if (import.meta.env.DEV) {
         console.error('Failed to load stats:', error);
       }
+<<<<<<< HEAD
+=======
+      toast({
+        title: "Erro ao carregar estatísticas",
+        description: "Algumas métricas podem não estar disponíveis. Recarregue a página.",
+        variant: "destructive",
+      });
+>>>>>>> origin/main
     }
   };
 
@@ -244,9 +323,15 @@ const AdminDashboard = () => {
       {/* Header */}
       <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container mx-auto px-4 py-4">
+<<<<<<< HEAD
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold text-foreground">Painel Administrativo</h1>
+=======
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h1 className="text-2xl font-bold text-foreground sm:text-3xl">Painel Administrativo</h1>
+>>>>>>> origin/main
               <p className="text-muted-foreground">FieldMachine Dashboard</p>
             </div>
             <Button variant="outline" onClick={() => navigate('/')} className="gap-2">
@@ -257,6 +342,7 @@ const AdminDashboard = () => {
         </div>
       </header>
 
+<<<<<<< HEAD
       <main className="container mx-auto px-4 py-8">
         <Tabs defaultValue="dashboard" className="space-y-8">
           <TabsList className="grid w-full grid-cols-5">
@@ -564,6 +650,44 @@ const AdminDashboard = () => {
                 </CardContent>
               </Card>
             </div>
+=======
+      <main className="container mx-auto px-4 py-6 sm:py-8">
+        <Tabs defaultValue="dashboard" className="space-y-6 sm:space-y-8">
+          <div className="-mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0">
+            <TabsList className="inline-grid min-w-max grid-cols-5">
+            <TabsTrigger value="dashboard" className="gap-2 whitespace-nowrap">
+              <BarChart3 className="h-4 w-4" />
+              <span>Dashboard</span>
+            </TabsTrigger>
+            <TabsTrigger value="users" className="gap-2 whitespace-nowrap">
+              <Users className="h-4 w-4" />
+              <span>Usuários</span>
+            </TabsTrigger>
+            <TabsTrigger value="machines" className="gap-2 whitespace-nowrap">
+              <Tractor className="h-4 w-4" />
+              <span>Máquinas</span>
+            </TabsTrigger>
+            <TabsTrigger value="analytics" className="gap-2 whitespace-nowrap">
+              <TrendingUp className="h-4 w-4" />
+              <span>Analytics</span>
+            </TabsTrigger>
+            <TabsTrigger value="documents" className="gap-2 whitespace-nowrap">
+              <FileCheck className="h-4 w-4" />
+              <span>Documentos</span>
+            </TabsTrigger>
+          </TabsList>
+          </div>
+
+          <TabsContent value="dashboard">
+            <AdminOverviewTab
+              stats={stats}
+              categoryData={categoryData}
+              cityData={cityData}
+              transactions={transactions}
+              userGrowth={userGrowth}
+              calculateConversionRate={calculateConversionRate}
+            />
+>>>>>>> origin/main
           </TabsContent>
 
           <TabsContent value="users">

@@ -1,10 +1,19 @@
+<<<<<<< HEAD
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+=======
+import { useMemo, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+>>>>>>> origin/main
 import { Header } from "@/components/ui/header";
 import { Footer } from "@/components/ui/footer";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+<<<<<<< HEAD
 import { useToast } from "@/hooks/use-toast";
 import { Plus, TrendingUp, Tractor, ShoppingCart, BarChart3, Calendar } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -84,16 +93,75 @@ export default function Dashboard() {
         const { data: profiles } = await supabase
           .from("user_profiles")
           .select("auth_user_id, full_name, phone")
+=======
+import { Plus, Tractor, ShoppingCart, Calendar } from "lucide-react";
+import { BookingRequestsList } from "@/components/booking/BookingRequestsList";
+import { RenterBookingsList } from "@/components/booking/RenterBookingsList";
+import { DashboardMetrics } from "@/components/dashboard/DashboardMetrics";
+import { DashboardMachineCard } from "@/components/dashboard/DashboardMachineCard";
+
+export default function Dashboard() {
+  const navigate = useNavigate();
+  const { userId } = useAuth();
+
+  // Load user machines
+  const { data: userMachines = [], refetch: refetchMachines } = useQuery({
+    queryKey: ['dashboard-machines', userId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("machines")
+        .select("*, machine_images(image_url)")
+        .eq("owner_id", userId!);
+      if (error) throw error;
+      return data ?? [];
+    },
+    enabled: !!userId,
+  });
+
+  // Load bookings
+  const { data: bookings = [], refetch: refetchBookings } = useQuery({
+    queryKey: ['dashboard-bookings', userId],
+    queryFn: async () => {
+      // Step 1: Load bookings
+      const { data: rawBookings, error } = await supabase
+        .from("bookings" as any)
+        .select("*, machines(name, category, brand)")
+        .or(`renter_id.eq.${userId},owner_id.eq.${userId}`)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      const bookingsList = rawBookings || [];
+
+      // Step 2: Fetch profiles for all unique user IDs
+      const userIds = [...new Set([
+        ...bookingsList.map((b: any) => b.renter_id),
+        ...bookingsList.map((b: any) => b.owner_id),
+      ].filter(Boolean))];
+
+      let profileMap: Record<string, { full_name: string; phone?: string; profile_image?: string | null; verified?: boolean }> = {};
+      if (userIds.length > 0) {
+        // RLS "Booking partners can view profile" autoriza phone/email para
+        // contrapartes de uma booking. Para o próprio user, "Users can view
+        // own profile" também cobre.
+        const { data: profiles } = await supabase
+          .from("user_profiles")
+          .select("auth_user_id, full_name, phone, profile_image, verified")
+>>>>>>> origin/main
           .in("auth_user_id", userIds);
         profileMap = Object.fromEntries((profiles || []).map((p: any) => [p.auth_user_id, p]));
       }
 
       // Step 3: Merge profiles into bookings
+<<<<<<< HEAD
       const bookingsList = rawBookings.map((b: any) => ({
+=======
+      return bookingsList.map((b: any) => ({
+>>>>>>> origin/main
         ...b,
         renter: profileMap[b.renter_id] || null,
         owner: profileMap[b.owner_id] || null,
       }));
+<<<<<<< HEAD
 
       setBookings(bookingsList);
 
@@ -159,6 +227,59 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-background pb-16 md:pb-0">
+=======
+    },
+    enabled: !!userId,
+  });
+
+  const refetchAll = useCallback(() => {
+    refetchMachines();
+    refetchBookings();
+  }, [refetchMachines, refetchBookings]);
+
+  // Calculate Metrics
+  const metrics = useMemo(() => {
+    const now = new Date();
+    const currentMonth = now.getMonth();
+    const currentYear = now.getFullYear();
+
+    const activeMachinesCount = userMachines.filter((m: any) => m.status === 'available').length;
+    const pendingRequestsCount = bookings.filter((b: any) => b.status === 'pending' && b.owner_id === userId).length;
+
+    const monthlyRevenueValue = bookings
+      .filter((b: any) => {
+        const completedDate = b.completed_at ? new Date(b.completed_at) : new Date(b.created_at);
+        return b.owner_id === userId &&
+          b.status === 'completed' &&
+          completedDate.getMonth() === currentMonth &&
+          completedDate.getFullYear() === currentYear;
+      })
+      .reduce((acc: number, curr: any) => {
+        const amount = Number(curr.negotiated_price || curr.total_price || curr.total_amount || 0);
+        return acc + amount;
+      }, 0);
+
+    const upcomingReservationsCount = bookings.filter((b: any) =>
+      (b.owner_id === userId || b.renter_id === userId) &&
+      (b.status === 'confirmed') &&
+      new Date(b.start_date) > now
+    ).length;
+
+    return {
+      monthlyRevenue: monthlyRevenueValue,
+      revenueChange: 0,
+      occupancyRate: 0,
+      occupancyChange: 0,
+      activeMachines: activeMachinesCount,
+      pendingRequests: pendingRequestsCount,
+      monthlyEarnings: monthlyRevenueValue,
+      upcomingReservations: upcomingReservationsCount
+    };
+  }, [userMachines, bookings, userId]);
+
+  return (
+    <div className="min-h-screen bg-background pb-20 md:pb-0">
+>>>>>>> origin/main
       <Header />
 
       <main className="pt-16 pb-24">
@@ -170,6 +291,7 @@ export default function Dashboard() {
                 Painel do Proprietário
               </h1>
               <p className="text-muted-foreground text-sm">
+<<<<<<< HEAD
                 Olá, {userProfile?.full_name || 'Fazenda Santa Rita'}!
               </p>
             </div>
@@ -289,29 +411,56 @@ export default function Dashboard() {
 
           {/* Provider Section: All incoming booking requests */}
           {bookings.some((b: any) => b.owner_id === user?.id) && (
+=======
+                Bem-vindo ao seu painel!
+              </p>
+            </div>
+
+          </div>
+
+          <DashboardMetrics metrics={metrics} />
+
+          {/* Provider Section: All incoming booking requests */}
+          {bookings.some((b: any) => b.owner_id === userId) && (
+>>>>>>> origin/main
             <div className="mb-8">
               <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
                 <ShoppingCart className="w-5 h-5 text-orange-500" />
                 Solicitações Recebidas (Prestador)
               </h2>
               <BookingRequestsList
+<<<<<<< HEAD
                 bookings={bookings.filter((b: any) => b.owner_id === user?.id)}
                 onUpdate={loadUserData}
                 currentUserId={user?.id}
+=======
+                bookings={bookings.filter((b: any) => b.owner_id === userId)}
+                onUpdate={refetchAll}
+                currentUserId={userId}
+>>>>>>> origin/main
               />
             </div>
           )}
 
           {/* Renter Section: My Sent Requests */}
+<<<<<<< HEAD
           {bookings.some((b: any) => b.renter_id === user?.id) && (
+=======
+          {bookings.some((b: any) => b.renter_id === userId) && (
+>>>>>>> origin/main
             <div className="mb-8">
               <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
                 <Calendar className="w-5 h-5 text-blue-500" />
                 Minhas Solicitações (Enviadas)
               </h2>
               <RenterBookingsList
+<<<<<<< HEAD
                 bookings={bookings.filter((b: any) => b.renter_id === user?.id)}
                 currentUserId={user?.id}
+=======
+                bookings={bookings.filter((b: any) => b.renter_id === userId)}
+                currentUserId={userId}
+>>>>>>> origin/main
               />
             </div>
           )}
@@ -323,7 +472,11 @@ export default function Dashboard() {
                 <ShoppingCart className="w-5 h-5 text-orange-500" />
                 Solicitações de Serviço
               </h2>
+<<<<<<< HEAD
               <BookingRequestsList bookings={[]} onUpdate={loadUserData} currentUserId={user?.id} />
+=======
+              <BookingRequestsList bookings={[]} onUpdate={refetchAll} currentUserId={userId} />
+>>>>>>> origin/main
             </div>
           )}
 
@@ -345,6 +498,7 @@ export default function Dashboard() {
 
             {userMachines.length > 0 ? (
               <div className="space-y-4">
+<<<<<<< HEAD
                 {userMachines.slice(0, 3).map((machine) => {
                   // Calculate real metrics for each machine
                   const machineBookings = bookings.filter((b: any) => b.machine_id === machine.id);
@@ -415,6 +569,22 @@ export default function Dashboard() {
                         </div>
                       </CardContent>
                     </Card>
+=======
+                {userMachines.slice(0, 3).map((machine: any) => {
+                  const machineBookings = bookings.filter((b: any) => b.machine_id === machine.id);
+                  const machineRevenue = machineBookings
+                    .filter((b: any) => b.status === 'completed')
+                    .reduce((acc: number, curr: any) => {
+                      return acc + Number(curr.negotiated_price || curr.total_price || curr.total_amount || 0);
+                    }, 0);
+                  return (
+                    <DashboardMachineCard
+                      key={machine.id}
+                      machine={machine}
+                      revenue={machineRevenue}
+                      reservations={machineBookings.length}
+                    />
+>>>>>>> origin/main
                   );
                 })}
               </div>
@@ -452,4 +622,8 @@ export default function Dashboard() {
       <Footer />
     </div>
   );
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> origin/main

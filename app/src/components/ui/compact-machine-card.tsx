@@ -41,7 +41,7 @@ export const CompactMachineCard = ({ machine }: CompactMachineCardProps) => {
           <div className="relative w-28 h-full flex-shrink-0">
             <img
               src={imageUrl}
-              alt={machine.name}
+              alt={`${machine.name}${machine.brand ? ` - ${machine.brand}` : ""}`}
               className="w-full h-full object-cover"
               loading="lazy"
             />

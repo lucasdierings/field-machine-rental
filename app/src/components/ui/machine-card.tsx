@@ -40,7 +40,8 @@ export const MachineCard = ({ machine }: MachineCardProps) => {
       <div className="relative">
         <img
           src={machine.image}
-          alt={machine.name}
+          alt={`${machine.name}${machine.brand ? ` - ${machine.brand}` : ""}`}
+          loading="lazy"
           className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
         />
         <Badge

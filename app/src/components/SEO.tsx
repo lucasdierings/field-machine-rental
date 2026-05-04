@@ -7,7 +7,7 @@ interface SEOProps {
     canonical?: string;
 }
 
-export const SEO = ({ title, description, canonical }: SEOProps) => {
+export const SEO = ({ title, description, canonical, structuredData }: SEOProps & { structuredData?: any }) => {
     const siteTitle = "FieldMachine - Aluguel de Máquinas Agrícolas";
     const defaultDescription = "Conecte-se diretamente com prestadores de serviços agrícolas. Alugue tratores, colheitadeiras e muito mais sem taxas.";
     const baseUrl = window.location.origin;
@@ -32,6 +32,13 @@ export const SEO = ({ title, description, canonical }: SEOProps) => {
             <meta name="twitter:card" content="summary_large_image" />
             <meta name="twitter:title" content={fullTitle} />
             <meta name="twitter:description" content={fullDescription} />
+
+            {/* Structured Data (JSON-LD) */}
+            {structuredData && (
+                <script type="application/ld+json">
+                    {JSON.stringify(structuredData)}
+                </script>
+            )}
         </Helmet>
     );
 };

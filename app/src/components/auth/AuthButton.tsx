@@ -10,7 +10,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { LogOut, Settings, User as UserIcon, Tractor } from "lucide-react";
+import { LogOut, Settings, User as UserIcon, Tractor, FileText } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 
@@ -75,10 +75,10 @@ export const AuthButton = () => {
 
   const handleLogout = async () => {
     try {
-      // Clear any cached data
-      localStorage.clear();
-      sessionStorage.clear();
-
+      // supabase.auth.signOut() já limpa os tokens de sessão do storage
+      // usado pelo cliente. NÃO chamar localStorage.clear()/sessionStorage.clear()
+      // aqui porque isso removeria também preferências do usuário, cache de
+      // componentes e dados de outras aplicações que compartilhem o domínio.
       const { error } = await supabase.auth.signOut();
 
       if (error) {
@@ -87,14 +87,25 @@ export const AuthButton = () => {
           description: error.message,
           variant: "destructive",
         });
-      } else {
-        toast({
-          title: "Logout realizado",
-          description: "Até logo!",
-        });
-        // Force reload to clear all state
-        window.location.href = '/';
+        return;
       }
+
+      // Remove explicitamente rascunhos conhecidos (cadastro), mas sem
+      // tocar em outras chaves do storage.
+      try {
+        localStorage.removeItem("fm:register-draft");
+      } catch {
+        // noop
+      }
+
+      toast({
+        title: "Logout realizado",
+        description: "Até logo!",
+      });
+
+      // Usa navegação do React Router em vez de window.location para
+      // evitar flash de recarregamento completo.
+      navigate("/");
     } catch (error) {
       toast({
         title: "Erro ao sair",
@@ -150,13 +161,17 @@ export const AuthButton = () => {
           <UserIcon className="mr-2 h-4 w-4" />
           <span>Dashboard</span>
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => navigate('/dashboard/perfil')}>
-          <Settings className="mr-2 h-4 w-4" />
-          <span>Configurações</span>
-        </DropdownMenuItem>
         <DropdownMenuItem onClick={() => navigate('/minhas-maquinas')}>
           <Tractor className="mr-2 h-4 w-4" />
           <span>Minhas Máquinas</span>
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => navigate('/dashboard/solicitacoes')}>
+          <FileText className="mr-2 h-4 w-4" />
+          <span>Solicitações</span>
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => navigate('/dashboard/perfil')}>
+          <Settings className="mr-2 h-4 w-4" />
+          <span>Perfil</span>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={handleLogout}>

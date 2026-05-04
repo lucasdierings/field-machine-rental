@@ -1,8 +1,14 @@
+<<<<<<< HEAD
 import { useEffect, useState } from "react";
 import { User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { Navigate, useLocation } from "react-router-dom";
 import { Loader2 } from "lucide-react";
+=======
+import { Navigate, useLocation } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
+import { PageLoader } from "@/components/ui/page-loader";
+>>>>>>> origin/main
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -10,6 +16,7 @@ interface ProtectedRouteProps {
 }
 
 export const ProtectedRoute = ({ children, redirectTo = "/login" }: ProtectedRouteProps) => {
+<<<<<<< HEAD
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const location = useLocation();
@@ -38,6 +45,13 @@ export const ProtectedRoute = ({ children, redirectTo = "/login" }: ProtectedRou
         <Loader2 className="h-8 w-8 animate-spin" />
       </div>
     );
+=======
+  const { user, loading } = useAuth();
+  const location = useLocation();
+
+  if (loading) {
+    return <PageLoader />;
+>>>>>>> origin/main
   }
 
   if (!user) {

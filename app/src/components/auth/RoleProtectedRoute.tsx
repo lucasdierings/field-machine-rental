@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import { Navigate, useLocation } from "react-router-dom";
-import { Loader2 } from "lucide-react";
-import { useUserRole } from "@/hooks/useUserRole";
-import { Database } from "@/integrations/supabase/types";
+import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
+import { PageLoader } from "@/components/ui/page-loader";
+import { Database } from "@/integrations/supabase/types";
 
 type UserRole = Database['public']['Enums']['app_role'];
 
@@ -13,18 +13,20 @@ interface RoleProtectedRouteProps {
   redirectTo?: string;
 }
 
-export const RoleProtectedRoute = ({ 
-  children, 
-  allowedRoles, 
-  redirectTo = "/dashboard" 
+export const RoleProtectedRoute = ({
+  children,
+  allowedRoles,
+  redirectTo = "/dashboard"
 }: RoleProtectedRouteProps) => {
-  const { role, loading, hasRole } = useUserRole();
+  const { user, role, loading, roleLoading } = useAuth();
   const location = useLocation();
   const { toast } = useToast();
   const [hasShownToast, setHasShownToast] = useState(false);
 
+  const isAllowed = role ? allowedRoles.includes(role as UserRole) : false;
+
   useEffect(() => {
-    if (!loading && role && !hasRole(allowedRoles) && !hasShownToast) {
+    if (!loading && !roleLoading && role && !isAllowed && !hasShownToast) {
       toast({
         title: "Acesso negado",
         description: "Você não tem permissão para acessar esta página",
@@ -32,21 +34,17 @@ export const RoleProtectedRoute = ({
       });
       setHasShownToast(true);
     }
-  }, [loading, role, hasRole, allowedRoles, hasShownToast, toast]);
+  }, [loading, roleLoading, role, isAllowed, hasShownToast, toast]);
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <Loader2 className="h-8 w-8 animate-spin" />
-      </div>
-    );
+  if (loading || roleLoading) {
+    return <PageLoader />;
   }
 
-  if (!role) {
+  if (!user) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  if (!hasRole(allowedRoles)) {
+  if (!isAllowed) {
     return <Navigate to={redirectTo} replace />;
   }
 

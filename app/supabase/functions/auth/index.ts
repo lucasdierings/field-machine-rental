@@ -1,17 +1,64 @@
 import { Hono } from 'https://deno.land/x/hono@v4.0.0/mod.ts';
-import { cors } from 'https://deno.land/x/hono@v4.0.0/middleware.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 // ---- Config ----
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
 const SUPABASE_ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY')!;
-const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 
-// Cliente com service role para operações administrativas
-const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+const ALLOWED_ORIGINS = [
+    'https://app.fieldmachine.com.br',
+    'https://fieldmachine.com.br',
+    'https://www.fieldmachine.com.br',
+    'https://field-machine-rental.pages.dev',
+    'http://localhost:5173',
+    'http://localhost:8080',
+];
+
+const isAllowedOrigin = (origin: string | undefined): boolean => {
+    if (!origin) return true;
+    if (ALLOWED_ORIGINS.includes(origin)) return true;
+    return /^https:\/\/[a-z0-9-]+\.field-machine-rental\.pages\.dev$/.test(origin);
+};
+
+const publicClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+    auth: {
+        persistSession: false,
+        autoRefreshToken: false,
+    },
+});
+
+const createUserClient = (authHeader: string) =>
+    createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+        auth: {
+            persistSession: false,
+            autoRefreshToken: false,
+        },
+        global: {
+            headers: { Authorization: authHeader },
+        },
+    });
 
 const app = new Hono();
-app.use('*', cors());
+
+app.use('*', async (c, next) => {
+    const origin = c.req.header('Origin');
+    const allowedOrigin = origin && isAllowedOrigin(origin) ? origin : ALLOWED_ORIGINS[0];
+
+    c.header('Access-Control-Allow-Origin', allowedOrigin);
+    c.header('Access-Control-Allow-Headers', 'authorization, x-client-info, apikey, content-type');
+    c.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    c.header('Vary', 'Origin');
+
+    if (c.req.method === 'OPTIONS') {
+        return c.text('ok', 200);
+    }
+
+    if (!isAllowedOrigin(origin)) {
+        return c.json({ error: 'Origin not allowed' }, 403);
+    }
+
+    await next();
+});
 
 // ============================================
 // SIGNUP - Usa Supabase Auth com verificação de email
@@ -24,26 +71,22 @@ app.post('/signup', async (c) => {
             return c.json({ error: 'Email e senha são obrigatórios' }, 400);
         }
 
-        // Cria usuário com Supabase Auth (envia email de verificação automaticamente)
-        const { data, error } = await supabaseAdmin.auth.admin.createUser({
+        const { data, error } = await publicClient.auth.signUp({
             email,
             password,
-            email_confirm: false, // Requer confirmação de email
-            user_metadata: {
-                full_name: full_name || '',
-                cpf_cnpj: cpf_cnpj || '',
-                phone: phone || '',
-                user_type: user_type || 'producer'
-            }
+            options: {
+                data: {
+                    full_name: full_name || '',
+                    cpf_cnpj: cpf_cnpj || '',
+                    phone: phone || '',
+                    user_type: user_type || 'producer'
+                }
+            },
         });
 
         if (error) {
             return c.json({ error: error.message }, 400);
         }
-
-        // Usa inviteUserByEmail para enviar email de verificação
-        // Ou usa o método nativo que já envia automaticamente quando email_confirm: false
-        console.log('Usuário criado:', data.user?.id);
 
         return c.json({
             user: data.user,
@@ -69,9 +112,7 @@ app.post('/login', async (c) => {
         }
 
         // Cliente temporário para fazer login
-        const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-        const { data, error } = await supabaseClient.auth.signInWithPassword({
+        const { data, error } = await publicClient.auth.signInWithPassword({
             email,
             password
         });
@@ -103,7 +144,7 @@ app.get('/verify-status', async (c) => {
 
         const token = authHeader.replace('Bearer ', '');
 
-        const { data: { user }, error } = await supabaseAdmin.auth.getUser(token);
+        const { data: { user }, error } = await publicClient.auth.getUser(token);
 
         if (error || !user) {
             return c.json({ error: 'Token inválido' }, 401);
@@ -132,34 +173,17 @@ app.post('/resend-verification', async (c) => {
             return c.json({ error: 'Email é obrigatório' }, 400);
         }
 
-        // Busca o usuário pelo email
-        const { data: userData, error: userError } = await supabaseAdmin.auth.admin.listUsers();
-        
-        if (userError) {
-            return c.json({ error: 'Erro ao buscar usuário' }, 500);
-        }
-
-        const user = userData.users.find(u => u.email === email);
-        
-        if (!user) {
-            return c.json({ error: 'Usuário não encontrado' }, 404);
-        }
-
-        // Gera link de confirmação usando magiclink como alternativa
-        const { data, error } = await supabaseAdmin.auth.admin.generateLink({
-            type: 'magiclink',
-            email: email,
+        const { error } = await publicClient.auth.resend({
+            type: 'signup',
+            email,
         });
 
         if (error) {
-            console.error('Erro ao gerar link:', error);
-            return c.json({ error: error.message }, 400);
+            console.warn('Falha ao reenviar verificação:', error.message);
         }
 
-        console.log('Link de verificação gerado para:', email);
-
         return c.json({
-            message: 'Email de verificação reenviado com sucesso',
+            message: 'Se o email estiver cadastrado, enviaremos uma nova verificação.',
             email_sent: true
         });
 
@@ -181,14 +205,15 @@ app.get('/profile-status', async (c) => {
 
         const token = authHeader.replace('Bearer ', '');
 
-        const { data: { user }, error } = await supabaseAdmin.auth.getUser(token);
+        const { data: { user }, error } = await publicClient.auth.getUser(token);
 
         if (error || !user) {
             return c.json({ error: 'Token inválido' }, 401);
         }
 
-        // Busca status do perfil
-        const { data: profile, error: profileError } = await supabaseAdmin
+        const supabaseUser = createUserClient(authHeader);
+
+        const { data: profile, error: profileError } = await supabaseUser
             .from('user_profiles')
             .select('profile_completed, profile_completion_step, email_verified_at')
             .eq('auth_user_id', user.id)

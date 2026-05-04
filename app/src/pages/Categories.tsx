@@ -1,7 +1,10 @@
 import { Header } from "@/components/ui/header";
 import { Footer } from "@/components/ui/footer";
 import { CategorySection } from "@/components/ui/category-section";
+<<<<<<< HEAD
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+=======
+>>>>>>> origin/main
 import { SEO } from "@/components/SEO";
 
 const Categories = () => {
@@ -9,7 +12,11 @@ const Categories = () => {
     <div className="min-h-screen bg-background">
       <SEO
         title="Categorias de Serviços e Máquinas Agrícolas"
+<<<<<<< HEAD
         description="Explore todas as categorias de serviços e aluguel de máquinas agrícolas. Tratores, colheitadeiras, pulverizadores e muito mais."
+=======
+        description="Explore todas as categorias de serviços e aluguel de máquinas agrícolas. Tratores, colheitadeiras, pulverizadores, drones e muito mais."
+>>>>>>> origin/main
         canonical="/servicos"
       />
       <Header />
@@ -17,14 +24,21 @@ const Categories = () => {
         {/* Page Header */}
         <section className="py-12 bg-gradient-hero text-white">
           <div className="container mx-auto px-4 text-center">
+<<<<<<< HEAD
             <h1 className="text-4xl font-bold mb-4">Categorias de Equipamentos</h1>
             <p className="text-xl opacity-90 max-w-2xl mx-auto">
               Encontre o equipamento agrícola ideal para sua operação
+=======
+            <h1 className="text-4xl font-bold mb-4">Serviços e Operações Agrícolas</h1>
+            <p className="text-xl opacity-90 max-w-2xl mx-auto">
+              Encontre prestadores de serviço para cada etapa da sua produção
+>>>>>>> origin/main
             </p>
           </div>
         </section>
 
         {/* Categories Grid */}
+<<<<<<< HEAD
         <section className="py-12">
           <div className="container mx-auto px-4">
             <CategorySection />
@@ -76,10 +90,17 @@ const Categories = () => {
             </div>
           </div>
         </section>
+=======
+        <CategorySection />
+>>>>>>> origin/main
       </main>
       <Footer />
     </div>
   );
 };
 
+<<<<<<< HEAD
 export default Categories;
+=======
+export default Categories;
+>>>>>>> origin/main

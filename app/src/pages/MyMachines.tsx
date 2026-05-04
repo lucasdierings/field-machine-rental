@@ -1,4 +1,3 @@
-import { useState, useEffect } from "react";
 import { Header } from "@/components/ui/header";
 import { Footer } from "@/components/ui/footer";
 import { Button } from "@/components/ui/button";
@@ -6,7 +5,9 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, Plus, Edit, Trash2, Power, MapPin, Calendar } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { Loader2, Plus, Edit, Trash2, Power, MapPin } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import {
     AlertDialog,
@@ -33,31 +34,25 @@ interface Machine {
 }
 
 const MyMachines = () => {
-    const [machines, setMachines] = useState<Machine[]>([]);
-    const [loading, setLoading] = useState(true);
     const { toast } = useToast();
     const navigate = useNavigate();
+    const { userId } = useAuth();
+    const queryClient = useQueryClient();
 
-    useEffect(() => {
-        loadMyMachines();
-    }, []);
-
-    const loadMyMachines = async () => {
-        try {
-            const { data: { user } } = await supabase.auth.getUser();
-            if (!user) return;
-
+    const { data: machines = [], isLoading } = useQuery({
+        queryKey: ['my-machines', userId],
+        queryFn: async () => {
             const { data, error } = await supabase
                 .from('machines')
                 .select('*, machine_images(image_url, is_primary, order_index)')
-                .eq('owner_id', user.id)
+                .eq('owner_id', userId!)
                 .order('created_at', { ascending: false });
 
             if (error) throw error;
 
             // Map the relation data to the expected images array format
             // Sort images to put primary first, then by order_index
-            const formattedMachines = (data || []).map((machine: any) => {
+            return (data || []).map((machine: any) => {
                 const sortedImages = machine.machine_images?.sort((a: any, b: any) => {
                     if (a.is_primary === true && b.is_primary !== true) return -1;
                     if (b.is_primary === true && a.is_primary !== true) return 1;
@@ -69,18 +64,9 @@ const MyMachines = () => {
                     images: sortedImages?.map((img: any) => img.image_url) || []
                 };
             });
-
-            setMachines(formattedMachines);
-        } catch (error: any) {
-            toast({
-                title: "Erro ao carregar máquinas",
-                description: error.message,
-                variant: "destructive"
-            });
-        } finally {
-            setLoading(false);
-        }
-    };
+        },
+        enabled: !!userId,
+    });
 
     const handleToggleStatus = async (machine: Machine) => {
         try {
@@ -93,9 +79,7 @@ const MyMachines = () => {
 
             if (error) throw error;
 
-            setMachines(machines.map(m =>
-                m.id === machine.id ? { ...m, status: newStatus } : m
-            ));
+            queryClient.invalidateQueries({ queryKey: ['my-machines', userId] });
 
             toast({
                 title: "Status atualizado",
@@ -119,7 +103,7 @@ const MyMachines = () => {
 
             if (error) throw error;
 
-            setMachines(machines.filter(m => m.id !== id));
+            queryClient.invalidateQueries({ queryKey: ['my-machines', userId] });
 
             toast({
                 title: "Máquina excluída",
@@ -134,7 +118,7 @@ const MyMachines = () => {
         }
     };
 
-    if (loading) {
+    if (isLoading) {
         return (
             <div className="min-h-screen flex items-center justify-center">
                 <Loader2 className="h-8 w-8 animate-spin" />
@@ -172,7 +156,7 @@ const MyMachines = () => {
                     </Card>
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {machines.map((machine) => (
+                        {machines.map((machine: Machine) => (
                             <Card key={machine.id} className="overflow-hidden hover:shadow-lg transition-shadow">
                                 <div className="aspect-video relative bg-muted">
                                     {machine.images && machine.images[0] ? (

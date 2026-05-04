@@ -379,11 +379,4 @@ export const demoMachines: DemoMachine[] = [
     },
 ];
 
-export const categories = [
-    'Tratores',
-    'Colheitadeiras',
-    'Pulverizadores',
-    'Plantadeiras',
-    'Implementos',
-    'Transporte de Cargas',
-];
+export { CATEGORY_NAMES as categories } from './categories';

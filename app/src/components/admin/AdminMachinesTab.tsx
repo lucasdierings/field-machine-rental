@@ -55,12 +55,13 @@ const AdminMachinesTab = () => {
         try {
             setLoading(true);
 
+            // Não dá para fazer join Supabase entre `machines` e `user_profiles`
+            // porque o FK de machines.owner_id aponta para auth.users (não para
+            // user_profiles diretamente). Buscamos as duas tabelas separadamente
+            // e fazemos o merge em memória.
             let query = supabase
                 .from('machines')
-                .select(`
-          *,
-          owner:users(full_name, email)
-        `, { count: 'exact' });
+                .select('*', { count: 'exact' });
 
             // Apply filters
             if (searchTerm) {
@@ -76,23 +77,48 @@ const AdminMachinesTab = () => {
             const to = from + itemsPerPage - 1;
 
             query = query
-                .range(from, to)
-                .order('created_at', { ascending: false });
+                .order('created_at', { ascending: false })
+                .range(from, to);
 
-            const { data, error, count } = await query;
+            const { data: machinesData, error, count } = await query;
 
             if (error) throw error;
 
-            // Transform data to match interface (handling potential join issues)
-            const formattedMachines = data?.map((machine: any) => ({
+            // Busca perfis dos proprietários em uma única query
+            const ownerIds = Array.from(
+                new Set(
+                    (machinesData ?? [])
+                        .map((m: any) => m.owner_id)
+                        .filter((id: string | null): id is string => !!id)
+                )
+            );
+
+            const ownerById: Record<string, { full_name: string; email: string }> = {};
+            if (ownerIds.length > 0) {
+                const { data: profiles } = await supabase
+                    .from('user_profiles')
+                    .select('auth_user_id, full_name, email')
+                    .in('auth_user_id', ownerIds);
+
+                (profiles ?? []).forEach((p: any) => {
+                    ownerById[p.auth_user_id] = {
+                        full_name: p.full_name ?? 'Sem nome',
+                        email: p.email ?? '',
+                    };
+                });
+            }
+
+            const formattedMachines: Machine[] = (machinesData ?? []).map((machine: any) => ({
                 ...machine,
-                owner: machine.owner // Supabase returns joined data here
-            })) || [];
+                owner: machine.owner_id ? ownerById[machine.owner_id] : undefined,
+            }));
 
             setMachines(formattedMachines);
             setTotalMachines(count || 0);
         } catch (error) {
-            console.error('Failed to load machines:', error);
+            if (import.meta.env.DEV) {
+                console.error('Failed to load machines:', error);
+            }
             toast({
                 title: "Erro",
                 description: "Falha ao carregar máquinas.",
@@ -162,18 +188,18 @@ const AdminMachinesTab = () => {
             <CardContent className="space-y-6">
                 {/* Filters */}
                 <div className="flex flex-col gap-4 md:flex-row md:items-center">
-                    <div className="relative">
+                    <div className="relative w-full md:w-auto">
                         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                         <Input
                             placeholder="Buscar por nome, marca ou modelo..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="pl-9 w-[300px]"
+                            className="w-full pl-9 md:w-[300px]"
                         />
                     </div>
 
                     <Select value={filterStatus} onValueChange={setFilterStatus}>
-                        <SelectTrigger className="w-[150px]">
+                        <SelectTrigger className="w-full md:w-[160px]">
                             <Filter className="h-4 w-4" />
                             <SelectValue placeholder="Status" />
                         </SelectTrigger>
@@ -188,7 +214,7 @@ const AdminMachinesTab = () => {
                 </div>
 
                 {/* Machines Table */}
-                <div className="rounded-md border">
+                <div className="overflow-x-auto rounded-md border">
                     <Table>
                         <TableHeader>
                             <TableRow>
@@ -221,17 +247,17 @@ const AdminMachinesTab = () => {
                             ) : (
                                 machines.map((machine) => (
                                     <TableRow key={machine.id}>
-                                        <TableCell className="font-medium">{machine.name}</TableCell>
-                                        <TableCell>{machine.brand} {machine.model}</TableCell>
-                                        <TableCell>{machine.year}</TableCell>
-                                        <TableCell>
+                                        <TableCell className="min-w-[180px] font-medium">{machine.name}</TableCell>
+                                        <TableCell className="min-w-[160px]">{machine.brand} {machine.model}</TableCell>
+                                        <TableCell className="whitespace-nowrap">{machine.year}</TableCell>
+                                        <TableCell className="min-w-[200px]">
                                             <div className="flex flex-col">
                                                 <span className="font-medium">{machine.owner?.full_name || 'Desconhecido'}</span>
-                                                <span className="text-xs text-muted-foreground">{machine.owner?.email}</span>
+                                                <span className="break-all text-xs text-muted-foreground">{machine.owner?.email}</span>
                                             </div>
                                         </TableCell>
                                         <TableCell>{getStatusBadge(machine.status)}</TableCell>
-                                        <TableCell>{formatDate(machine.created_at)}</TableCell>
+                                        <TableCell className="whitespace-nowrap">{formatDate(machine.created_at)}</TableCell>
                                         <TableCell>
                                             <div className="flex items-center gap-2">
                                                 <Button variant="ghost" size="sm" asChild>
@@ -274,11 +300,11 @@ const AdminMachinesTab = () => {
                 </div>
 
                 {/* Pagination */}
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <p className="text-sm text-muted-foreground">
                         Mostrando {((currentPage - 1) * itemsPerPage) + 1} a {Math.min(currentPage * itemsPerPage, totalMachines)} de {totalMachines} máquinas
                     </p>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center justify-between gap-2 sm:justify-end">
                         <Button
                             variant="outline"
                             size="sm"

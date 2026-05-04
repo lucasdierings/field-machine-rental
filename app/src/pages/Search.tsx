@@ -9,12 +9,30 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { Search as SearchIcon, Filter, Bell } from "lucide-react";
 import { SEO } from "@/components/SEO";
 
+const createDefaultFilters = (
+  category = "Todas as categorias",
+  culture = "Selecionar cultura"
+): FilterValues => ({
+  priceRange: [100, 2000],
+  distanceRadius: "50km",
+  powerRange: "Todas",
+  availability: "Qualquer",
+  yearRange: [2015, new Date().getFullYear()],
+  minRating: 0,
+  minServices: 0,
+  verifiedOnly: false,
+  category,
+  culture,
+});
+
 const Search = () => {
   const { toast } = useToast();
+  const { userId, user } = useAuth();
   const { city } = useParams();
   const locationObj = useLocation();
 
@@ -34,20 +52,7 @@ const Search = () => {
   const [culture, setCulture] = useState("Selecionar cultura");
   const [operation, setOperation] = useState("Selecionar operação");
 
-  const defaultFilters: FilterValues = {
-    priceRange: [100, 2000],
-    distanceRadius: "50km",
-    powerRange: "Todas",
-    availability: "Qualquer",
-    yearRange: [2015, 2024],
-    minRating: 0,
-    minServices: 0,
-    verifiedOnly: false,
-    category: category,
-    culture: culture
-  };
-
-  const [filters, setFilters] = useState<FilterValues>(defaultFilters);
+  const [filters, setFilters] = useState<FilterValues>(() => createDefaultFilters());
 
   // SEO Logic
   let seoTitle = "Busca de Serviços Agrícolas";
@@ -86,28 +91,32 @@ const Search = () => {
     if (city) {
       const cityName = city.replace(/-/g, ' ');
       setLocation(cityName);
-      setSearchFilters(prev => ({ ...prev, location: cityName, ...defaultFilters }));
+      setSearchFilters(prev => ({ ...createDefaultFilters(), ...prev, location: cityName }));
     }
 
     // Handle Category Landing Pages
     if (locationObj.pathname.includes('/servicos/colheita')) {
       setOperation("Colheita");
       setCategory("Colheitadeiras");
-      setSearchFilters(prev => ({ ...defaultFilters, location: prev?.location, category: "Colheitadeiras", operation: "Colheita" }));
+      setFilters(prev => ({ ...prev, category: "Colheitadeiras" }));
+      setSearchFilters(prev => ({ ...createDefaultFilters("Colheitadeiras"), location: prev?.location, category: "Colheitadeiras", operation: "Colheita" }));
     } else if (locationObj.pathname.includes('/servicos/plantio')) {
       setOperation("Plantio");
       setCategory("Plantadeiras");
-      setSearchFilters(prev => ({ ...defaultFilters, location: prev?.location, category: "Plantadeiras", operation: "Plantio" }));
+      setFilters(prev => ({ ...prev, category: "Plantadeiras" }));
+      setSearchFilters(prev => ({ ...createDefaultFilters("Plantadeiras"), location: prev?.location, category: "Plantadeiras", operation: "Plantio" }));
     } else if (locationObj.pathname.includes('/servicos/pulverizacao')) {
       setOperation("Pulverização");
       setCategory("Pulverizadores");
-      setSearchFilters(prev => ({ ...defaultFilters, location: prev?.location, category: "Pulverizadores", operation: "Pulverização" }));
+      setFilters(prev => ({ ...prev, category: "Pulverizadores" }));
+      setSearchFilters(prev => ({ ...createDefaultFilters("Pulverizadores"), location: prev?.location, category: "Pulverizadores", operation: "Pulverização" }));
     } else if (locationObj.pathname.includes('/servicos/preparo-solo')) {
       setOperation("Preparo do solo");
-      setSearchFilters(prev => ({ ...defaultFilters, location: prev?.location, operation: "Preparo do solo" }));
+      setSearchFilters(prev => ({ ...createDefaultFilters(prev?.category, prev?.culture), location: prev?.location, operation: "Preparo do solo" }));
     } else if (locationObj.pathname.includes('/servicos/transporte')) {
       setCategory("Transporte de Cargas");
-      setSearchFilters(prev => ({ ...defaultFilters, location: prev?.location, category: "Transporte de Cargas" }));
+      setFilters(prev => ({ ...prev, category: "Transporte de Cargas" }));
+      setSearchFilters(prev => ({ ...createDefaultFilters("Transporte de Cargas"), location: prev?.location, category: "Transporte de Cargas" }));
     }
 
     if (locationParam) {
@@ -116,11 +125,12 @@ const Search = () => {
 
     if (categoryParam) {
       setCategory(categoryParam);
+      setFilters(prev => ({ ...prev, category: categoryParam }));
     }
 
     if (locationParam || categoryParam) {
       setSearchFilters(prev => ({
-        ...defaultFilters,
+        ...createDefaultFilters(categoryParam || prev?.category || undefined, prev?.culture),
         ...prev,
         location: locationParam || prev?.location || "",
         category: categoryParam || prev?.category || "Todas as categorias",
@@ -140,6 +150,16 @@ const Search = () => {
 
   const handleFiltersChange = (newFilters: FilterValues) => {
     setFilters(newFilters);
+  };
+
+  const handleCategoryChange = (value: string) => {
+    setCategory(value);
+    setFilters(prev => ({ ...prev, category: value }));
+  };
+
+  const handleCultureChange = (value: string) => {
+    setCulture(value);
+    setFilters(prev => ({ ...prev, culture: value }));
   };
 
   return (
@@ -162,14 +182,14 @@ const Search = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                   <Input
                     placeholder="Localização"
                     value={location}
                     onChange={(e) => setLocation(e.target.value)}
                   />
 
-                  <Select value={category} onValueChange={setCategory}>
+                  <Select value={category} onValueChange={handleCategoryChange}>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
@@ -184,7 +204,7 @@ const Search = () => {
                     </SelectContent>
                   </Select>
 
-                  <Select value={culture} onValueChange={setCulture}>
+                  <Select value={culture} onValueChange={handleCultureChange}>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
@@ -211,8 +231,8 @@ const Search = () => {
                   </Select>
                 </div>
 
-                <div className="flex gap-2">
-                  <Button onClick={handleSearch} className="bg-gradient-primary">
+                <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+                  <Button onClick={handleSearch} className="w-full bg-gradient-primary sm:w-auto">
                     <SearchIcon className="h-4 w-4 mr-2" />
                     Buscar
                   </Button>
@@ -220,6 +240,7 @@ const Search = () => {
                   <Button
                     variant="outline"
                     onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
+                    className="w-full sm:w-auto"
                   >
                     <Filter className="h-4 w-4 mr-2" />
                     Filtros Avançados
@@ -227,19 +248,18 @@ const Search = () => {
 
                   <Button
                     variant="outline"
-                    className="border-primary text-primary hover:bg-primary hover:text-white"
+                    className="w-full border-primary text-primary hover:bg-primary hover:text-white sm:w-auto"
                     onClick={async () => {
-                      const { data: { user } } = await supabase.auth.getUser();
                       let email = user?.email;
 
-                      if (!user) {
+                      if (!userId) {
                         const input = window.prompt("Digite seu email para receber alertas desta busca:");
                         if (!input) return;
                         email = input;
                       }
 
                       const { error } = await (supabase as any).from('search_alerts').insert({
-                        user_id: user?.id,
+                        user_id: userId || null,
                         email: email,
                         location: location,
                         category: category,
@@ -264,13 +284,6 @@ const Search = () => {
                   isExpanded={showAdvancedFilters}
                   onToggle={() => setShowAdvancedFilters(!showAdvancedFilters)}
                 />
-
-                <div className="flex justify-end pt-4 border-t">
-                  <Button onClick={handleSearch} size="lg" className="bg-gradient-primary w-full md:w-auto">
-                    <SearchIcon className="h-4 w-4 mr-2" />
-                    Buscar Equipamentos
-                  </Button>
-                </div>
               </CardContent>
             </Card>
           </div>
