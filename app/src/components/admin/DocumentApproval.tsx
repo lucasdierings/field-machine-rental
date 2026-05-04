@@ -233,30 +233,30 @@ export const DocumentApproval = () => {
             {documents.map((doc) => (
                 <Card key={doc.id}>
                     <CardHeader className="pb-2">
-                        <div className="flex justify-between items-start">
-                            <div>
+                        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                            <div className="min-w-0">
                                 <CardTitle className="text-lg">{doc.user?.full_name || "Usuário Desconhecido"}</CardTitle>
-                                <p className="text-sm text-muted-foreground">{doc.user?.email || "—"}</p>
+                                <p className="break-all text-sm text-muted-foreground">{doc.user?.email || "—"}</p>
                             </div>
-                            <Badge variant="outline">{getDocTypeName(doc.document_type)}</Badge>
+                            <Badge variant="outline" className="w-fit">{getDocTypeName(doc.document_type)}</Badge>
                         </div>
                     </CardHeader>
                     <CardContent>
-                        <div className="flex items-center justify-between mt-2">
+                        <div className="mt-2 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                             <div className="flex items-center gap-2 text-sm text-muted-foreground">
                                 <FileText className="h-4 w-4" />
                                 Enviado em {new Date(doc.created_at || "").toLocaleDateString("pt-BR")}
                             </div>
-                            <div className="flex gap-2 flex-wrap justify-end">
+                            <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:justify-end">
                                 {/* Visualizar */}
                                 <Dialog>
                                     <DialogTrigger asChild>
-                                        <Button variant="outline" size="sm">
+                                        <Button variant="outline" size="sm" className="w-full sm:w-auto">
                                             <Eye className="h-4 w-4 mr-2" />
                                             Visualizar
                                         </Button>
                                     </DialogTrigger>
-                                    <DialogContent className="max-w-4xl h-[80vh]">
+                                    <DialogContent className="h-[85vh] max-w-[95vw] sm:max-w-4xl">
                                         <DialogHeader>
                                             <DialogTitle>Documento — {doc.user?.full_name || "Usuário"}</DialogTitle>
                                         </DialogHeader>
@@ -277,7 +277,7 @@ export const DocumentApproval = () => {
                                 </Dialog>
 
                                 {/* Baixar */}
-                                <Button variant="secondary" size="sm" onClick={() => handleDownload(doc)}>
+                                <Button variant="secondary" size="sm" className="w-full sm:w-auto" onClick={() => handleDownload(doc)}>
                                     <Download className="h-4 w-4 mr-2" />
                                     Baixar
                                 </Button>
@@ -285,7 +285,7 @@ export const DocumentApproval = () => {
                                 {/* Rejeitar */}
                                 <Dialog>
                                     <DialogTrigger asChild>
-                                        <Button variant="destructive" size="sm" disabled={processing === doc.id}>
+                                        <Button variant="destructive" size="sm" className="w-full sm:w-auto" disabled={processing === doc.id}>
                                             <X className="h-4 w-4 mr-2" />
                                             Rejeitar
                                         </Button>
@@ -315,10 +315,10 @@ export const DocumentApproval = () => {
 
                                 {/* Aprovar */}
                                 <Button
-                                    className="bg-green-600 hover:bg-green-700"
                                     size="sm"
                                     onClick={() => handleApprove(doc.id)}
                                     disabled={processing === doc.id}
+                                    className="w-full bg-green-600 hover:bg-green-700 sm:w-auto"
                                 >
                                     {processing === doc.id ? (
                                         <Loader2 className="animate-spin" />

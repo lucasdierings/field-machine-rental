@@ -218,19 +218,19 @@ const AdminUsersTab = () => {
       <CardContent className="space-y-6">
         {/* Filters */}
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-          <div className="flex flex-col gap-4 md:flex-row md:items-center">
-            <div className="relative">
+          <div className="flex w-full flex-col gap-4 md:w-auto md:flex-row md:items-center">
+            <div className="relative w-full md:w-auto">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
                 placeholder="Buscar por nome, email ou CPF/CNPJ..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-9 w-[300px]"
+                className="w-full pl-9 md:w-[300px]"
               />
             </div>
 
             <Select value={filterType} onValueChange={setFilterType}>
-              <SelectTrigger className="w-[150px]">
+              <SelectTrigger className="w-full md:w-[150px]">
                 <Filter className="h-4 w-4" />
                 <SelectValue placeholder="Tipo" />
               </SelectTrigger>
@@ -243,7 +243,7 @@ const AdminUsersTab = () => {
             </Select>
 
             <Select value={filterVerified} onValueChange={setFilterVerified}>
-              <SelectTrigger className="w-[150px]">
+              <SelectTrigger className="w-full md:w-[150px]">
                 <SelectValue placeholder="Verificação" />
               </SelectTrigger>
               <SelectContent>
@@ -254,14 +254,14 @@ const AdminUsersTab = () => {
             </Select>
           </div>
 
-          <Button onClick={exportUsers} variant="outline" className="gap-2">
+          <Button onClick={exportUsers} variant="outline" className="w-full gap-2 md:w-auto">
             <Download className="h-4 w-4" />
             Exportar CSV
           </Button>
         </div>
 
         {/* Users Table */}
-        <div className="rounded-md border">
+        <div className="overflow-x-auto rounded-md border">
           <Table>
             <TableHeader>
               <TableRow>
@@ -299,9 +299,9 @@ const AdminUsersTab = () => {
               ) : (
                 users.map((user) => (
                   <TableRow key={user.id}>
-                    <TableCell className="font-medium">{user.full_name}</TableCell>
-                    <TableCell>{user.email}</TableCell>
-                    <TableCell>{user.cpf_cnpj || '-'}</TableCell>
+                    <TableCell className="min-w-[180px] font-medium">{user.full_name}</TableCell>
+                    <TableCell className="min-w-[220px] break-all">{user.email}</TableCell>
+                    <TableCell className="min-w-[140px]">{user.cpf_cnpj || '-'}</TableCell>
                     <TableCell>{getUserTypeBadge(user.user_types)}</TableCell>
                     <TableCell>
                       {user.verified ? (
@@ -316,8 +316,8 @@ const AdminUsersTab = () => {
                         </Badge>
                       )}
                     </TableCell>
-                    <TableCell>{user.total_transactions || 0}</TableCell>
-                    <TableCell>{formatDate(user.created_at)}</TableCell>
+                    <TableCell className="text-center">{user.total_transactions || 0}</TableCell>
+                    <TableCell className="whitespace-nowrap">{formatDate(user.created_at)}</TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
                         <Button
@@ -350,11 +350,11 @@ const AdminUsersTab = () => {
         </div>
 
         {/* Pagination */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-sm text-muted-foreground">
             Mostrando {((currentPage - 1) * usersPerPage) + 1} a {Math.min(currentPage * usersPerPage, totalUsers)} de {totalUsers} usuários
           </p>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center justify-between gap-2 sm:justify-end">
             <Button
               variant="outline"
               size="sm"
