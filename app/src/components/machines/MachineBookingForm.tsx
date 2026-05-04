@@ -11,6 +11,7 @@ interface MachineBookingFormProps {
     quantity: number;
     notes: string;
     bookingLoading: boolean;
+    isOwnMachine?: boolean;
     onStartDateChange: (date: string) => void;
     onQuantityChange: (qty: number) => void;
     onNotesChange: (notes: string) => void;
@@ -24,12 +25,19 @@ export function MachineBookingForm({
     quantity,
     notes,
     bookingLoading,
+    isOwnMachine = false,
     onStartDateChange,
     onQuantityChange,
     onNotesChange,
     onBooking,
 }: MachineBookingFormProps) {
     const total = price * quantity;
+    const today = new Date();
+    const minStartDate = [
+        today.getFullYear(),
+        String(today.getMonth() + 1).padStart(2, "0"),
+        String(today.getDate()).padStart(2, "0"),
+    ].join("-");
 
     return (
         <div className="relative">
@@ -56,6 +64,7 @@ export function MachineBookingForm({
                             <p className="text-xs font-semibold uppercase text-muted-foreground mb-1">Início</p>
                             <input
                                 type="date"
+                                min={minStartDate}
                                 className="w-full text-sm bg-transparent outline-none"
                                 value={startDate}
                                 onChange={(e) => onStartDateChange(e.target.value)}
@@ -86,14 +95,15 @@ export function MachineBookingForm({
                     <Button
                         className="w-full bg-gradient-primary h-12 text-base md:text-lg font-semibold"
                         onClick={onBooking}
-                        disabled={bookingLoading}
+                        disabled={bookingLoading || isOwnMachine}
+                        title={isOwnMachine ? "Você não pode solicitar serviço da sua própria máquina" : undefined}
                     >
                         {bookingLoading ? (
                             <Loader2 className="animate-spin mr-2" />
                         ) : (
                             <MessageCircle className="mr-2 h-5 w-5" />
                         )}
-                        Solicitar Serviço
+                        {isOwnMachine ? "É sua máquina" : "Solicitar Serviço"}
                     </Button>
 
                     <div className="bg-muted/30 rounded-lg p-3 text-center">

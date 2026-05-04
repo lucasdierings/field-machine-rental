@@ -30,11 +30,17 @@ export const machineFormSchema = z
     category: z.string().trim().min(1, "Categoria obrigatória"),
     brand: z.string().trim().min(1, "Marca obrigatória"),
     model: z.string().trim().optional(),
+    description: z
+      .string()
+      .trim()
+      .max(2000, "Descrição deve ter no máximo 2000 caracteres")
+      .optional(),
     year: z
       .number()
       .refine((value) => validateManufacturingYear(value), {
         message: "Ano de fabricação inválido",
       }),
+    operator_type: z.enum(["owner", "hired", "employee"]).optional(),
     price_hour: priceStringSchema,
     price_day: priceStringSchema,
     price_hectare: priceStringSchema,
@@ -80,7 +86,9 @@ export const validateMachineForm = (
     name: "Nome",
     category: "Categoria",
     brand: "Marca",
+    description: "Descrição",
     year: "Ano",
+    operator_type: "Tipo de operador",
     "location.city": "Cidade",
     "location.state": "Estado",
     price_hour: "Preços",

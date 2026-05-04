@@ -155,7 +155,8 @@ const MachineDetails = () => {
 
     const price = machine.price_hour || machine.price_hectare || machine.price_day || 0;
     const unit = machine.price_hour ? 'hora' : machine.price_hectare ? 'hectare' : 'dia';
-    const total = price * quantity;
+    const hasHiredOperator = machine.operator_type === 'hired' || machine.operator_type === 'employee';
+    const isOwnMachine = !!userId && machine.owner_id === userId;
 
     const avgRating = reviews.length > 0
         ? reviews.reduce((acc, r) => acc + (r.rating || 0), 0) / reviews.length
@@ -166,6 +167,28 @@ const MachineDetails = () => {
             toast({
                 title: "Data obrigatória",
                 description: "Selecione uma data de início.",
+                variant: "destructive"
+            });
+            return;
+        }
+
+        const selectedDate = new Date(`${startDate}T00:00:00`);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        if (Number.isNaN(selectedDate.getTime()) || selectedDate < today) {
+            toast({
+                title: "Data inválida",
+                description: "Escolha uma data de hoje em diante.",
+                variant: "destructive"
+            });
+            return;
+        }
+
+        if (!Number.isFinite(quantity) || quantity < 1) {
+            toast({
+                title: "Quantidade inválida",
+                description: "Informe uma quantidade maior ou igual a 1.",
                 variant: "destructive"
             });
             return;
@@ -193,6 +216,18 @@ const MachineDetails = () => {
                 return;
             }
 
+            if (machine.owner_id === userId) {
+                toast({
+                    title: "Ação não permitida",
+                    description: "Você não pode solicitar serviço da sua própria máquina.",
+                    variant: "destructive"
+                });
+                return;
+            }
+
+            const bookingQuantity = Math.floor(quantity);
+            const bookingTotal = price * bookingQuantity;
+
             const { error } = await supabase
                 .from('bookings')
                 .insert({
@@ -201,8 +236,8 @@ const MachineDetails = () => {
                     renter_id: userId,
                     start_date: startDate,
                     end_date: startDate,
-                    quantity: quantity,
-                    total_amount: total,
+                    quantity: bookingQuantity,
+                    total_amount: bookingTotal,
                     platform_fee: 0,
                     notes: notes,
                     status: 'pending',
@@ -363,9 +398,9 @@ const MachineDetails = () => {
                             <div className="flex gap-4">
                                 <User className="h-6 w-6 text-primary shrink-0" />
                                 <div>
-                                    <h3 className="font-medium">Operador {machine.operator_type === 'hired' ? 'Contratado' : 'Próprio'}</h3>
+                                    <h3 className="font-medium">Operador {hasHiredOperator ? 'Contratado' : 'Próprio'}</h3>
                                     <p className="text-sm text-muted-foreground">
-                                        {machine.operator_type === 'hired'
+                                        {hasHiredOperator
                                             ? 'O serviço é realizado por um operador contratado pelo proprietário.'
                                             : 'O próprio dono ou sua equipe realiza o serviço.'}
                                     </p>
@@ -440,6 +475,7 @@ const MachineDetails = () => {
                         onQuantityChange={setQuantity}
                         onNotesChange={setNotes}
                         onBooking={handleBooking}
+                        isOwnMachine={isOwnMachine}
                     />
                 </div>
             </main>
