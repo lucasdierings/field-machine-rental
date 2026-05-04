@@ -25,7 +25,7 @@ export function isNativePlatform(): boolean {
 async function getNativeBiometric() {
   if (!isNativeCheck()) return null;
   try {
-    const mod = await import('capacitor-native-biometric');
+    const mod = await import(/* @vite-ignore */ 'capacitor-native-biometric');
     return mod.NativeBiometric;
   } catch {
     return null;

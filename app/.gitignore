@@ -11,10 +11,6 @@ node_modules
 dist
 dist-ssr
 *.local
-<<<<<<< HEAD
-package-lock.json
-=======
->>>>>>> origin/main
 bun.lockb
 
 # Editor directories and files
@@ -35,7 +31,4 @@ bun.lockb
 
 supabase/.temp/
 .env.development
-<<<<<<< HEAD
-=======
 .env.production
->>>>>>> origin/main

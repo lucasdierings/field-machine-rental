@@ -47,12 +47,10 @@ const Onboarding = lazyWithRetry(() => import("./pages/Onboarding").then(m => ({
 
 // Protected pages
 const RentMyMachine = lazyWithRetry(() => import("./pages/RentMyMachine"));
-const Favorites = lazyWithRetry(() => import("./pages/Favorites"));
 const Alerts = lazyWithRetry(() => import("./pages/Alerts"));
 const Dashboard = lazyWithRetry(() => import("./pages/Dashboard"));
 const Bookings = lazyWithRetry(() => import("./pages/Bookings"));
 const AddMachine = lazyWithRetry(() => import("./pages/AddMachine"));
-const OnboardingDashboard = lazyWithRetry(() => import("./pages/OnboardingDashboard"));
 const Profile = lazyWithRetry(() => import("./pages/Profile"));
 const MyMachines = lazyWithRetry(() => import("./pages/MyMachines"));
 const Documents = lazyWithRetry(() => import("./pages/Documents"));
@@ -148,7 +146,7 @@ const App = () => (
                   <ProtectedRoute><RentMyMachine /></ProtectedRoute>
                 } />
                 <Route path="/favoritos" element={
-                  <ProtectedRoute><Favorites /></ProtectedRoute>
+                  <ProtectedRoute><NotFound /></ProtectedRoute>
                 } />
                 <Route path="/alertas" element={
                   <ProtectedRoute><Alerts /></ProtectedRoute>
@@ -166,7 +164,7 @@ const App = () => (
                   <ProtectedRoute><AddMachine /></ProtectedRoute>
                 } />
                 <Route path="/dashboard/onboarding" element={
-                  <ProtectedRoute><OnboardingDashboard /></ProtectedRoute>
+                  <ProtectedRoute><Dashboard /></ProtectedRoute>
                 } />
                 <Route path="/dashboard/perfil" element={
                   <ProtectedRoute><Profile /></ProtectedRoute>
