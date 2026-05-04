@@ -129,6 +129,11 @@ const AdminMachinesTab = () => {
         loadMachines();
     }, [loadMachines]);
 
+    // Reset to first page whenever filters change so the user doesn't end up on an empty page
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [searchTerm, filterStatus]);
+
     const handleDelete = async (id: string) => {
         try {
             const { error } = await supabase

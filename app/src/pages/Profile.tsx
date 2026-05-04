@@ -17,6 +17,18 @@ import { Loader2, User, Phone, Mail, MapPin, CreditCard, Upload, FileCheck } fro
 // Lazy load Documents page
 const DocumentsPage = lazy(() => import("@/pages/Documents"));
 
+// Safe MIME to extension mapping for avatar uploads
+const getMimeExtension = (mimeType: string): string => {
+  const mimeMap: Record<string, string> = {
+    'image/jpeg': 'jpg',
+    'image/jpg': 'jpg',
+    'image/png': 'png',
+    'image/webp': 'webp',
+    'image/gif': 'gif',
+  };
+  return mimeMap[mimeType.toLowerCase()] || 'jpg';
+};
+
 const Profile = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -44,8 +56,16 @@ const Profile = () => {
       }
 
       const file = event.target.files[0];
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${Math.random()}.${fileExt}`;
+
+      // Validate file is an image
+      if (!file.type.startsWith('image/')) {
+        throw new Error("Por favor, selecione um arquivo de imagem válido");
+      }
+
+      // Use secure unique ID instead of Math.random()
+      const fileId = crypto.randomUUID();
+      const ext = getMimeExtension(file.type);
+      const fileName = `${fileId}.${ext}`;
       const filePath = `${fileName}`;
 
       setUploading(true);

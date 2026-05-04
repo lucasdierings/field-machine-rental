@@ -69,6 +69,17 @@ export const BookingRequestsList = ({ bookings, onUpdate, currentUserId }: Booki
     const handleAction = useCallback(async (bookingId: string, action: 'confirm' | 'reject') => {
         setProcessingId(bookingId);
         try {
+            // Verify user is authorized to perform this action
+            const booking = bookings.find(b => b.id === bookingId);
+            if (!booking) {
+                throw new Error("Booking não encontrado");
+            }
+
+            // Only allow owner or renter to modify the booking
+            if (booking.owner_id !== currentUserId && booking.renter_id !== currentUserId) {
+                throw new Error("Você não tem permissão para modificar esta solicitação");
+            }
+
             const statusMap: Record<string, string> = {
                 confirm: 'confirmed',
                 reject: 'rejected',
@@ -76,7 +87,9 @@ export const BookingRequestsList = ({ bookings, onUpdate, currentUserId }: Booki
             const { error } = await supabase
                 .from('bookings')
                 .update({ status: statusMap[action] })
-                .eq('id', bookingId);
+                .eq('id', bookingId)
+                .eq('owner_id', currentUserId) // Add authorization check at DB level too
+                .or(`renter_id.eq.${currentUserId}`);
 
             if (error) throw error;
 
