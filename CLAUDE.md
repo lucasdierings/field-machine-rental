@@ -145,3 +145,30 @@ npm run lint         # ESLint + Next.js lint
 - Ao criar workflows GitHub Actions, lembre do `cache-dependency-path` (monorepo sem root lock file)
 - Branches de trabalho devem seguir o padrão `claude/nome-da-task` para gerar preview automaticamente
 - Consulte este arquivo antes de fazer alterações estruturais
+
+
+## Planned Features (Backlog)
+
+- **WhatsApp verification via Meta Cloud API** — Substituir/complementar email com verificação por WhatsApp. Meta Cloud API oferece 1.000 msgs/mês grátis. Taxa de abertura 98% vs 20% do email. Ideal para agricultor brasileiro. Implementar como opção ao lado do email na verificação do onboarding. Provedor: Meta Cloud API (oficial). Docs: developers.facebook.com/docs/whatsapp/cloud-api
+
+## Workflow de Branches (GitFlow Simplificado)
+
+```
+main ──────────────────── (produção — só recebe PR de dev)
+        ↑            ↑
+dev ──────────────────── (staging/integração — base de todo trabalho)
+     ↑      ↑      ↑
+  feat-1  feat-2  feat-3
+```
+
+**Regras:**
+1. Toda nova sessão começa com: `git fetch && git checkout dev && git pull origin dev`
+2. Criar branch sempre a partir de `dev`: `git checkout -b claude/nome-da-task`
+3. PR sempre vai para `dev` (não para `main`)
+4. Após merge no `dev`, se estável → PR de `dev` para `main`
+5. Após qualquer merge em `main` → imediatamente `git merge origin/main` no `dev`
+
+**Nunca:**
+- Criar branch a partir de `main` sem sincronizar `dev` primeiro
+- Fazer push direto em `main`
+- Deixar `dev` desatualizado em relação a `main` por mais de 1 sessão
