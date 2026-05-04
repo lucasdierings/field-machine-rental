@@ -9,9 +9,12 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
 import { RoleProtectedRoute } from "./components/auth/RoleProtectedRoute";
 import { BottomNavigation } from "./components/ui/bottom-navigation";
+import { FloatingActionButton } from "./components/ui/floating-action-button";
 import { PageLoader } from "./components/ui/page-loader";
 import { ErrorBoundary } from "./components/ui/error-boundary";
 import { lazyWithRetry } from "@/lib/lazyWithRetry";
+import { AnalyticsTracker } from "./components/AnalyticsTracker";
+import { AdminDebugOverlay } from "./components/AdminDebugOverlay";
 
 // ─── Lazy-loaded pages ───────────────────────────────────────────────────────
 // Each page is loaded on-demand, reducing the initial bundle size significantly.
@@ -30,6 +33,9 @@ const Contact = lazyWithRetry(() => import("./pages/Contact"));
 const Terms = lazyWithRetry(() => import("./pages/Terms"));
 const Privacy = lazyWithRetry(() => import("./pages/Privacy"));
 const NotFound = lazyWithRetry(() => import("./pages/NotFound"));
+const Support = lazyWithRetry(() => import("./pages/Support"));
+const Help = lazyWithRetry(() => import("./pages/Help"));
+const Status = lazyWithRetry(() => import("./pages/Status"));
 
 // Auth pages
 const Login = lazyWithRetry(() => import("./pages/Login"));
@@ -41,10 +47,12 @@ const Onboarding = lazyWithRetry(() => import("./pages/Onboarding").then(m => ({
 
 // Protected pages
 const RentMyMachine = lazyWithRetry(() => import("./pages/RentMyMachine"));
+const Favorites = lazyWithRetry(() => import("./pages/Favorites"));
 const Alerts = lazyWithRetry(() => import("./pages/Alerts"));
 const Dashboard = lazyWithRetry(() => import("./pages/Dashboard"));
 const Bookings = lazyWithRetry(() => import("./pages/Bookings"));
 const AddMachine = lazyWithRetry(() => import("./pages/AddMachine"));
+const OnboardingDashboard = lazyWithRetry(() => import("./pages/OnboardingDashboard"));
 const Profile = lazyWithRetry(() => import("./pages/Profile"));
 const MyMachines = lazyWithRetry(() => import("./pages/MyMachines"));
 const Documents = lazyWithRetry(() => import("./pages/Documents"));
@@ -90,6 +98,7 @@ const App = () => (
             <Toaster />
             <Sonner />
             <ErrorBoundary>
+            <AnalyticsTracker />
             <Suspense fallback={<PageLoader message="Carregando..." />}>
               <Routes>
                 <Route path="/" element={<Index />} />
@@ -123,6 +132,9 @@ const App = () => (
                 <Route path="/verificar-email" element={<VerifyEmail />} />
                 <Route path="/onboarding" element={<Onboarding />} />
                 <Route path="/como-funciona" element={<HowItWorks />} />
+                <Route path="/ajuda" element={<Help />} />
+                <Route path="/suporte" element={<Support />} />
+                <Route path="/status" element={<Status />} />
 
                 {/* Old Routes Redirects (301-like) */}
                 <Route path="/buscar" element={<Navigate to="/servicos-agricolas" replace />} />
@@ -134,6 +146,9 @@ const App = () => (
                 {/* Protected Routes */}
                 <Route path="/oferecer-servicos" element={
                   <ProtectedRoute><RentMyMachine /></ProtectedRoute>
+                } />
+                <Route path="/favoritos" element={
+                  <ProtectedRoute><Favorites /></ProtectedRoute>
                 } />
                 <Route path="/alertas" element={
                   <ProtectedRoute><Alerts /></ProtectedRoute>
@@ -149,6 +164,9 @@ const App = () => (
                 } />
                 <Route path="/edit-machine/:id" element={
                   <ProtectedRoute><AddMachine /></ProtectedRoute>
+                } />
+                <Route path="/dashboard/onboarding" element={
+                  <ProtectedRoute><OnboardingDashboard /></ProtectedRoute>
                 } />
                 <Route path="/dashboard/perfil" element={
                   <ProtectedRoute><Profile /></ProtectedRoute>
@@ -183,6 +201,8 @@ const App = () => (
             </Suspense>
             </ErrorBoundary>
             <BottomNavigation />
+            <FloatingActionButton />
+            <AdminDebugOverlay />
           </TooltipProvider>
         </AuthProvider>
       </BrowserRouter>

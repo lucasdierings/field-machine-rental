@@ -12,7 +12,18 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { LocationSelector } from "@/components/ui/location-selector";
-import { Loader2, User, Phone, Mail, MapPin, CreditCard, Upload, FileCheck } from "lucide-react";
+import { Loader2, User, Phone, Mail, MapPin, CreditCard, Upload, FileCheck, Fingerprint, Settings } from "lucide-react";
+import {
+  isNativePlatform,
+  isBiometricAvailable,
+  isBiometricEnabled,
+  setBiometricEnabled,
+  saveBiometricCredentials,
+  removeBiometricCredentials,
+  getBiometricLabel,
+  getBiometricCredentials,
+} from "@/lib/biometric";
+import { Switch } from "@/components/ui/switch";
 
 // Lazy load Documents page
 const DocumentsPage = lazy(() => import("@/pages/Documents"));
@@ -223,6 +234,10 @@ const Profile = () => {
                 <User className="h-4 w-4" />
                 Perfil
               </TabsTrigger>
+              <TabsTrigger value="settings" className="flex items-center gap-2">
+                <Settings className="h-4 w-4" />
+                Ajustes
+              </TabsTrigger>
               <TabsTrigger value="documents" className="flex items-center gap-2">
                 <FileCheck className="h-4 w-4" />
                 Documentos
@@ -397,6 +412,10 @@ const Profile = () => {
               </Card>
             </TabsContent>
 
+            <TabsContent value="settings">
+              <BiometricSettingsCard />
+            </TabsContent>
+
             <TabsContent value="documents">
               <Suspense fallback={
                 <Card>
@@ -415,5 +434,106 @@ const Profile = () => {
     </div>
   );
 };
+
+function BiometricSettingsCard() {
+  const { toast } = useToast();
+  const { user } = useAuth();
+  const [bioAvailable, setBioAvailable] = useState(false);
+  const [bioEnabled, setBioEnabled] = useState(false);
+  const [bioType, setBioType] = useState('');
+  const [toggling, setToggling] = useState(false);
+
+  useEffect(() => {
+    async function check() {
+      if (!isNativePlatform()) return;
+      const { available, type } = await isBiometricAvailable();
+      setBioAvailable(available);
+      setBioType(type);
+      if (available) {
+        const enabled = await isBiometricEnabled();
+        setBioEnabled(enabled);
+      }
+    }
+    check();
+  }, []);
+
+  const handleToggle = async (checked: boolean) => {
+    setToggling(true);
+    try {
+      if (checked) {
+        // Verify biometric works before enabling
+        const creds = await getBiometricCredentials();
+        if (!creds) {
+          // First time — save current session
+          const { data: { session } } = await supabase.auth.getSession();
+          if (session?.refresh_token) {
+            await saveBiometricCredentials(user?.email || '', session.refresh_token);
+          }
+        }
+        await setBiometricEnabled(true);
+        setBioEnabled(true);
+        toast({ title: `${getBiometricLabel(bioType)} ativado`, description: 'Voce pode usar biometria para entrar.' });
+      } else {
+        await removeBiometricCredentials();
+        await setBiometricEnabled(false);
+        setBioEnabled(false);
+        toast({ title: 'Biometria desativada' });
+      }
+    } catch {
+      toast({ title: 'Erro ao alterar configuracao', variant: 'destructive' });
+    } finally {
+      setToggling(false);
+    }
+  };
+
+  const label = getBiometricLabel(bioType);
+
+  if (!isNativePlatform()) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Settings className="h-5 w-5" />
+            Ajustes
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground">
+            Nenhuma configuracao adicional disponivel na versao web.
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Fingerprint className="h-5 w-5" />
+          Seguranca
+        </CardTitle>
+        <CardDescription>Configure como voce acessa o app</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {bioAvailable ? (
+          <div className="flex items-center justify-between">
+            <div className="space-y-0.5">
+              <Label>Entrar com {label}</Label>
+              <p className="text-xs text-muted-foreground">
+                Use Face ID, digital ou senha do celular para acessar sua conta rapidamente
+              </p>
+            </div>
+            <Switch checked={bioEnabled} onCheckedChange={handleToggle} disabled={toggling} />
+          </div>
+        ) : (
+          <p className="text-sm text-muted-foreground">
+            Biometria nao disponivel neste dispositivo.
+          </p>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
 
 export default Profile;

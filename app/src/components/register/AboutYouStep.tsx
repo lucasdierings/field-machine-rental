@@ -119,7 +119,7 @@ export const AboutYouStep = ({ formData, errors, onUpdate, onNext, onPrev, onSki
         <Label>
           Principais Culturas *
         </Label>
-        <Select onValueChange={addCrop}>
+        <Select onValueChange={(value) => value && addCrop(value)}>
           <SelectTrigger>
             <SelectValue placeholder="Selecione as culturas..." />
           </SelectTrigger>

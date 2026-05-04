@@ -12,10 +12,10 @@ interface UserTypeSelectionProps {
 export const UserTypeSelection = ({ selectedType, onSelect, onNext }: UserTypeSelectionProps) => {
   const handleTypeSelect = (type: UserType) => {
     onSelect(type);
-    // Single click advance
-    setTimeout(() => {
-      onNext();
-    }, 300);
+    // Use requestAnimationFrame to ensure state update is flushed before advancing
+    requestAnimationFrame(() => {
+      setTimeout(() => onNext(), 250);
+    });
   };
 
   return (

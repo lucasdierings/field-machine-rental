@@ -1,14 +1,6 @@
-<<<<<<< HEAD
-import { useEffect, useState } from "react";
-import { User } from "@supabase/supabase-js";
-import { supabase } from "@/integrations/supabase/client";
-import { Navigate, useLocation } from "react-router-dom";
-import { Loader2 } from "lucide-react";
-=======
 import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { PageLoader } from "@/components/ui/page-loader";
->>>>>>> origin/main
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -16,46 +8,22 @@ interface ProtectedRouteProps {
 }
 
 export const ProtectedRoute = ({ children, redirectTo = "/login" }: ProtectedRouteProps) => {
-<<<<<<< HEAD
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { user, loading, profile, profileLoading } = useAuth();
   const location = useLocation();
 
-  useEffect(() => {
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
-
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        setUser(session?.user ?? null);
-        setLoading(false);
-      }
-    );
-
-    return () => subscription.unsubscribe();
-  }, []);
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <Loader2 className="h-8 w-8 animate-spin" />
-      </div>
-    );
-=======
-  const { user, loading } = useAuth();
-  const location = useLocation();
-
-  if (loading) {
+  if (loading || profileLoading) {
     return <PageLoader />;
->>>>>>> origin/main
   }
 
   if (!user) {
     return <Navigate to={redirectTo} state={{ from: location }} replace />;
+  }
+
+  // Redirect to onboarding only if no profile exists yet (new user)
+  // Existing users (profile exists) are never redirected, even if profile_completed is null
+  const isOnboardingRoute = location.pathname.startsWith("/onboarding");
+  if (!isOnboardingRoute && !profile) {
+    return <Navigate to="/onboarding" replace />;
   }
 
   return <>{children}</>;
