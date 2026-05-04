@@ -259,9 +259,9 @@ const AdminDashboard = () => {
       {/* Header */}
       <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-foreground">Painel Administrativo</h1>
+              <h1 className="text-2xl font-bold text-foreground sm:text-3xl">Painel Administrativo</h1>
               <p className="text-muted-foreground">FieldMachine Dashboard</p>
             </div>
             <Button variant="outline" onClick={() => navigate('/')} className="gap-2">
@@ -272,30 +272,32 @@ const AdminDashboard = () => {
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-8">
-        <Tabs defaultValue="dashboard" className="space-y-8">
-          <TabsList className="grid w-full grid-cols-5">
-            <TabsTrigger value="dashboard" className="gap-2">
+      <main className="container mx-auto px-4 py-6 sm:py-8">
+        <Tabs defaultValue="dashboard" className="space-y-6 sm:space-y-8">
+          <div className="-mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0">
+            <TabsList className="inline-grid min-w-max grid-cols-5">
+            <TabsTrigger value="dashboard" className="gap-2 whitespace-nowrap">
               <BarChart3 className="h-4 w-4" />
-              Dashboard
+              <span>Dashboard</span>
             </TabsTrigger>
-            <TabsTrigger value="users" className="gap-2">
+            <TabsTrigger value="users" className="gap-2 whitespace-nowrap">
               <Users className="h-4 w-4" />
-              Usuários
+              <span>Usuários</span>
             </TabsTrigger>
-            <TabsTrigger value="machines" className="gap-2">
+            <TabsTrigger value="machines" className="gap-2 whitespace-nowrap">
               <Tractor className="h-4 w-4" />
-              Máquinas
+              <span>Máquinas</span>
             </TabsTrigger>
-            <TabsTrigger value="analytics" className="gap-2">
+            <TabsTrigger value="analytics" className="gap-2 whitespace-nowrap">
               <TrendingUp className="h-4 w-4" />
-              Analytics
+              <span>Analytics</span>
             </TabsTrigger>
-            <TabsTrigger value="documents" className="gap-2">
+            <TabsTrigger value="documents" className="gap-2 whitespace-nowrap">
               <FileCheck className="h-4 w-4" />
-              Documentos
+              <span>Documentos</span>
             </TabsTrigger>
           </TabsList>
+          </div>
 
           <TabsContent value="dashboard">
             <AdminOverviewTab

@@ -79,7 +79,7 @@ export const AdvancedFilters = ({
       distanceRadius: "50km",
       powerRange: "Todas",
       availability: "Qualquer",
-      yearRange: [2015, 2024],
+      yearRange: [2015, new Date().getFullYear()],
       minRating: 0,
       minServices: 0,
       verifiedOnly: false,
