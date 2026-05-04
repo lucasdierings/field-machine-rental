@@ -211,6 +211,8 @@ const Documents = () => {
         description: error.message,
         variant: "destructive"
       });
+    } finally {
+      setPendingDelete(null);
     }
   };
 

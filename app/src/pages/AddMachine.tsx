@@ -54,7 +54,7 @@ export default function AddMachine() {
       address: ""
     },
     radius_km: 50,
-    operator_type: "owner", // owner (próprio) or hired (contratado)
+    operator_type: "owner", // owner | employee
     specifications: {},
     service_cities: [] as string[]
   });
@@ -222,6 +222,7 @@ export default function AddMachine() {
         model: formData.model || null,
         description: formData.description.trim() || null,
         year: formData.year,
+        description: formData.description?.trim() || null,
         location: formData.location,
         radius_km: formData.radius_km,
         specifications: formData.specifications,

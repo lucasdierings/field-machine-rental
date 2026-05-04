@@ -54,10 +54,41 @@ serve(async (req: Request) => {
     }
 
     try {
+        const authHeader = req.headers.get('Authorization')
+        if (!authHeader?.startsWith('Bearer ')) {
+            return new Response(
+                JSON.stringify({ error: 'Authentication required' }),
+                {
+                    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+                    status: 401,
+                }
+            )
+        }
+
         const supabase = createClient(
             Deno.env.get('SUPABASE_URL') ?? '',
-            Deno.env.get('SUPABASE_ANON_KEY') ?? ''
+            Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+            {
+                auth: {
+                    persistSession: false,
+                    autoRefreshToken: false,
+                },
+                global: {
+                    headers: { Authorization: authHeader },
+                },
+            },
         )
+
+        const { data: { user }, error: userError } = await supabase.auth.getUser()
+        if (userError || !user) {
+            return new Response(
+                JSON.stringify({ error: 'Invalid token' }),
+                {
+                    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+                    status: 401,
+                }
+            )
+        }
 
         const { bookingId, action } = await req.json()
 
@@ -81,15 +112,30 @@ serve(async (req: Request) => {
             throw new Error('Booking not found')
         }
 
+        if (booking.owner_id !== user.id) {
+            return new Response(
+                JSON.stringify({ error: 'Only the machine owner can confirm or reject this booking' }),
+                {
+                    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+                    status: 403,
+                }
+            )
+        }
+
         // Confirm booking (owner accepts the request)
         if (action === 'confirm') {
-            await supabase
+            const { error: updateError } = await supabase
                 .from('bookings')
                 .update({
                     status: 'confirmed',
                     payment_status: 'peer_to_peer'
                 })
                 .eq('id', bookingId)
+                .eq('owner_id', user.id)
+
+            if (updateError) {
+                throw updateError
+            }
 
             return new Response(
                 JSON.stringify({
@@ -112,13 +158,18 @@ serve(async (req: Request) => {
 
         // Reject booking
         if (action === 'reject') {
-            await supabase
+            const { error: updateError } = await supabase
                 .from('bookings')
                 .update({
                     status: 'cancelled',
                     cancellation_reason: 'Recusado pelo proprietário'
                 })
                 .eq('id', bookingId)
+                .eq('owner_id', user.id)
+
+            if (updateError) {
+                throw updateError
+            }
 
             return new Response(
                 JSON.stringify({
@@ -134,9 +185,10 @@ serve(async (req: Request) => {
 
         throw new Error('Invalid action. Use "confirm" or "reject".')
 
-    } catch (error: any) {
+    } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : 'Erro ao processar reserva'
         return new Response(
-            JSON.stringify({ error: error.message }),
+            JSON.stringify({ error: message }),
             {
                 headers: { ...corsHeaders, 'Content-Type': 'application/json' },
                 status: 400,
