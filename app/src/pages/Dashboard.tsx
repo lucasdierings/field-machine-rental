@@ -12,10 +12,11 @@ import { BookingRequestsList } from "@/components/booking/BookingRequestsList";
 import { RenterBookingsList } from "@/components/booking/RenterBookingsList";
 import { DashboardMetrics } from "@/components/dashboard/DashboardMetrics";
 import { DashboardMachineCard } from "@/components/dashboard/DashboardMachineCard";
+import { WelcomeTour } from "@/components/onboarding/WelcomeTour";
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  const { userId } = useAuth();
+  const { userId, profile } = useAuth();
 
   // Load user machines
   const { data: userMachines = [], refetch: refetchMachines } = useQuery({
@@ -121,6 +122,7 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-background pb-20 md:pb-0">
       <Header />
+      <WelcomeTour userType={profile?.user_types?.[0] || null} />
 
       <main className="pt-16 pb-24">
         <div className="container mx-auto px-4 max-w-7xl">

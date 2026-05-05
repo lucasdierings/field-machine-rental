@@ -52,6 +52,37 @@
 
   <body>
     <div id="root"></div>
+
+    <script>
+      // Error capture — logs to console only, visible debug is handled by React (admin-only)
+      (function() {
+        window.__APP_ERRORS = [];
+        window.addEventListener('error', function(e) {
+          var err = { type: 'error', message: e.message, file: e.filename, line: e.lineno, time: new Date().toISOString() };
+          window.__APP_ERRORS.push(err);
+          console.error('[FieldMachine Debug]', err);
+        });
+        window.addEventListener('unhandledrejection', function(e) {
+          var err = { type: 'promise', message: e.reason?.message || String(e.reason), time: new Date().toISOString() };
+          window.__APP_ERRORS.push(err);
+          console.error('[FieldMachine Debug]', err);
+        });
+
+        // Fallback: if React doesn't render after 10s, show recovery screen
+        setTimeout(function() {
+          var root = document.getElementById('root');
+          if (!root || root.children.length === 0) {
+            root.innerHTML = '<div style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px;text-align:center;font-family:-apple-system,sans-serif;background:#fff">'
+              + '<h2 style="font-size:22px;font-weight:600;color:#374151;margin-bottom:12px">Estamos com um problema temporario</h2>'
+              + '<p style="font-size:14px;color:#6b7280;margin-bottom:24px;max-width:400px">Nossa equipe ja foi notificada. Tente recarregar ou verifique o status dos nossos sistemas.</p>'
+              + '<button onclick="location.reload()" style="padding:12px 24px;background:#16a34a;color:#fff;border:none;border-radius:8px;font-size:16px;font-weight:500;cursor:pointer;margin-bottom:12px">Recarregar</button>'
+              + '<a href="/status" style="padding:8px 16px;color:#6b7280;border:1px solid #d1d5db;border-radius:8px;font-size:14px;text-decoration:none">Verificar status dos sistemas</a>'
+              + '</div>';
+          }
+        }, 10000);
+      })();
+    </script>
+
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

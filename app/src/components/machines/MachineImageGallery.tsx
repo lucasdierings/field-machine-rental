@@ -6,8 +6,9 @@ interface MachineImageGalleryProps {
 }
 
 export function MachineImageGallery({ images, machineName, selectedImage, onSelectImage }: MachineImageGalleryProps) {
+    const safeIndex = images && images.length > 0 ? Math.min(selectedImage, images.length - 1) : 0;
     const mainImage = images && images.length > 0
-        ? images[selectedImage]
+        ? images[safeIndex]
         : "https://images.unsplash.com/photo-1625246333195-78d9c38ad449?w=1200&h=600&fit=crop";
 
     return (

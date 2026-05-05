@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -86,11 +86,7 @@ const AdminAnalyticsTab = () => {
     totalEvents: 0
   });
 
-  useEffect(() => {
-    loadAnalyticsData();
-  }, [timeRange]);
-
-  const loadAnalyticsData = async () => {
+  const loadAnalyticsData = useCallback(async () => {
     try {
       setLoading(true);
 
@@ -114,8 +110,6 @@ const AdminAnalyticsTab = () => {
 
       // Calculate Metrics
       const uniqueIPs = new Set(events.map(e => e.ip_address).filter(Boolean));
-      const uniqueUsers = new Set(events.map(e => e.user_id).filter(Boolean)); // If user_id exists
-      // Combine or just use IPs for now as proxy for visitors if user_id is null
       const uniqueVisitors = uniqueIPs.size;
 
       const totalPageViews = events.filter(e => e.event_type === 'page_view').length;
@@ -170,7 +164,11 @@ const AdminAnalyticsTab = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [timeRange, toast]);
+
+  useEffect(() => {
+    loadAnalyticsData();
+  }, [loadAnalyticsData]);
 
   return (
     <div className="space-y-6">

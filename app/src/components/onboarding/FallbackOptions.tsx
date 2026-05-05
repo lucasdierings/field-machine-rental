@@ -71,27 +71,26 @@ export const FallbackOptions = ({
                                 </CardContent>
                             </Card>
 
-                            {/* SMS Option */}
-                            <Card>
+                            {/* SMS Option — em desenvolvimento */}
+                            <Card className="opacity-60">
                                 <CardContent className="flex items-start gap-3 p-4">
-                                    <MessageSquare className="mt-1 h-5 w-5 flex-shrink-0 text-primary" />
+                                    <MessageSquare className="mt-1 h-5 w-5 flex-shrink-0 text-gray-400" />
                                     <div className="flex-1 space-y-2">
                                         <div>
                                             <p className="text-sm font-medium text-gray-900">
                                                 Receber código por SMS
                                             </p>
-                                            <p className="text-xs text-gray-600">
-                                                Enviaremos para: {phone}
+                                            <p className="text-xs text-gray-500">
+                                                Disponível em breve
                                             </p>
                                         </div>
                                         <Button
-                                            onClick={handleSendSMS}
-                                            disabled={disabled || isSendingSMS}
+                                            disabled
                                             size="sm"
                                             variant="outline"
-                                            className="w-full sm:w-auto"
+                                            className="w-full sm:w-auto cursor-not-allowed"
                                         >
-                                            {isSendingSMS ? 'Enviando...' : 'Enviar SMS'}
+                                            Em breve
                                         </Button>
                                     </div>
                                 </CardContent>

@@ -1,0 +1,39 @@
+# Capacitor
+.capacitor/
+
+# Node
+node_modules/
+npm-debug.log*
+package-lock.json
+
+# Build outputs
+dist/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# iOS
+ios/App/Pods/
+ios/App/Podfile.lock
+ios/App/build/
+ios/App/*.xcodeproj/xcuserdata/
+ios/App/*.xcworkspace/xcuserdata/
+ios/App/App.xcodeproj/xcshareddata/
+
+# Android
+android/.gradle/
+android/build/
+android/app/build/
+android/captures/
+android/.idea/
+android/*.iml
+android/local.properties
+android/gradle.properties

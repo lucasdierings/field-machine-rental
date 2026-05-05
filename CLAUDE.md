@@ -48,7 +48,9 @@ npm install
 npm run dev          # Dev server (Vite)
 npm run build        # Build produção
 npm run lint         # ESLint
-npm run type-check   # tsc --noEmit (se configurado)
+npm run typecheck    # tsc --noEmit
+npm run test         # Vitest (37 testes unitários)
+npm run test:watch   # Vitest em modo watch
 ```
 
 ### site/
@@ -81,8 +83,10 @@ npm run lint         # ESLint + Next.js lint
 ## Branches
 
 - `main` — produção
-- `develop` — staging/integração
+- `dev` — staging/integração (base de todo trabalho)
 - `claude/**` — branches geradas por agentes IA (preview automático na Cloudflare)
+
+> **PR aberto**: [#29 dev → main](https://github.com/lucasdierings/field-machine-rental/pull/29) — consolidação de 7 branches (bugfixes, segurança, SEO, testes, páginas). CI ✅. Aguardando revisão e configuração dos secrets do Supabase antes de mergear.
 
 ## Regras e Convenções
 
@@ -111,11 +115,12 @@ npm run lint         # ESLint + Next.js lint
 
 ## Problemas Conhecidos / Dívida Técnica
 
-1. **SEO**: URLs do SPA React no sitemap não são crawláveis pelo Google — precisam ser removidas ou substituídas por páginas SSG
-2. **www vs non-www**: Falta redirect 301 na Cloudflare (www → non-www)
+1. ~~**SEO**: URLs do SPA React no sitemap~~ — ✅ resolvido (PR #29: sitemap limpo)
+2. ~~**www vs non-www**: Falta redirect 301~~ — ✅ resolvido (PR #29: `site/public/_redirects`)
 3. **Programmatic SEO**: Oportunidade de criar páginas estáticas por categoria de máquina para captura orgânica
 4. **app/.gitignore**: Contém `package-lock.json` — avaliar se deve ser removido para consistência do CI
-5. **app/ lint**: ~243 erros pré-existentes de `no-explicit-any` e `no-unused-vars` (CI usa `continue-on-error: true` para lint, não bloqueia deploy)
+5. **app/ lint**: ~276 erros pré-existentes de `no-explicit-any` e `no-unused-vars` (CI usa `continue-on-error: true` para lint, não bloqueia deploy)
+6. **supabase-migrate.yml**: workflow de auto-apply de migrations aguardando 3 secrets no GitHub (Settings → Environments → production): `SUPABASE_ACCESS_TOKEN`, `SUPABASE_PROJECT_ID`, `SUPABASE_DB_PASSWORD`
 
 ## Armadilhas Comuns (evitar regressões)
 
@@ -145,3 +150,30 @@ npm run lint         # ESLint + Next.js lint
 - Ao criar workflows GitHub Actions, lembre do `cache-dependency-path` (monorepo sem root lock file)
 - Branches de trabalho devem seguir o padrão `claude/nome-da-task` para gerar preview automaticamente
 - Consulte este arquivo antes de fazer alterações estruturais
+
+
+## Planned Features (Backlog)
+
+- **WhatsApp verification via Meta Cloud API** — Substituir/complementar email com verificação por WhatsApp. Meta Cloud API oferece 1.000 msgs/mês grátis. Taxa de abertura 98% vs 20% do email. Ideal para agricultor brasileiro. Implementar como opção ao lado do email na verificação do onboarding. Provedor: Meta Cloud API (oficial). Docs: developers.facebook.com/docs/whatsapp/cloud-api
+
+## Workflow de Branches (GitFlow Simplificado)
+
+```
+main ──────────────────── (produção — só recebe PR de dev)
+        ↑            ↑
+dev ──────────────────── (staging/integração — base de todo trabalho)
+     ↑      ↑      ↑
+  feat-1  feat-2  feat-3
+```
+
+**Regras:**
+1. Toda nova sessão começa com: `git fetch && git checkout dev && git pull origin dev`
+2. Criar branch sempre a partir de `dev`: `git checkout -b claude/nome-da-task`
+3. PR sempre vai para `dev` (não para `main`)
+4. Após merge no `dev`, se estável → PR de `dev` para `main`
+5. Após qualquer merge em `main` → imediatamente `git merge origin/main` no `dev`
+
+**Nunca:**
+- Criar branch a partir de `main` sem sincronizar `dev` primeiro
+- Fazer push direto em `main`
+- Deixar `dev` desatualizado em relação a `main` por mais de 1 sessão

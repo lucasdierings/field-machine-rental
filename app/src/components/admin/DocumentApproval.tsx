@@ -18,11 +18,12 @@ interface UserDocument {
     id: string;
     user_id: string;
     document_type: string;
-    document_url: string;
-    verified: boolean | null;
+    document_path: string; // caminho no bucket (ex.: "doc123.pdf")
+    document_url?: string; // URL pública ou assinada (preenchido dinamicamente)
+    verified: boolean;
     rejection_reason?: string | null;
     verified_at?: string | null;
-    created_at: string | null;
+    created_at: string;
     signedUrl?: string;
     user?: { full_name: string | null; email: string | null };
 }
@@ -71,10 +72,11 @@ export const DocumentApproval = () => {
             const docsWithUrl = await Promise.all(
                 docList.map(async (doc: any) => {
                     let signedUrl = "";
-                    if (doc.document_url) {
+                    const path = doc.document_path || doc.document_url;
+                    if (path) {
                         const { data: signedData } = await supabase.storage
                             .from("user-documents")
-                            .createSignedUrl(doc.document_url, 3600);
+                            .createSignedUrl(path, 3600);
 
                         if (signedData?.signedUrl) {
                             signedUrl = signedData.signedUrl;
@@ -104,6 +106,7 @@ export const DocumentApproval = () => {
         }
     };
 
+    // Aprovar documento
     const handleApprove = async (docId: string) => {
         setProcessing(docId);
         try {
@@ -136,6 +139,7 @@ export const DocumentApproval = () => {
         }
     };
 
+    // Rejeitar documento
     const handleReject = async (docId: string) => {
         if (!rejectReason.trim()) {
             toast({
@@ -173,20 +177,22 @@ export const DocumentApproval = () => {
         }
     };
 
+    // Baixar documento
     const handleDownload = async (doc: UserDocument) => {
         try {
-            if (!doc.document_url) throw new Error("Caminho do documento não encontrado");
+            const path = doc.document_path || doc.document_url;
+            if (!path) throw new Error("Caminho do documento não encontrado");
 
             const { data, error } = await supabase.storage
                 .from("user-documents")
-                .download(doc.document_url);
+                .download(path);
 
             if (error) throw error;
 
             const url = URL.createObjectURL(data);
             const a = document.createElement("a");
             a.href = url;
-            a.download = doc.document_url.split("/").pop() || "documento";
+            a.download = path.split("/").pop() || "documento";
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);

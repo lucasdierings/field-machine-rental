@@ -10,4 +10,10 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  build: {
+    rollupOptions: {
+      // Capacitor native plugins are mobile-only — excluded from web build
+      external: ["capacitor-native-biometric", "@capacitor/preferences"],
+    },
+  },
 });

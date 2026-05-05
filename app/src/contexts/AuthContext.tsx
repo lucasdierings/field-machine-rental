@@ -13,6 +13,7 @@ interface UserProfile {
     email: string | null;
     user_types: string[] | null;
     verified: boolean | null;
+    profile_completed: boolean | null;
     created_at: string;
     updated_at: string;
 }
@@ -126,10 +127,25 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
     useEffect(() => {
         let mounted = true;
+        let sessionTimeout: NodeJS.Timeout;
+
+        // Timeout fallback: se getSession travar, continuar sem auth após 10s
+        sessionTimeout = setTimeout(() => {
+            if (!mounted) return;
+            console.warn('Auth session timeout - continuing without authentication');
+            setSession(null);
+            setUser(null);
+            setLoading(false);
+            setProfile(null);
+            setProfileLoading(false);
+            setRole(null);
+            setRoleLoading(false);
+        }, 10000);
 
         // Get initial session
         supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
             if (!mounted) return;
+            clearTimeout(sessionTimeout);
 
             setSession(currentSession);
             setUser(currentSession?.user ?? null);
@@ -144,6 +160,18 @@ export function AuthProvider({ children }: AuthProviderProps) {
                 setRole(null);
                 setRoleLoading(false);
             }
+        }).catch((error) => {
+            if (!mounted) return;
+            clearTimeout(sessionTimeout);
+            console.error('Failed to get session:', error);
+            // Continuar sem auth se falhar
+            setSession(null);
+            setUser(null);
+            setLoading(false);
+            setProfile(null);
+            setProfileLoading(false);
+            setRole(null);
+            setRoleLoading(false);
         });
 
         // Listen for auth changes
@@ -170,6 +198,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
         return () => {
             mounted = false;
+            clearTimeout(sessionTimeout);
             subscription.unsubscribe();
         };
     }, [fetchProfile, fetchRole]);
