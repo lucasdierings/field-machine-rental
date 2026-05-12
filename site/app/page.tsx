@@ -284,29 +284,28 @@ function useCountUp(target: number, durationMs = 1400) {
   useEffect(() => {
     const node = ref.current;
     if (!node) return;
-    if (
+    const reduced =
       typeof window !== 'undefined' &&
-      window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    ) {
-      setValue(target);
-      return;
-    }
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
     let raf = 0;
     let start = 0;
     const tick = (t: number) => {
       if (!start) start = t;
       const p = Math.min(1, (t - start) / durationMs);
-      // expo-out
       const eased = 1 - Math.pow(2, -10 * p);
       setValue(Math.round(target * eased));
       if (p < 1) raf = requestAnimationFrame(tick);
     };
     const io = new IntersectionObserver(
       ([entry]) => {
-        if (entry.isIntersecting) {
+        if (!entry.isIntersecting) return;
+        if (reduced) {
+          setValue(target);
+        } else {
           raf = requestAnimationFrame(tick);
-          io.disconnect();
         }
+        io.disconnect();
       },
       { threshold: 0.4 },
     );
