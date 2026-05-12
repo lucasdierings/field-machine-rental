@@ -67,13 +67,13 @@ const faqs = [
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-gray-950 text-white" style={{ fontFamily: "'Inter', sans-serif" }}>
+    <div className="min-h-screen bg-gray-950 text-white">
       {/* ── NAVBAR ──────────────────────────────── */}
-      <nav className="fixed top-0 inset-x-0 z-50 bg-gray-950/80 backdrop-blur-md border-b border-white/10">
+      <nav className="fixed top-0 inset-x-0 z-50 bg-gray-950/70 backdrop-blur-xl border-b border-white/10">
         <div className="container mx-auto px-6 py-4 flex justify-between items-center">
           <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition">
-            <span className="text-2xl font-bold text-white tracking-tight">
-              Field<span className="text-green-400">Machine</span>
+            <span className="text-2xl font-semibold text-white tracking-tight font-display">
+              Field<span className="text-green-400 italic">Machine</span>
             </span>
           </Link>
           <div className="hidden md:flex items-center gap-8 text-sm font-medium text-gray-300">
@@ -101,62 +101,75 @@ export default function Home() {
       </nav>
 
       {/* ── HERO ────────────────────────────────── */}
-      <section className="relative min-h-screen flex items-center overflow-hidden">
+      <section className="relative min-h-screen flex items-center overflow-hidden grain">
         <div className="absolute inset-0">
           <Image
             src="/images/hero.jpg"
-            alt="Lavoura de soja com maquinário agrícola"
+            alt="Lavoura de soja com maquinário agrícola operando ao entardecer"
             fill
             className="object-cover object-center"
             priority
             quality={90}
+            sizes="100vw"
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-gray-950 via-gray-950/85 to-gray-950/40" />
+          {/* Cinematic gradient + green mesh overlay */}
+          <div className="absolute inset-0 bg-gradient-to-r from-gray-950 via-gray-950/85 to-gray-950/30" />
+          <div className="absolute inset-0 hero-mesh mix-blend-screen opacity-90" />
         </div>
 
-        <div className="relative container mx-auto px-6 pt-24 pb-16">
-          <div className="max-w-2xl">
-            <span className="inline-block bg-green-900/60 border border-green-700/50 text-green-400 text-sm font-semibold px-3 py-1 rounded-full mb-6">
-              Plataforma #1 de serviços do agronegócio no Brasil
+        <div className="relative container mx-auto px-6 pt-28 pb-20">
+          <div className="max-w-3xl">
+            <span
+              className="rise-in badge-pulse inline-flex items-center gap-2 bg-green-900/50 border border-green-600/50 text-green-300 text-[11px] font-semibold tracking-[0.18em] uppercase px-3 py-1.5 rounded-full mb-8"
+              style={{ animationDelay: '0ms' }}
+            >
+              <span aria-hidden="true" className="inline-block w-1.5 h-1.5 rounded-full bg-green-400" />
+              Plataforma de serviços do agronegócio no Brasil
             </span>
-            <h1 className="text-5xl md:text-6xl font-extrabold leading-tight mb-6">
-              Plataforma de Serviços
-              <br />
-              <span className="text-green-400">para o</span>
-              <br />
-              Agronegócio
+            <h1
+              className="rise-in font-display text-[2.75rem] sm:text-6xl md:text-7xl lg:text-[5.5rem] font-medium tracking-[-0.02em] leading-[0.98] text-balance mb-8"
+              style={{ animationDelay: '120ms' }}
+            >
+              Plataforma de Serviços para o{' '}
+              <span className="accent-underline italic text-green-400">Agronegócio</span>
             </h1>
-            <p className="text-lg text-gray-300 mb-10 leading-relaxed">
+            <p
+              className="rise-in text-lg md:text-xl text-gray-300 mb-10 leading-relaxed max-w-xl text-pretty"
+              style={{ animationDelay: '240ms' }}
+            >
               Conectamos produtores rurais e prestadores de serviço agrícola.
               Sem taxas, sem intermediários — combine direto e acerte entre vocês.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4">
+            <div
+              className="rise-in flex flex-col sm:flex-row gap-4"
+              style={{ animationDelay: '360ms' }}
+            >
               <a
                 href="https://app.fieldmachine.com.br/cadastro"
-                className="inline-flex items-center justify-center bg-green-600 hover:bg-green-500 text-white px-8 py-4 rounded-xl text-lg font-bold transition shadow-lg shadow-green-900/40 hover:shadow-green-700/40"
+                className="group inline-flex items-center justify-center gap-2 bg-green-600 hover:bg-green-500 text-white px-8 py-4 rounded-xl text-lg font-semibold transition-all shadow-lg shadow-green-900/40 hover:shadow-green-700/50 hover:-translate-y-0.5"
               >
-                Começar grátis →
+                Começar grátis
+                <span aria-hidden="true" className="transition-transform group-hover:translate-x-1">→</span>
               </a>
               <a
                 href="#como-funciona"
-                className="inline-flex items-center justify-center border border-white/20 hover:border-white/40 text-white px-8 py-4 rounded-xl text-lg font-semibold transition hover:bg-white/5"
+                className="inline-flex items-center justify-center border border-white/20 hover:border-white/40 text-white px-8 py-4 rounded-xl text-lg font-medium transition hover:bg-white/5"
               >
                 Ver como funciona
               </a>
             </div>
-            <div className="flex flex-wrap gap-6 mt-6 text-sm text-gray-400">
-              <span className="flex items-center gap-2">
-                <svg className="w-5 h-5 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
-                Sem taxas
-              </span>
-              <span className="flex items-center gap-2">
-                <svg className="w-5 h-5 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
-                Pagamento direto
-              </span>
-              <span className="flex items-center gap-2">
-                <svg className="w-5 h-5 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
-                Avaliações completas
-              </span>
+            <div
+              className="rise-in flex flex-wrap gap-x-6 gap-y-2 mt-8 text-sm text-gray-400"
+              style={{ animationDelay: '480ms' }}
+            >
+              {['Sem taxas', 'Pagamento direto', 'Avaliações completas'].map((label) => (
+                <span key={label} className="flex items-center gap-2">
+                  <svg aria-hidden="true" className="w-4 h-4 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                  </svg>
+                  {label}
+                </span>
+              ))}
             </div>
           </div>
         </div>
@@ -166,7 +179,7 @@ export default function Home() {
       <section id="numeros" className="py-20 bg-gray-900 border-y border-white/10">
         <div className="container mx-auto px-6">
           <div className="text-center mb-14">
-            <h2 className="text-4xl font-extrabold mb-4">
+            <h2 className="font-display text-4xl md:text-5xl font-medium tracking-[-0.02em] mb-4 text-balance">
               Números que Comprovam Nossa Confiabilidade
             </h2>
             <p className="text-gray-400 text-lg max-w-xl mx-auto">
@@ -181,7 +194,7 @@ export default function Home() {
             ].map((s) => (
               <div key={s.label} className="text-center">
                 <div className="bg-gray-800/40 border border-white/10 rounded-xl p-8 hover:border-green-700/50 hover:bg-gray-800/60 transition">
-                  <p className="text-5xl md:text-6xl font-extrabold text-green-400 mb-3">{s.value}</p>
+                  <p className="font-display text-5xl md:text-7xl font-medium text-green-400 mb-3 tracking-[-0.04em] tabular-nums">{s.value}</p>
                   <p className="text-lg font-semibold text-white mb-1">{s.label}</p>
                   <p className="text-sm text-gray-400">{s.desc}</p>
                 </div>
@@ -195,7 +208,7 @@ export default function Home() {
       <section id="como-funciona" className="py-24">
         <div className="container mx-auto px-6">
           <div className="text-center mb-14">
-            <h2 className="text-4xl font-extrabold mb-4">Como Funciona</h2>
+            <h2 className="font-display text-4xl md:text-5xl font-medium tracking-[-0.02em] mb-4 text-balance">Como Funciona</h2>
             <p className="text-gray-400 text-lg max-w-xl mx-auto">
               Processo simples e direto para conectar produtores e prestadores de serviço
             </p>
@@ -314,7 +327,7 @@ export default function Home() {
       <section id="maquinas" className="py-24 bg-gray-900 border-y border-white/10">
         <div className="container mx-auto px-6">
           <div className="text-center mb-14">
-            <h2 className="text-4xl font-extrabold mb-4">
+            <h2 className="font-display text-4xl md:text-5xl font-medium tracking-[-0.02em] mb-4 text-balance">
               Equipamentos disponíveis
             </h2>
             <p className="text-gray-400 text-lg max-w-xl mx-auto">
@@ -331,8 +344,9 @@ export default function Home() {
                 <div className="aspect-[4/3] relative">
                   <Image
                     src={m.img}
-                    alt={m.name}
+                    alt={`${m.name} agrícolas — ${m.desc}`}
                     fill
+                    sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 100vw"
                     className="object-cover group-hover:scale-105 transition-transform duration-500"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-gray-950 via-gray-950/30 to-transparent" />
@@ -359,7 +373,7 @@ export default function Home() {
       <section id="beneficios" className="py-24">
         <div className="container mx-auto px-6">
           <div className="text-center mb-14">
-            <h2 className="text-4xl font-extrabold mb-4">
+            <h2 className="font-display text-4xl md:text-5xl font-medium tracking-[-0.02em] mb-4 text-balance">
               Por que escolher o FieldMachine?
             </h2>
             <p className="text-gray-400 text-lg max-w-xl mx-auto">
@@ -389,7 +403,7 @@ export default function Home() {
       <section className="py-24 bg-gray-900 border-y border-white/10">
         <div className="container mx-auto px-6">
           <div className="text-center mb-14">
-            <h2 className="text-4xl font-extrabold mb-4">
+            <h2 className="font-display text-4xl md:text-5xl font-medium tracking-[-0.02em] mb-4 text-balance">
               O que Nossos Usuários Dizem
             </h2>
             <p className="text-gray-400 text-lg max-w-xl mx-auto">
@@ -426,7 +440,7 @@ export default function Home() {
       <section id="faq" className="py-24">
         <div className="container mx-auto px-6">
           <div className="text-center mb-14">
-            <h2 className="text-4xl font-extrabold mb-4">Perguntas Frequentes</h2>
+            <h2 className="font-display text-4xl md:text-5xl font-medium tracking-[-0.02em] mb-4 text-balance">Perguntas Frequentes</h2>
             <p className="text-gray-400 text-lg max-w-xl mx-auto">
               Tire todas as suas dúvidas sobre o FieldMachine
             </p>
@@ -437,10 +451,11 @@ export default function Home() {
                 key={faq.question}
                 className="group bg-gray-800/40 border border-white/10 rounded-xl overflow-hidden hover:border-green-700/50 transition"
               >
-                <summary className="cursor-pointer p-6 font-semibold text-white flex justify-between items-center">
-                  {faq.question}
+                <summary className="cursor-pointer p-6 font-semibold text-white flex justify-between items-center gap-4">
+                  <span>{faq.question}</span>
                   <svg
-                    className="w-5 h-5 text-gray-400 group-open:rotate-180 transition-transform"
+                    aria-hidden="true"
+                    className="w-5 h-5 shrink-0 text-gray-400 group-open:rotate-180 transition-transform"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -462,16 +477,17 @@ export default function Home() {
         <div className="absolute inset-0">
           <Image
             src="/images/implements.jpg"
-            alt="Campo agrícola"
+            alt="Implementos agrícolas em campo de cultivo"
             fill
+            sizes="100vw"
             className="object-cover"
           />
           <div className="absolute inset-0 bg-gray-950/90" />
         </div>
         <div className="relative container mx-auto px-6 text-center max-w-3xl">
-          <h2 className="text-4xl md:text-5xl font-extrabold mb-6">
+          <h2 className="font-display text-4xl md:text-6xl font-medium tracking-[-0.02em] mb-6 text-balance">
             Pronto para transformar seu
-            <span className="text-green-400"> negócio agrícola</span>?
+            <span className="italic text-green-400"> negócio agrícola</span>?
           </h2>
           <p className="text-gray-300 text-xl mb-10">
             Cadastre-se gratuitamente e comece a conectar-se com produtores
@@ -492,8 +508,8 @@ export default function Home() {
           <div className="grid md:grid-cols-4 gap-10 mb-10">
             <div>
               <div className="flex items-center gap-2 mb-4">
-                <span className="font-bold text-xl">
-                  Field<span className="text-green-400">Machine</span>
+                <span className="font-display font-semibold text-xl tracking-tight">
+                  Field<span className="text-green-400 italic">Machine</span>
                 </span>
               </div>
               <p className="text-gray-500 text-sm leading-relaxed">
