@@ -1,26 +1,102 @@
 @import "tailwindcss";
 
+@theme {
+  --font-display: var(--font-fraunces), Georgia, "Times New Roman", serif;
+  --font-body: var(--font-geist), ui-sans-serif, system-ui, sans-serif;
+  --color-background: #0a0a0a;
+  --color-foreground: #ededed;
+}
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #0a0a0a;
+  --foreground: #ededed;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  scroll-behavior: smooth;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist), ui-sans-serif, system-ui, sans-serif;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Editorial display — uses Fraunces optical sizing */
+.font-display {
+  font-family: var(--font-fraunces), Georgia, "Times New Roman", serif;
+  font-optical-sizing: auto;
+  font-feature-settings: "ss01", "ss02";
+}
+
+/* Soft gradient mesh for atmospheric backgrounds (hero, CTA) */
+.hero-mesh {
+  background-image:
+    radial-gradient(at 18% 22%, rgba(34, 197, 94, 0.22) 0px, transparent 55%),
+    radial-gradient(at 82% 8%, rgba(132, 204, 22, 0.12) 0px, transparent 55%),
+    radial-gradient(at 0% 100%, rgba(22, 163, 74, 0.18) 0px, transparent 60%);
+}
+
+/* Subtle film grain overlay (SVG fractal noise) */
+.grain {
+  position: relative;
+}
+.grain::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.07;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* Staggered hero entrance */
+@keyframes rise-in {
+  from { opacity: 0; transform: translateY(18px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.rise-in {
+  animation: rise-in 700ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+/* Soft pulse ring for the hero badge */
+@keyframes badge-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.35); }
+  50%      { box-shadow: 0 0 0 10px rgba(34, 197, 94, 0); }
+}
+.badge-pulse {
+  animation: badge-pulse 2.6s ease-in-out infinite;
+}
+
+/* Underline accent that grows in on entrance */
+@keyframes accent-grow {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+.accent-underline {
+  position: relative;
+  display: inline-block;
+  white-space: nowrap;
+}
+.accent-underline::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0.04em;
+  height: 0.18em;
+  background: rgba(34, 197, 94, 0.35);
+  z-index: -1;
+  transform-origin: left;
+  animation: accent-grow 900ms cubic-bezier(0.7, 0, 0.2, 1) 600ms both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .rise-in, .badge-pulse, .accent-underline::after { animation: none !important; }
+  .accent-underline::after { transform: scaleX(1); }
 }
