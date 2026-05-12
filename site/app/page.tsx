@@ -1,48 +1,146 @@
+'use client';
+
 import Image from 'next/image';
 import Link from 'next/link';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 
-const machines = [
+/* ────────────────────────────────────────────────────────────────────────
+ * Field Machine — Prototype v2
+ * Marketplace P2P de serviços agrícolas. Dark editorial, Apple typography,
+ * Uber motion, Nubank energy, Dell structure.
+ * ──────────────────────────────────────────────────────────────────────── */
+
+const APP_SIGNUP = 'https://app.fieldmachine.com.br/cadastro';
+const APP_LOGIN = 'https://app.fieldmachine.com.br/login';
+
+const KINETIC_WORDS = ['movimento.', 'produção.', 'safra.', 'rede.'];
+
+const NAV_LINKS = [
+  { label: 'Máquinas', href: '#maquinas' },
+  { label: 'Como funciona', href: '#como-funciona' },
+  { label: 'Atividade', href: '#atividade' },
+  { label: 'FAQ', href: '#faq' },
+];
+
+const STATS = [
+  { value: 91, suffix: '', label: 'Máquinas ativas', delta: 'Cadastro verificado' },
+  { value: 389, suffix: '', label: 'Produtores na rede', delta: 'Em 8 estados' },
+  { value: 96, suffix: '%', label: 'Conexões bem avaliadas', delta: 'Últimos 90 dias' },
+  { value: 14, suffix: '', label: 'Regiões atendidas', delta: 'Sul · Centro-Oeste · MATOPIBA' },
+];
+
+const CITIES = [
+  'Cascavel · PR',
+  'Londrina · PR',
+  'Maringá · PR',
+  'Sorriso · MT',
+  'Sinop · MT',
+  'Rondonópolis · MT',
+  'Cristalina · GO',
+  'Luís Eduardo Magalhães · BA',
+  'Rio Verde · GO',
+  'Dourados · MS',
+  'Não-Me-Toque · RS',
+  'Passo Fundo · RS',
+  'Uberaba · MG',
+  'Patos de Minas · MG',
+  'Balsas · MA',
+];
+
+const MACHINES = [
   {
     name: 'Tratores',
+    desc: 'Do 75 cv para implementos ao 4x4 de alta potência.',
     img: '/images/tractor.jpg',
-    desc: 'John Deere, Valtra, New Holland e outras marcas',
+    span: 'lg' as const,
   },
   {
     name: 'Colheitadeiras',
+    desc: 'Soja, milho, trigo, sorgo. Janela apertada, resposta rápida.',
     img: '/images/combine.jpg',
-    desc: 'Para soja, milho, trigo e outras culturas',
+    span: 'sm' as const,
   },
   {
     name: 'Pulverizadores',
+    desc: 'Autopropelidos e de arrasto, bicos calibrados.',
     img: '/images/sprayer.jpg',
-    desc: 'Autopropelidos e acoplados de grande porte',
+    span: 'sm' as const,
   },
   {
     name: 'Plantadeiras',
+    desc: 'Plantio direto e convencional, de 7 a 38 linhas.',
     img: '/images/planter.jpg',
-    desc: 'Plantio direto e convencional, múltiplas linhas',
+    span: 'sm' as const,
   },
 ];
 
-const testimonials = [
+const STEPS = [
+  { n: '01', title: 'Busque', desc: 'Filtre por máquina, modelo, raio de distância e janela de data.' },
+  { n: '02', title: 'Conecte', desc: 'Mande mensagem no chat. Resposta do proprietário, não de call center.' },
+  { n: '03', title: 'Combine', desc: 'Valor, forma de pagamento e logística vocês acertam. PIX, boleto ou na unha.' },
+  { n: '04', title: 'Avalie', desc: 'Quatro notas por contrato: máquina, operador, serviço e cliente.' },
+];
+
+const PRODUTOR_BULLETS = [
+  { title: 'Encontre', desc: 'Máquinas a poucos quilômetros, com disponibilidade real.' },
+  { title: 'Negocie', desc: 'Chat direto, sem cotação por telefone que ninguém responde.' },
+  { title: 'Pague direto', desc: 'O valor combinado é o valor pago. Sem taxa por cima.' },
+  { title: 'Avalie', desc: 'Sua nota ajuda o próximo produtor a escolher melhor.' },
+];
+
+const PRESTADOR_BULLETS = [
+  { title: 'Cadastre', desc: 'Anuncie suas máquinas em minutos. De graça, sempre.' },
+  { title: 'Receba demanda', desc: 'Produtores da sua região acham você primeiro.' },
+  { title: 'Rentabilize', desc: 'Trator parado em galpão não paga financiamento.' },
+  { title: 'Construa fama', desc: 'Boa avaliação puxa o próximo serviço. E o seguinte.' },
+];
+
+const DIFFERENTIATORS = [
+  { kicker: '0%', title: 'Zero taxa', desc: 'Combinou R$ 1.000? Você recebe R$ 1.000. Ponto.' },
+  { kicker: '<30min', title: 'Resposta rápida', desc: 'A maioria das mensagens é respondida em menos de meia hora.' },
+  { kicker: 'BR', title: 'Segurança real', desc: 'Perfil verificado, histórico público e chat com registro.' },
+  { kicker: 'KM', title: 'Proximidade', desc: 'Filtro por raio. Diesel é caro, deslocamento longo, pior ainda.' },
+  { kicker: '/', title: 'Negociação livre', desc: 'Preço, prazo e condições vocês definem. Sem tabela imposta.' },
+  { kicker: '4D', title: 'Reputação que conta', desc: 'Quatro notas por serviço: máquina, operador, atendimento e cliente.' },
+];
+
+const ACTIVITY_POOL = [
+  { text: 'Trator John Deere 7M alugado por R$ 480/dia', city: 'Cascavel · PR', minutes: 4 },
+  { text: 'Colheitadeira Case 8250 contratada para 120 ha', city: 'Sorriso · MT', minutes: 11 },
+  { text: 'Pulverizador autopropelido Jacto Uniport reservado', city: 'Luís Eduardo Magalhães · BA', minutes: 18 },
+  { text: 'Operador com 12 anos de experiência fechou serviço', city: 'Maringá · PR', minutes: 27 },
+  { text: 'Plantadeira Stara Estrela 32 linhas alugada por R$ 2.100/dia', city: 'Cristalina · GO', minutes: 42 },
+  { text: 'Trator Valtra A750 contratado em emergência', city: 'Sinop · MT', minutes: 58 },
+  { text: 'Colheitadeira New Holland CR6.80 reservada', city: 'Londrina · PR', minutes: 73 },
+  { text: 'Distribuidor de calcário Stara Hércules alugado', city: 'Rondonópolis · MT', minutes: 91 },
+  { text: 'Trator Massey Ferguson 7180 contratado para preparo', city: 'Rio Verde · GO', minutes: 104 },
+  { text: 'Operador autônomo com nota 4.9 fechou semana cheia', city: 'Dourados · MS', minutes: 122 },
+];
+
+const TESTIMONIALS = [
   {
-    name: 'João Silva',
-    city: 'Cascavel, PR',
-    text: 'Consegui contratar um serviço de colheita quando minha máquina quebrou na safra. Salvou meu plantio e economizei muito.',
+    name: 'João Vicente',
+    city: 'Cascavel · PR',
+    text:
+      'Minha colheitadeira quebrou no meio da safra. Achei outra a 18 km, fechei no chat em 40 minutos e colhi tudo no prazo. Não perdi um saco.',
   },
   {
-    name: 'Maria Santos',
-    city: 'Londrina, PR',
-    text: 'Como proprietária, consegui rentabilizar meu trator que ficava parado. A plataforma é segura e o processo é muito simples.',
+    name: 'Marta Hoffmann',
+    city: 'Sorriso · MT',
+    text:
+      'Meu trator ficava três meses parado depois do plantio. Em duas safras na plataforma, ele pagou metade da parcela do financiamento.',
   },
   {
-    name: 'Pedro Oliveira',
-    city: 'Maringá, PR',
-    text: 'Excelente plataforma! Encontrei rapidamente um pulverizador na minha região. Processo transparente e seguro.',
+    name: 'Pedro Tavares',
+    city: 'Luís Eduardo Magalhães · BA',
+    text:
+      'Falei direto com o operador, combinei tudo por PIX, ele veio no dia marcado. Sem agência, sem comissão, sem aquela enrolação.',
   },
 ];
 
-const faqs = [
+/* FAQ ── O TEXTO AQUI É BYTE-IDENTICAL AO JSON-LD EM layout.tsx.
+ * Não alterar sem atualizar o jsonLd → quebra a paridade SEO. */
+const FAQS = [
   {
     question: 'Como funciona o pagamento?',
     answer:
@@ -65,474 +163,958 @@ const faqs = [
   },
 ];
 
-export default function Home() {
+/* ───────────────────────── Inline icons ───────────────────────── */
+type IconName =
+  | 'arrow'
+  | 'check'
+  | 'tractor'
+  | 'leaf'
+  | 'pin'
+  | 'bolt'
+  | 'shield'
+  | 'chat'
+  | 'star'
+  | 'real';
+
+function Icon({ name, className }: { name: IconName; className?: string }) {
+  const common = {
+    width: 24,
+    height: 24,
+    viewBox: '0 0 24 24',
+    fill: 'none',
+    stroke: 'currentColor',
+    strokeWidth: 1.5,
+    strokeLinecap: 'round' as const,
+    strokeLinejoin: 'round' as const,
+    className,
+  };
+  switch (name) {
+    case 'arrow':
+      return (
+        <svg {...common}>
+          <path d="M5 12h14M13 6l6 6-6 6" />
+        </svg>
+      );
+    case 'check':
+      return (
+        <svg {...common}>
+          <path d="M5 12.5l4.5 4.5L19 7" />
+        </svg>
+      );
+    case 'tractor':
+      return (
+        <svg {...common}>
+          <path d="M3 17h6m6 0h2a2 2 0 0 0 2-2v-3l-2-5h-7v6" />
+          <circle cx="6" cy="17" r="3" />
+          <circle cx="17" cy="17" r="3" />
+        </svg>
+      );
+    case 'leaf':
+      return (
+        <svg {...common}>
+          <path d="M20 4S9 3 5 9c-3 4 0 11 0 11s7 3 11 0c6-4 4-16 4-16z" />
+          <path d="M11 13l-6 6" />
+        </svg>
+      );
+    case 'pin':
+      return (
+        <svg {...common}>
+          <path d="M12 21s-7-7-7-12a7 7 0 1 1 14 0c0 5-7 12-7 12z" />
+          <circle cx="12" cy="9" r="2.5" />
+        </svg>
+      );
+    case 'bolt':
+      return (
+        <svg {...common}>
+          <path d="M13 2 4 14h7l-1 8 9-12h-7l1-8z" />
+        </svg>
+      );
+    case 'shield':
+      return (
+        <svg {...common}>
+          <path d="M12 3 4 6v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V6l-8-3z" />
+          <path d="M9 12l2 2 4-4" />
+        </svg>
+      );
+    case 'chat':
+      return (
+        <svg {...common}>
+          <path d="M21 12a8 8 0 0 1-11 7.4L4 21l1.6-6A8 8 0 1 1 21 12z" />
+        </svg>
+      );
+    case 'star':
+      return (
+        <svg {...common} fill="currentColor" stroke="none">
+          <path d="M12 2l3.1 6.4 7 1-5.1 5 1.3 7-6.3-3.3L5.7 21.4 7 14.4l-5-5 7-1L12 2z" />
+        </svg>
+      );
+    case 'real':
+      return (
+        <svg {...common}>
+          <path d="M8 6h6a3 3 0 1 1 0 6H8m0 0v6m0-6h6l3 6" />
+        </svg>
+      );
+  }
+}
+
+/* ───────────────────────── Hooks ───────────────────────── */
+function useReveal<T extends HTMLElement>() {
+  const ref = useRef<T | null>(null);
+  useEffect(() => {
+    const node = ref.current;
+    if (!node) return;
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          node.setAttribute('data-reveal', 'true');
+          io.disconnect();
+        }
+      },
+      { threshold: 0.15, rootMargin: '0px 0px -10% 0px' },
+    );
+    io.observe(node);
+    return () => io.disconnect();
+  }, []);
+  return ref;
+}
+
+function useCountUp(target: number, durationMs = 1400) {
+  const [value, setValue] = useState(0);
+  const ref = useRef<HTMLSpanElement | null>(null);
+  useEffect(() => {
+    const node = ref.current;
+    if (!node) return;
+    if (
+      typeof window !== 'undefined' &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    ) {
+      setValue(target);
+      return;
+    }
+    let raf = 0;
+    let start = 0;
+    const tick = (t: number) => {
+      if (!start) start = t;
+      const p = Math.min(1, (t - start) / durationMs);
+      // expo-out
+      const eased = 1 - Math.pow(2, -10 * p);
+      setValue(Math.round(target * eased));
+      if (p < 1) raf = requestAnimationFrame(tick);
+    };
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          raf = requestAnimationFrame(tick);
+          io.disconnect();
+        }
+      },
+      { threshold: 0.4 },
+    );
+    io.observe(node);
+    return () => {
+      cancelAnimationFrame(raf);
+      io.disconnect();
+    };
+  }, [target, durationMs]);
+  return { value, ref };
+}
+
+/* ───────────────────────── Primitives ───────────────────────── */
+function Eyebrow({ children }: { children: ReactNode }) {
   return (
-    <div className="min-h-screen bg-gray-950 text-white" style={{ fontFamily: "'Inter', sans-serif" }}>
-      {/* ── NAVBAR ──────────────────────────────── */}
-      <nav className="fixed top-0 inset-x-0 z-50 bg-gray-950/80 backdrop-blur-md border-b border-white/10">
-        <div className="container mx-auto px-6 py-4 flex justify-between items-center">
-          <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition">
-            <span className="text-2xl font-bold text-white tracking-tight">
-              Field<span className="text-green-400">Machine</span>
-            </span>
-          </Link>
-          <div className="hidden md:flex items-center gap-8 text-sm font-medium text-gray-300">
-            <a href="#maquinas" className="hover:text-green-400 transition">Máquinas</a>
-            <a href="#como-funciona" className="hover:text-green-400 transition">Como funciona</a>
-            <a href="#numeros" className="hover:text-green-400 transition">Números</a>
-            <a href="#beneficios" className="hover:text-green-400 transition">Benefícios</a>
-            <a href="#faq" className="hover:text-green-400 transition">FAQ</a>
-          </div>
-          <div className="flex items-center gap-3">
-            <a
-              href="https://app.fieldmachine.com.br/login"
-              className="text-sm text-gray-300 hover:text-white transition"
-            >
-              Entrar
-            </a>
-            <a
-              href="https://app.fieldmachine.com.br/cadastro"
-              className="text-sm bg-green-600 hover:bg-green-500 text-white px-4 py-2 rounded-lg font-semibold transition"
-            >
-              Criar conta grátis
-            </a>
-          </div>
-        </div>
-      </nav>
+    <span className="inline-flex items-center gap-2 text-eyebrow">
+      <span className="inline-block w-1.5 h-1.5 rounded-full bg-[var(--color-accent)]" />
+      {children}
+    </span>
+  );
+}
 
-      {/* ── HERO ────────────────────────────────── */}
-      <section className="relative min-h-screen flex items-center overflow-hidden">
-        <div className="absolute inset-0">
-          <Image
-            src="/images/hero.jpg"
-            alt="Lavoura de soja com maquinário agrícola"
-            fill
-            className="object-cover object-center"
-            priority
-            quality={90}
-          />
-          <div className="absolute inset-0 bg-gradient-to-r from-gray-950 via-gray-950/85 to-gray-950/40" />
-        </div>
+function Reveal({
+  children,
+  delay = 0,
+  as: As = 'div',
+  className,
+}: {
+  children: ReactNode;
+  delay?: number;
+  as?: 'div' | 'section' | 'span' | 'li' | 'h2';
+  className?: string;
+}) {
+  const ref = useReveal<HTMLDivElement>();
+  return (
+    <As
+      // @ts-expect-error generic ref delegation
+      ref={ref}
+      data-reveal="false"
+      style={{ ['--reveal-delay' as string]: `${delay}ms` }}
+      className={className}
+    >
+      {children}
+    </As>
+  );
+}
 
-        <div className="relative container mx-auto px-6 pt-24 pb-16">
-          <div className="max-w-2xl">
-            <span className="inline-block bg-green-900/60 border border-green-700/50 text-green-400 text-sm font-semibold px-3 py-1 rounded-full mb-6">
-              Plataforma #1 de serviços do agronegócio no Brasil
-            </span>
-            <h1 className="text-5xl md:text-6xl font-extrabold leading-tight mb-6">
-              Plataforma de Serviços
-              <br />
-              <span className="text-green-400">para o</span>
-              <br />
-              Agronegócio
-            </h1>
-            <p className="text-lg text-gray-300 mb-10 leading-relaxed">
-              Conectamos produtores rurais e prestadores de serviço agrícola.
-              Sem taxas, sem intermediários — combine direto e acerte entre vocês.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4">
+/* ───────────────────────── Sections ───────────────────────── */
+function Nav() {
+  const [scrolled, setScrolled] = useState(false);
+  const [open, setOpen] = useState(false);
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 32);
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+  return (
+    <header
+      data-scrolled={scrolled}
+      className={`fixed top-0 inset-x-0 z-50 transition-all duration-300 ${
+        scrolled ? 'glass py-3' : 'py-5'
+      }`}
+    >
+      <nav className="mx-auto max-w-[1280px] px-6 md:px-10 flex items-center justify-between gap-6">
+        <Link href="/" className="flex items-center gap-2 group">
+          <span className="font-display text-2xl md:text-[28px] leading-none tracking-[-0.03em] text-[var(--color-text)] transition-colors group-hover:text-[var(--color-accent)]">
+            field<span className="italic">machine</span>
+          </span>
+        </Link>
+
+        <ul className="hidden md:flex items-center gap-8 text-[0.875rem] text-[var(--color-text-muted)]">
+          {NAV_LINKS.map((l) => (
+            <li key={l.href}>
               <a
-                href="https://app.fieldmachine.com.br/cadastro"
-                className="inline-flex items-center justify-center bg-green-600 hover:bg-green-500 text-white px-8 py-4 rounded-xl text-lg font-bold transition shadow-lg shadow-green-900/40 hover:shadow-green-700/40"
+                href={l.href}
+                className="hover:text-[var(--color-text)] transition-colors duration-200"
               >
-                Começar grátis →
+                {l.label}
               </a>
-              <a
-                href="#como-funciona"
-                className="inline-flex items-center justify-center border border-white/20 hover:border-white/40 text-white px-8 py-4 rounded-xl text-lg font-semibold transition hover:bg-white/5"
-              >
-                Ver como funciona
-              </a>
-            </div>
-            <div className="flex flex-wrap gap-6 mt-6 text-sm text-gray-400">
-              <span className="flex items-center gap-2">
-                <svg className="w-5 h-5 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
-                Sem taxas
-              </span>
-              <span className="flex items-center gap-2">
-                <svg className="w-5 h-5 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
-                Pagamento direto
-              </span>
-              <span className="flex items-center gap-2">
-                <svg className="w-5 h-5 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
-                Avaliações completas
-              </span>
-            </div>
-          </div>
-        </div>
-      </section>
+            </li>
+          ))}
+        </ul>
 
-      {/* ── NÚMEROS / STATS ─────────────────────── */}
-      <section id="numeros" className="py-20 bg-gray-900 border-y border-white/10">
-        <div className="container mx-auto px-6">
-          <div className="text-center mb-14">
-            <h2 className="text-4xl font-extrabold mb-4">
-              Números que Comprovam Nossa Confiabilidade
-            </h2>
-            <p className="text-gray-400 text-lg max-w-xl mx-auto">
-              Produtores já confiam no FieldMachine para suas necessidades agrícolas
-            </p>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 max-w-3xl mx-auto">
-            {[
-              { value: '91', label: 'Máquinas disponíveis', desc: 'Equipamentos verificados' },
-              { value: '389', label: 'Produtores cadastrados', desc: 'Rede confiável' },
-              { value: '96%', label: 'Satisfação', desc: 'Clientes satisfeitos' },
-            ].map((s) => (
-              <div key={s.label} className="text-center">
-                <div className="bg-gray-800/40 border border-white/10 rounded-xl p-8 hover:border-green-700/50 hover:bg-gray-800/60 transition">
-                  <p className="text-5xl md:text-6xl font-extrabold text-green-400 mb-3">{s.value}</p>
-                  <p className="text-lg font-semibold text-white mb-1">{s.label}</p>
-                  <p className="text-sm text-gray-400">{s.desc}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── COMO FUNCIONA — FLUXO RÁPIDO ────────── */}
-      <section id="como-funciona" className="py-24">
-        <div className="container mx-auto px-6">
-          <div className="text-center mb-14">
-            <h2 className="text-4xl font-extrabold mb-4">Como Funciona</h2>
-            <p className="text-gray-400 text-lg max-w-xl mx-auto">
-              Processo simples e direto para conectar produtores e prestadores de serviço
-            </p>
-          </div>
-
-          {/* Steps flow */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-5xl mx-auto mb-20 relative">
-            {/* Connecting line */}
-            <div className="hidden md:block absolute top-16 left-[12%] right-[12%] h-0.5 bg-gradient-to-r from-green-700/30 via-green-500 to-green-700/30" />
-
-            {[
-              { step: '01', icon: '🔍', title: 'Busque', desc: 'Encontre a máquina ideal para sua necessidade' },
-              { step: '02', icon: '🤝', title: 'Conecte', desc: 'Entre em contato direto com o prestador' },
-              { step: '03', icon: '💬', title: 'Combine', desc: 'Negocie valores e acertem diretamente' },
-              { step: '04', icon: '⭐', title: 'Avalie', desc: 'Avalie o serviço, operador, máquina e cliente' },
-            ].map((item) => (
-              <div key={item.step} className="text-center relative">
-                <div className="bg-gray-800/60 border border-white/10 rounded-2xl p-6 hover:border-green-700/50 transition hover:shadow-lg hover:shadow-green-900/20">
-                  <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-green-900/40 border-2 border-green-500 flex items-center justify-center text-2xl relative z-10">
-                    {item.icon}
-                  </div>
-                  <h3 className="text-lg font-bold mb-2">{item.title}</h3>
-                  <p className="text-sm text-gray-400">{item.desc}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* Dual columns — Para Produtores / Para Prestadores */}
-          <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
-            {/* Para Produtores */}
-            <div className="bg-gradient-to-br from-green-950/60 to-gray-900 border border-green-800/40 rounded-2xl p-10">
-              <div className="flex items-center gap-3 mb-8">
-                <div className="bg-green-900/60 w-12 h-12 rounded-xl flex items-center justify-center text-2xl">
-                  🌾
-                </div>
-                <h3 className="text-2xl font-bold">Para Produtores</h3>
-              </div>
-              <p className="text-gray-400 mb-6">Encontre e contrate serviços facilmente</p>
-              <ul className="space-y-5">
-                {[
-                  { icon: '🔍', title: 'Busque', desc: 'Encontre máquinas próximas à sua propriedade' },
-                  { icon: '💬', title: 'Negocie', desc: 'Chat direto com o proprietário para combinar valores e detalhes' },
-                  { icon: '🤝', title: 'Acerte Direto', desc: 'Combine o pagamento entre vocês — sem intermediários' },
-                  { icon: '⭐', title: 'Avalie', desc: 'Avalie o serviço, o operador e a máquina para ajudar a comunidade' },
-                ].map((item) => (
-                  <li key={item.title} className="flex items-start gap-4">
-                    <span className="text-xl mt-0.5">{item.icon}</span>
-                    <div>
-                      <h4 className="font-semibold text-white">{item.title}</h4>
-                      <p className="text-sm text-gray-400">{item.desc}</p>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-              <a
-                href="https://app.fieldmachine.com.br/cadastro"
-                className="mt-8 inline-block bg-green-600 hover:bg-green-500 text-white px-6 py-3 rounded-xl font-semibold transition w-full text-center"
-              >
-                Buscar serviços →
-              </a>
-            </div>
-
-            {/* Para Prestadores */}
-            <div className="bg-gradient-to-br from-gray-800/60 to-gray-900 border border-white/10 rounded-2xl p-10">
-              <div className="flex items-center gap-3 mb-8">
-                <div className="bg-gray-700/60 w-12 h-12 rounded-xl flex items-center justify-center text-2xl">
-                  🚜
-                </div>
-                <h3 className="text-2xl font-bold">Para Prestadores de Serviço</h3>
-              </div>
-              <p className="text-gray-400 mb-6">Monetize suas máquinas e ofereça seus serviços</p>
-              <ul className="space-y-5">
-                {[
-                  { icon: '📝', title: 'Cadastre', desc: 'Anuncie gratuitamente suas máquinas e serviços' },
-                  { icon: '👥', title: 'Conecte-se', desc: 'Receba solicitações de produtores da sua região' },
-                  { icon: '📈', title: 'Rentabilize', desc: 'Equipamento parado gerando renda — sem taxas da plataforma' },
-                  { icon: '⭐', title: 'Construa Reputação', desc: 'Boas avaliações atraem mais clientes para seus serviços' },
-                ].map((item) => (
-                  <li key={item.title} className="flex items-start gap-4">
-                    <span className="text-xl mt-0.5">{item.icon}</span>
-                    <div>
-                      <h4 className="font-semibold text-white">{item.title}</h4>
-                      <p className="text-sm text-gray-400">{item.desc}</p>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-              <a
-                href="https://app.fieldmachine.com.br/cadastro"
-                className="mt-8 inline-block border border-white/20 hover:border-green-700/60 hover:bg-green-900/20 text-white px-6 py-3 rounded-xl font-semibold transition w-full text-center"
-              >
-                Cadastrar equipamento →
-              </a>
-            </div>
-          </div>
-
-          {/* Peer-to-peer badges */}
-          <div className="flex flex-wrap justify-center gap-6 mt-12 max-w-3xl mx-auto">
-            {[
-              { icon: '💰', label: '0% Taxa', desc: 'Zero comissão sobre o serviço' },
-              { icon: '💬', label: 'Negociação Livre', desc: 'Combine valores diretamente' },
-              { icon: '👥', label: 'Comunidade', desc: 'Avaliações reais de confiança' },
-            ].map((b) => (
-              <div key={b.label} className="bg-gray-800/40 border border-white/10 rounded-xl px-6 py-4 text-center flex-1 min-w-[160px]">
-                <span className="text-2xl block mb-2">{b.icon}</span>
-                <p className="font-semibold text-white text-sm">{b.label}</p>
-                <p className="text-xs text-gray-500">{b.desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── MÁQUINAS DISPONÍVEIS ─────────────────── */}
-      <section id="maquinas" className="py-24 bg-gray-900 border-y border-white/10">
-        <div className="container mx-auto px-6">
-          <div className="text-center mb-14">
-            <h2 className="text-4xl font-extrabold mb-4">
-              Equipamentos disponíveis
-            </h2>
-            <p className="text-gray-400 text-lg max-w-xl mx-auto">
-              Encontre o equipamento certo para cada fase do seu cultivo
-            </p>
-          </div>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {machines.map((m) => (
-              <a
-                key={m.name}
-                href="https://app.fieldmachine.com.br/cadastro"
-                className="group relative rounded-2xl overflow-hidden border border-white/10 hover:border-green-700/60 transition-all duration-300 hover:shadow-xl hover:shadow-green-900/30"
-              >
-                <div className="aspect-[4/3] relative">
-                  <Image
-                    src={m.img}
-                    alt={m.name}
-                    fill
-                    className="object-cover group-hover:scale-105 transition-transform duration-500"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-gray-950 via-gray-950/30 to-transparent" />
-                </div>
-                <div className="absolute bottom-0 inset-x-0 p-5">
-                  <h3 className="font-bold text-lg text-white">{m.name}</h3>
-                  <p className="text-sm text-gray-400 mt-1">{m.desc}</p>
-                </div>
-              </a>
-            ))}
-          </div>
-          <div className="text-center mt-10">
-            <a
-              href="https://app.fieldmachine.com.br/cadastro"
-              className="inline-flex items-center gap-2 border border-white/20 hover:border-green-700/60 text-gray-300 hover:text-green-400 px-6 py-3 rounded-xl font-semibold transition"
-            >
-              Ver todos os equipamentos →
-            </a>
-          </div>
-        </div>
-      </section>
-
-      {/* ── BENEFÍCIOS ─────────────────────────── */}
-      <section id="beneficios" className="py-24">
-        <div className="container mx-auto px-6">
-          <div className="text-center mb-14">
-            <h2 className="text-4xl font-extrabold mb-4">
-              Por que escolher o FieldMachine?
-            </h2>
-            <p className="text-gray-400 text-lg max-w-xl mx-auto">
-              Vantagens exclusivas para produtores e prestadores de serviço
-            </p>
-          </div>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8 max-w-5xl mx-auto">
-            {[
-              { icon: '💰', title: 'Sem Taxas', desc: 'Zero comissão. O valor negociado é 100% seu. Sem surpresas.' },
-              { icon: '⚡', title: 'Agilidade', desc: 'Encontre equipamentos disponíveis na sua região em minutos.' },
-              { icon: '🔒', title: 'Segurança', desc: 'Avaliações verificadas, perfis completos e chat integrado.' },
-              { icon: '📍', title: 'Proximidade', desc: 'Busca por localização. Encontre máquinas perto de você.' },
-              { icon: '💬', title: 'Negociação Direta', desc: 'Converse e combine valores sem intermediários.' },
-              { icon: '⭐', title: 'Reputação', desc: 'Avaliações de 4 dimensões: serviço, operador, máquina e cliente.' },
-            ].map((b) => (
-              <div key={b.title} className="bg-gray-800/40 border border-white/10 rounded-2xl p-8 hover:border-green-700/50 transition hover:shadow-lg hover:shadow-green-900/20">
-                <span className="text-3xl block mb-4">{b.icon}</span>
-                <h3 className="text-xl font-bold mb-2">{b.title}</h3>
-                <p className="text-gray-400 leading-relaxed">{b.desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── DEPOIMENTOS ────────────────────────── */}
-      <section className="py-24 bg-gray-900 border-y border-white/10">
-        <div className="container mx-auto px-6">
-          <div className="text-center mb-14">
-            <h2 className="text-4xl font-extrabold mb-4">
-              O que Nossos Usuários Dizem
-            </h2>
-            <p className="text-gray-400 text-lg max-w-xl mx-auto">
-              Depoimentos reais de produtores e proprietários que confiam no FieldMachine
-            </p>
-          </div>
-          <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-            {testimonials.map((t) => (
-              <div
-                key={t.name}
-                className="bg-gray-800/60 border border-white/10 rounded-2xl p-8 hover:border-green-700/50 transition"
-              >
-                <div className="flex items-center gap-1 mb-4">
-                  {[...Array(5)].map((_, i) => (
-                    <svg key={i} className="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
-                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                    </svg>
-                  ))}
-                </div>
-                <blockquote className="text-gray-300 mb-6 leading-relaxed italic">
-                  &ldquo;{t.text}&rdquo;
-                </blockquote>
-                <div>
-                  <p className="font-semibold text-white">{t.name}</p>
-                  <p className="text-sm text-gray-500">{t.city}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── FAQ ─────────────────────────────────── */}
-      <section id="faq" className="py-24">
-        <div className="container mx-auto px-6">
-          <div className="text-center mb-14">
-            <h2 className="text-4xl font-extrabold mb-4">Perguntas Frequentes</h2>
-            <p className="text-gray-400 text-lg max-w-xl mx-auto">
-              Tire todas as suas dúvidas sobre o FieldMachine
-            </p>
-          </div>
-          <div className="max-w-3xl mx-auto space-y-4">
-            {faqs.map((faq) => (
-              <details
-                key={faq.question}
-                className="group bg-gray-800/40 border border-white/10 rounded-xl overflow-hidden hover:border-green-700/50 transition"
-              >
-                <summary className="cursor-pointer p-6 font-semibold text-white flex justify-between items-center">
-                  {faq.question}
-                  <svg
-                    className="w-5 h-5 text-gray-400 group-open:rotate-180 transition-transform"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
-                </summary>
-                <div className="px-6 pb-6 text-gray-400 leading-relaxed">
-                  {faq.answer}
-                </div>
-              </details>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── CTA FINAL ──────────────────────────── */}
-      <section className="relative py-24 overflow-hidden">
-        <div className="absolute inset-0">
-          <Image
-            src="/images/implements.jpg"
-            alt="Campo agrícola"
-            fill
-            className="object-cover"
-          />
-          <div className="absolute inset-0 bg-gray-950/90" />
-        </div>
-        <div className="relative container mx-auto px-6 text-center max-w-3xl">
-          <h2 className="text-4xl md:text-5xl font-extrabold mb-6">
-            Pronto para transformar seu
-            <span className="text-green-400"> negócio agrícola</span>?
-          </h2>
-          <p className="text-gray-300 text-xl mb-10">
-            Cadastre-se gratuitamente e comece a conectar-se com produtores
-            e prestadores de serviço. Sem taxas, sem compromisso.
-          </p>
+        <div className="hidden md:flex items-center gap-3">
           <a
-            href="https://app.fieldmachine.com.br/cadastro"
-            className="inline-flex items-center bg-green-600 hover:bg-green-500 text-white px-10 py-5 rounded-xl text-xl font-bold transition shadow-xl shadow-green-900/50"
+            href={APP_LOGIN}
+            className="text-[0.875rem] text-[var(--color-text-muted)] hover:text-[var(--color-text)] transition-colors"
           >
-            Criar conta grátis →
+            Entrar
+          </a>
+          <a href={APP_SIGNUP} className="btn-primary !py-2.5 !px-5 !text-[0.875rem]">
+            Criar conta
+            <Icon name="arrow" className="w-4 h-4" />
           </a>
         </div>
-      </section>
 
-      {/* ── FOOTER ─────────────────────────────── */}
-      <footer className="bg-gray-950 border-t border-white/10 py-14">
-        <div className="container mx-auto px-6">
-          <div className="grid md:grid-cols-4 gap-10 mb-10">
-            <div>
-              <div className="flex items-center gap-2 mb-4">
-                <span className="font-bold text-xl">
-                  Field<span className="text-green-400">Machine</span>
+        <button
+          onClick={() => setOpen(!open)}
+          aria-label="Abrir menu"
+          className="md:hidden w-10 h-10 rounded-full border border-[var(--color-hairline)] flex items-center justify-center text-[var(--color-text)]"
+        >
+          <span className="sr-only">Menu</span>
+          {open ? (
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M6 6l12 12M6 18L18 6" />
+            </svg>
+          ) : (
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M4 7h16M4 12h16M4 17h16" />
+            </svg>
+          )}
+        </button>
+      </nav>
+
+      {open && (
+        <div className="md:hidden absolute top-full inset-x-0 glass border-t border-[var(--color-hairline)] px-6 py-8">
+          <ul className="flex flex-col gap-5 text-lg">
+            {NAV_LINKS.map((l) => (
+              <li key={l.href}>
+                <a href={l.href} onClick={() => setOpen(false)} className="text-[var(--color-text)]">
+                  {l.label}
+                </a>
+              </li>
+            ))}
+            <li className="flex gap-3 pt-4">
+              <a href={APP_LOGIN} className="btn-ghost flex-1 !py-3">
+                Entrar
+              </a>
+              <a href={APP_SIGNUP} className="btn-primary flex-1 !py-3">
+                Criar conta
+              </a>
+            </li>
+          </ul>
+        </div>
+      )}
+    </header>
+  );
+}
+
+function Hero() {
+  return (
+    <section className="relative pt-32 md:pt-40 pb-20 md:pb-32 overflow-hidden">
+      {/* Background image — heavy treatment */}
+      <div className="absolute inset-0 -z-10">
+        <Image
+          src="/images/hero.jpg"
+          alt=""
+          fill
+          priority
+          quality={90}
+          sizes="100vw"
+          className="object-cover opacity-40"
+          style={{ objectPosition: '60% 40%' }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-[var(--color-bg)]/70 via-[var(--color-bg)]/85 to-[var(--color-bg)]" />
+        <div className="absolute inset-0 hero-mesh" />
+      </div>
+
+      <div className="relative mx-auto max-w-[1280px] px-6 md:px-10 grid grid-cols-12 gap-6 md:gap-10">
+        <div className="col-span-12 lg:col-span-10">
+          <Reveal>
+            <Eyebrow>Marketplace agrícola peer-to-peer · Brasil</Eyebrow>
+          </Reveal>
+
+          <Reveal delay={120}>
+            <h1 className="mt-8 text-display">
+              <span className="block">O campo</span>
+              <span className="block">
+                em{' '}
+                <span className="kinetic align-baseline" aria-label="movimento">
+                  <span className="kinetic-track">
+                    {KINETIC_WORDS.map((w) => (
+                      <span key={w}>{w}</span>
+                    ))}
+                    <span aria-hidden>{KINETIC_WORDS[0]}</span>
+                  </span>
+                </span>
+              </span>
+            </h1>
+          </Reveal>
+
+          <Reveal delay={260}>
+            <p className="mt-10 max-w-[44ch] text-lead">
+              Encontre tratores, colheitadeiras e operadores na sua região e combine direto com quem
+              opera. Sem comissão, sem intermediário, sem enrolação.
+            </p>
+          </Reveal>
+
+          <Reveal delay={380}>
+            <div className="mt-12 flex flex-wrap items-center gap-4">
+              <a href={APP_SIGNUP} className="btn-primary">
+                Encontrar máquina
+                <Icon name="arrow" className="w-4 h-4" />
+              </a>
+              <a href="#como-funciona" className="btn-ghost">
+                Sou prestador
+              </a>
+            </div>
+          </Reveal>
+
+          <Reveal delay={500}>
+            <ul className="mt-10 flex flex-wrap gap-x-7 gap-y-3 text-sm text-[var(--color-text-muted)]">
+              {['Zero comissão', 'Pagamento direto no PIX', 'Avaliações em 4 dimensões'].map((p) => (
+                <li key={p} className="flex items-center gap-2">
+                  <Icon name="check" className="w-4 h-4 text-[var(--color-accent)]" />
+                  {p}
+                </li>
+              ))}
+            </ul>
+          </Reveal>
+        </div>
+      </div>
+
+      {/* Scroll hint */}
+      <div className="hidden md:flex absolute bottom-8 left-1/2 -translate-x-1/2 flex-col items-center gap-2 text-[0.7rem] tracking-[0.2em] uppercase text-[var(--color-text-muted)]">
+        <span>scroll</span>
+        <span className="block w-px h-8 bg-gradient-to-b from-[var(--color-text-muted)] to-transparent" />
+      </div>
+    </section>
+  );
+}
+
+function StatsBar() {
+  return (
+    <section id="pulso" className="relative border-y border-[var(--color-hairline)] bg-[var(--color-surface)]/40">
+      <div className="mx-auto max-w-[1280px] px-6 md:px-10">
+        <div className="grid grid-cols-2 lg:grid-cols-4 divide-y lg:divide-y-0 lg:divide-x divide-[var(--color-hairline)]">
+          {STATS.map((s, i) => (
+            <StatCell key={s.label} stat={s} index={i} />
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function StatCell({ stat, index }: { stat: (typeof STATS)[number]; index: number }) {
+  const { value, ref } = useCountUp(stat.value);
+  return (
+    <div className="py-10 lg:py-14 px-2 lg:px-8 first:pl-0 last:pr-0">
+      <div className="text-eyebrow mb-4 flex items-center gap-2">
+        <span className="font-mono text-[var(--color-accent)]">0{index + 1}</span>
+        <span>{stat.label}</span>
+      </div>
+      <div className="text-stat">
+        <span ref={ref}>{value}</span>
+        {stat.suffix}
+      </div>
+      <div className="mt-3 text-sm text-[var(--color-text-muted)]">{stat.delta}</div>
+    </div>
+  );
+}
+
+function CityMarquee() {
+  const items = [...CITIES, ...CITIES];
+  return (
+    <section aria-label="Cidades atendidas" className="marquee py-8 border-b border-[var(--color-hairline)]">
+      <div className="marquee-track text-[var(--color-text-muted)] text-sm tracking-[0.12em] uppercase">
+        {items.map((c, i) => (
+          <span key={`${c}-${i}`} className="inline-flex items-center gap-3 font-mono">
+            <span className="inline-block w-1 h-1 rounded-full bg-[var(--color-accent)]/70" />
+            {c}
+          </span>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function CatalogBento() {
+  return (
+    <section id="maquinas" className="py-24 md:py-32">
+      <div className="mx-auto max-w-[1280px] px-6 md:px-10">
+        <Reveal>
+          <Eyebrow>01 — Catálogo</Eyebrow>
+        </Reveal>
+        <Reveal delay={120}>
+          <h2 className="mt-6 text-h1 max-w-[14ch]">
+            Todo o maquinário, <span className="italic text-[var(--color-text-muted)]">num só lugar.</span>
+          </h2>
+        </Reveal>
+        <Reveal delay={240}>
+          <p className="mt-6 max-w-[52ch] text-lead">
+            Tratores, colheitadeiras, pulverizadores, plantadeiras e operadores — verificados e prontos para
+            a próxima janela de safra.
+          </p>
+        </Reveal>
+
+        <div className="mt-16 grid grid-cols-1 md:grid-cols-6 gap-4 md:gap-5">
+          {MACHINES.map((m, i) => (
+            <Reveal
+              key={m.name}
+              delay={i * 80}
+              className={`group relative overflow-hidden rounded-3xl border border-[var(--color-hairline)] bg-[var(--color-surface)] ${
+                m.span === 'lg' ? 'md:col-span-4 md:row-span-2 aspect-[16/14] md:aspect-auto md:min-h-[480px]' : 'md:col-span-2 aspect-[4/3]'
+              }`}
+            >
+              <a href={APP_SIGNUP} className="block w-full h-full">
+                <Image
+                  src={m.img}
+                  alt={m.name}
+                  fill
+                  sizes={m.span === 'lg' ? '(min-width:768px) 66vw, 100vw' : '(min-width:768px) 33vw, 100vw'}
+                  className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-[var(--color-bg)] via-[var(--color-bg)]/30 to-transparent" />
+                <div className="absolute top-5 right-5 text-eyebrow font-mono text-[var(--color-text)]/70">
+                  0{i + 1} / 0{MACHINES.length}
+                </div>
+                <div className="absolute bottom-0 inset-x-0 p-6 md:p-8 flex items-end justify-between gap-4">
+                  <div>
+                    <h3 className="font-display text-3xl md:text-4xl leading-none tracking-tight text-[var(--color-text)]">
+                      {m.name}
+                    </h3>
+                    <p className="mt-3 text-sm md:text-base text-[var(--color-text-muted)] max-w-[42ch]">
+                      {m.desc}
+                    </p>
+                  </div>
+                  <div className="hidden md:flex w-11 h-11 rounded-full border border-[var(--color-text)]/30 items-center justify-center text-[var(--color-text)] transition-all duration-300 group-hover:bg-[var(--color-accent)] group-hover:border-[var(--color-accent)] group-hover:text-[var(--color-bg)]">
+                    <Icon name="arrow" className="w-5 h-5" />
+                  </div>
+                </div>
+              </a>
+            </Reveal>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function ComoFunciona() {
+  return (
+    <section id="como-funciona" className="relative py-24 md:py-32 border-y border-[var(--color-hairline)]">
+      <div className="mx-auto max-w-[1280px] px-6 md:px-10">
+        <Reveal>
+          <Eyebrow>02 — Como funciona</Eyebrow>
+        </Reveal>
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mt-6">
+          <Reveal delay={120} className="lg:col-span-7">
+            <h2 className="text-h1 max-w-[16ch]">
+              Quatro passos. <br />
+              <span className="italic text-[var(--color-text-muted)]">Zero atravessador.</span>
+            </h2>
+          </Reveal>
+          <Reveal delay={240} className="lg:col-span-5 flex items-end">
+            <p className="text-lead max-w-[40ch]">
+              Você fala direto com quem opera a máquina. A gente só conecta — e registra.
+            </p>
+          </Reveal>
+        </div>
+
+        <ol className="mt-20 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-px bg-[var(--color-hairline)] border border-[var(--color-hairline)] rounded-3xl overflow-hidden">
+          {STEPS.map((s, i) => (
+            <Reveal
+              key={s.n}
+              delay={i * 100}
+              as="li"
+              className="bg-[var(--color-bg)] p-8 md:p-10 relative group hover:bg-[var(--color-surface)] transition-colors duration-500"
+            >
+              <span className="numeral-outline absolute -top-2 right-4 text-[110px] md:text-[150px] pointer-events-none">
+                {s.n}
+              </span>
+              <div className="relative">
+                <span className="font-mono text-xs text-[var(--color-accent)]">{s.n}</span>
+                <h3 className="mt-4 font-display text-3xl tracking-tight text-[var(--color-text)]">{s.title}</h3>
+                <p className="mt-4 text-sm text-[var(--color-text-muted)] leading-relaxed">{s.desc}</p>
+              </div>
+            </Reveal>
+          ))}
+        </ol>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mt-16">
+          <ProdutorBand />
+          <PrestadorBand />
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function ProdutorBand() {
+  return (
+    <Reveal className="relative rounded-3xl overflow-hidden border border-[var(--color-accent)]/30 bg-gradient-to-br from-[var(--color-accent)]/12 via-[var(--color-surface)] to-[var(--color-bg)] p-8 md:p-12">
+      <div className="absolute -top-12 -right-12 text-[180px] md:text-[260px] numeral-outline opacity-40 pointer-events-none">
+        P
+      </div>
+      <div className="relative">
+        <Eyebrow>Para produtores</Eyebrow>
+        <h3 className="mt-5 text-h2">Encontre. Combine. Colha.</h3>
+        <ul className="mt-8 space-y-5">
+          {PRODUTOR_BULLETS.map((b) => (
+            <li key={b.title} className="flex gap-4">
+              <span className="mt-1 inline-flex w-7 h-7 rounded-full bg-[var(--color-accent)] text-[var(--color-bg)] items-center justify-center shrink-0">
+                <Icon name="check" className="w-4 h-4" />
+              </span>
+              <div>
+                <h4 className="font-display text-xl tracking-tight">{b.title}</h4>
+                <p className="text-sm text-[var(--color-text-muted)] mt-1">{b.desc}</p>
+              </div>
+            </li>
+          ))}
+        </ul>
+        <a href={APP_SIGNUP} className="btn-primary mt-10">
+          Buscar serviços
+          <Icon name="arrow" className="w-4 h-4" />
+        </a>
+      </div>
+    </Reveal>
+  );
+}
+
+function PrestadorBand() {
+  return (
+    <Reveal
+      delay={120}
+      className="relative rounded-3xl overflow-hidden border border-[var(--color-hairline)] bg-[var(--color-surface)] p-8 md:p-12"
+    >
+      <div className="absolute -top-12 -right-12 text-[180px] md:text-[260px] numeral-outline opacity-40 pointer-events-none">
+        S
+      </div>
+      <div className="relative">
+        <Eyebrow>Para prestadores</Eyebrow>
+        <h3 className="mt-5 text-h2">Rentabilize. Receba. Repita.</h3>
+        <ul className="mt-8 space-y-5">
+          {PRESTADOR_BULLETS.map((b) => (
+            <li key={b.title} className="flex gap-4">
+              <span className="mt-1 inline-flex w-7 h-7 rounded-full border border-[var(--color-accent)]/60 text-[var(--color-accent)] items-center justify-center shrink-0">
+                <Icon name="check" className="w-4 h-4" />
+              </span>
+              <div>
+                <h4 className="font-display text-xl tracking-tight">{b.title}</h4>
+                <p className="text-sm text-[var(--color-text-muted)] mt-1">{b.desc}</p>
+              </div>
+            </li>
+          ))}
+        </ul>
+        <a href={APP_SIGNUP} className="btn-ghost mt-10">
+          Cadastrar equipamento
+          <Icon name="arrow" className="w-4 h-4" />
+        </a>
+      </div>
+    </Reveal>
+  );
+}
+
+function Differentiators() {
+  return (
+    <section id="diferenciais" className="py-24 md:py-32">
+      <div className="mx-auto max-w-[1280px] px-6 md:px-10">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          <Reveal className="lg:col-span-7">
+            <Eyebrow>03 — Diferenciais</Eyebrow>
+            <h2 className="mt-6 text-h1 max-w-[14ch]">
+              Por que o Field Machine é{' '}
+              <span className="italic text-[var(--color-text-muted)]">diferente.</span>
+            </h2>
+          </Reveal>
+          <Reveal delay={120} className="lg:col-span-5 flex items-end">
+            <p className="text-lead max-w-[40ch]">
+              Marketplace P2P, sem comissão, com avaliação em quatro dimensões. O que faz sentido
+              para quem está no campo.
+            </p>
+          </Reveal>
+        </div>
+
+        <div className="mt-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          {DIFFERENTIATORS.map((d, i) => (
+            <Reveal
+              key={d.title}
+              delay={i * 80}
+              className="surface surface-glow p-8 relative overflow-hidden transition-all duration-500 hover:-translate-y-1"
+            >
+              <span className="numeral-outline absolute -top-4 -right-4 text-[120px] md:text-[140px] pointer-events-none">
+                {d.kicker}
+              </span>
+              <div className="relative">
+                <span className="font-mono text-xs text-[var(--color-accent)]">0{i + 1}</span>
+                <h3 className="mt-5 font-display text-2xl tracking-tight">{d.title}</h3>
+                <p className="mt-3 text-sm text-[var(--color-text-muted)] leading-relaxed">{d.desc}</p>
+              </div>
+            </Reveal>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function LiveActivity() {
+  const [feed, setFeed] = useState<typeof ACTIVITY_POOL>(() => ACTIVITY_POOL.slice(0, 6));
+  const cursorRef = useRef(6);
+
+  useEffect(() => {
+    if (
+      typeof window !== 'undefined' &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    ) {
+      return;
+    }
+    const id = setInterval(() => {
+      cursorRef.current = (cursorRef.current + 1) % ACTIVITY_POOL.length;
+      const next = ACTIVITY_POOL[cursorRef.current];
+      setFeed((prev) => [{ ...next, minutes: 1 }, ...prev.slice(0, 5)]);
+    }, 3800);
+    return () => clearInterval(id);
+  }, []);
+
+  return (
+    <section id="atividade" className="relative py-24 md:py-32 bg-[var(--color-surface)]/40 border-y border-[var(--color-hairline)] overflow-hidden">
+      <div className="absolute inset-0 -z-10 opacity-30 pointer-events-none">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[900px] h-[900px] rounded-full border border-[var(--color-accent)]/20" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full border border-[var(--color-accent)]/15" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] rounded-full border border-[var(--color-accent)]/10" />
+      </div>
+
+      <div className="mx-auto max-w-[1280px] px-6 md:px-10 grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
+        <Reveal className="lg:col-span-5 lg:sticky lg:top-32">
+          <Eyebrow>
+            <span className="pulse-dot inline-block" />
+            <span>Ao vivo</span>
+          </Eyebrow>
+          <h2 className="mt-6 text-h1 max-w-[12ch]">
+            Acontecendo <br />
+            <span className="italic text-[var(--color-text-muted)]">agora.</span>
+          </h2>
+          <p className="mt-6 max-w-[40ch] text-lead">
+            Conexões reais entre produtores e prestadores nas últimas horas. Atualiza em tempo real.
+          </p>
+        </Reveal>
+
+        <Reveal delay={120} className="lg:col-span-7">
+          <div className="surface p-2 md:p-3 max-h-[520px] overflow-hidden">
+            <div className="flex items-center justify-between px-5 py-3 border-b border-[var(--color-hairline)]">
+              <div className="flex items-center gap-3">
+                <span className="pulse-dot" />
+                <span className="font-mono text-xs text-[var(--color-text-muted)] tracking-widest uppercase">
+                  Feed · marketplace
                 </span>
               </div>
-              <p className="text-gray-500 text-sm leading-relaxed">
-                Plataforma de serviços agrícolas que conecta produtores e
-                prestadores de serviço. Sem taxas, sem intermediários.
-              </p>
+              <span className="font-mono text-xs text-[var(--color-text-muted)]">
+                {feed.length.toString().padStart(2, '0')} eventos
+              </span>
             </div>
-            <div>
-              <h4 className="font-semibold text-gray-300 mb-4">Plataforma</h4>
-              <ul className="space-y-2 text-sm text-gray-500">
-                <li><a href="https://app.fieldmachine.com.br/cadastro" className="hover:text-green-400 transition">Criar conta grátis</a></li>
-                <li><a href="https://app.fieldmachine.com.br/login" className="hover:text-green-400 transition">Fazer login</a></li>
-                <li><a href="#como-funciona" className="hover:text-green-400 transition">Como funciona</a></li>
-                <li><a href="#faq" className="hover:text-green-400 transition">Perguntas frequentes</a></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-semibold text-gray-300 mb-4">Empresa</h4>
-              <ul className="space-y-2 text-sm text-gray-500">
-                <li><a href="https://app.fieldmachine.com.br/sobre" className="hover:text-green-400 transition">Sobre nós</a></li>
-                <li><a href="https://app.fieldmachine.com.br/contato" className="hover:text-green-400 transition">Contato</a></li>
-                <li><a href="https://app.fieldmachine.com.br/privacidade" className="hover:text-green-400 transition">Privacidade</a></li>
-                <li><a href="https://app.fieldmachine.com.br/termos" className="hover:text-green-400 transition">Termos de uso</a></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-semibold text-gray-300 mb-4">Contato</h4>
-              <ul className="space-y-2 text-sm text-gray-500">
-                <li>📧 <a href="mailto:contato@fieldmachine.com.br" className="hover:text-green-400 transition">contato@fieldmachine.com.br</a></li>
-                <li>📱 (45) 99144-7004</li>
-                <li>📍 Curitiba, Paraná</li>
-              </ul>
-            </div>
+            <ul className="divide-y divide-[var(--color-hairline)]">
+              {feed.map((row, i) => (
+                <li
+                  key={`${row.text}-${row.minutes}-${i}`}
+                  className="activity-row px-5 py-5 flex items-start gap-4"
+                  data-state="visible"
+                >
+                  <span className="font-mono text-xs text-[var(--color-accent)] mt-1 min-w-[60px]">
+                    há {row.minutes < 60 ? `${row.minutes}m` : `${Math.floor(row.minutes / 60)}h`}
+                  </span>
+                  <div className="flex-1">
+                    <p className="text-[var(--color-text)] text-[0.95rem] leading-snug">{row.text}</p>
+                    <p className="mt-1 font-mono text-xs text-[var(--color-text-muted)] tracking-wide uppercase">
+                      {row.city}
+                    </p>
+                  </div>
+                  <Icon name="arrow" className="w-4 h-4 text-[var(--color-text-muted)] mt-1" />
+                </li>
+              ))}
+            </ul>
           </div>
-          <div className="border-t border-white/10 pt-8 text-center text-sm text-gray-600">
-            © {new Date().getFullYear()} Field Machine Rental. Todos os direitos reservados.
+        </Reveal>
+      </div>
+    </section>
+  );
+}
+
+function Testimonials() {
+  return (
+    <section className="py-24 md:py-32">
+      <div className="mx-auto max-w-[1280px] px-6 md:px-10">
+        <Reveal>
+          <Eyebrow>04 — Depoimentos</Eyebrow>
+        </Reveal>
+        <Reveal delay={120}>
+          <h2 className="mt-6 text-h1 max-w-[16ch]">
+            Quem está no campo,{' '}
+            <span className="italic text-[var(--color-text-muted)]">já entendeu.</span>
+          </h2>
+        </Reveal>
+
+        <div className="mt-16 snap-row flex gap-5 overflow-x-auto pb-4 -mx-6 px-6 md:mx-0 md:px-0">
+          {TESTIMONIALS.map((t) => (
+            <article
+              key={t.name}
+              className="snap-item surface p-8 md:p-10 w-[85vw] md:w-[440px] flex flex-col gap-6 relative"
+            >
+              <span
+                aria-hidden
+                className="font-display text-[140px] leading-[0.5] text-[var(--color-accent)]/40 absolute -top-2 -left-1"
+              >
+                &ldquo;
+              </span>
+              <p className="relative font-display text-2xl md:text-[1.7rem] leading-snug text-[var(--color-text)] tracking-tight pt-10">
+                {t.text}
+              </p>
+              <footer className="mt-auto pt-6 border-t border-[var(--color-hairline)]">
+                <div className="font-mono text-xs text-[var(--color-text-muted)] tracking-widest uppercase">
+                  {t.city}
+                </div>
+                <div className="font-display text-lg mt-1">{t.name}</div>
+              </footer>
+            </article>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function FAQ() {
+  return (
+    <section id="faq" className="py-24 md:py-32 border-t border-[var(--color-hairline)]">
+      <div className="mx-auto max-w-[1280px] px-6 md:px-10 grid grid-cols-1 lg:grid-cols-12 gap-12">
+        <Reveal className="lg:col-span-5 lg:sticky lg:top-32 lg:self-start">
+          <Eyebrow>05 — Perguntas frequentes</Eyebrow>
+          <h2 className="mt-6 text-h1 max-w-[12ch]">
+            Tem dúvida? <br />
+            <span className="italic text-[var(--color-text-muted)]">A gente responde.</span>
+          </h2>
+          <p className="mt-6 text-lead max-w-[36ch]">
+            O essencial sobre como o marketplace funciona. Não achou aqui? Chama no chat.
+          </p>
+        </Reveal>
+
+        <Reveal delay={120} className="lg:col-span-7">
+          <ul className="divide-y divide-[var(--color-hairline)] border-y border-[var(--color-hairline)]">
+            {FAQS.map((f) => (
+              <li key={f.question}>
+                <details className="group">
+                  <summary className="flex items-center justify-between gap-6 py-6 cursor-pointer list-none">
+                    <span className="font-display text-xl md:text-2xl tracking-tight text-[var(--color-text)]">
+                      {f.question}
+                    </span>
+                    <span className="w-9 h-9 rounded-full border border-[var(--color-hairline)] flex items-center justify-center text-[var(--color-text-muted)] shrink-0 transition-all duration-300 group-open:bg-[var(--color-accent)] group-open:border-[var(--color-accent)] group-open:text-[var(--color-bg)] group-open:rotate-45">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                        <path d="M12 5v14M5 12h14" />
+                      </svg>
+                    </span>
+                  </summary>
+                  <div className="pb-6 -mt-2 max-w-[60ch] text-[var(--color-text-muted)] leading-relaxed">
+                    {f.answer}
+                  </div>
+                </details>
+              </li>
+            ))}
+          </ul>
+        </Reveal>
+      </div>
+    </section>
+  );
+}
+
+function DualCloser() {
+  return (
+    <section id="comecar" className="relative">
+      <div className="mx-auto max-w-[1400px] px-6 md:px-10 py-16">
+        <Reveal className="mb-12 max-w-[700px]">
+          <Eyebrow>06 — Comece hoje</Eyebrow>
+          <h2 className="mt-6 text-h1">
+            O próximo serviço <br />
+            <span className="italic text-[var(--color-text-muted)]">já está na rede.</span>
+          </h2>
+          <p className="mt-6 text-lead max-w-[42ch]">
+            Cadastro em 2 minutos. Sem cartão, sem fidelidade, sem taxa.
+          </p>
+        </Reveal>
+
+        <div className="split-row flex flex-col md:flex-row gap-4 md:gap-2 min-h-[420px]">
+          <a
+            href={APP_SIGNUP}
+            className="split-card relative overflow-hidden rounded-3xl block min-h-[360px] md:min-h-[480px]"
+          >
+            <Image
+              src="/images/hero.jpg"
+              alt="Produtor"
+              fill
+              sizes="(min-width:768px) 50vw, 100vw"
+              className="object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-tr from-[var(--color-bg)] via-[var(--color-bg)]/60 to-[var(--color-accent)]/20" />
+            <div className="absolute inset-0 p-8 md:p-12 flex flex-col justify-between">
+              <span className="text-eyebrow text-[var(--color-text)]">Para produtores</span>
+              <div>
+                <h3 className="font-display text-5xl md:text-7xl lowercase leading-[0.95] tracking-tight">
+                  buscar.
+                </h3>
+                <div className="mt-6 inline-flex items-center gap-3 text-[var(--color-text)] group">
+                  <span className="text-sm font-medium">Encontrar máquina</span>
+                  <span className="w-9 h-9 rounded-full bg-[var(--color-accent)] text-[var(--color-bg)] flex items-center justify-center group-hover:translate-x-1 transition-transform">
+                    <Icon name="arrow" className="w-4 h-4" />
+                  </span>
+                </div>
+              </div>
+            </div>
+          </a>
+
+          <a
+            href={APP_SIGNUP}
+            className="split-card relative overflow-hidden rounded-3xl block min-h-[360px] md:min-h-[480px]"
+          >
+            <Image
+              src="/images/implements.jpg"
+              alt="Prestador"
+              fill
+              sizes="(min-width:768px) 50vw, 100vw"
+              className="object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-tr from-[var(--color-bg)] via-[var(--color-bg)]/60 to-[var(--color-signal)]/20" />
+            <div className="absolute inset-0 p-8 md:p-12 flex flex-col justify-between">
+              <span className="text-eyebrow text-[var(--color-text)]">Para prestadores</span>
+              <div>
+                <h3 className="font-display text-5xl md:text-7xl lowercase leading-[0.95] tracking-tight">
+                  oferecer.
+                </h3>
+                <div className="mt-6 inline-flex items-center gap-3 text-[var(--color-text)] group">
+                  <span className="text-sm font-medium">Cadastrar equipamento</span>
+                  <span className="w-9 h-9 rounded-full border border-[var(--color-text)]/40 flex items-center justify-center group-hover:bg-[var(--color-accent)] group-hover:border-[var(--color-accent)] group-hover:text-[var(--color-bg)] transition-all">
+                    <Icon name="arrow" className="w-4 h-4" />
+                  </span>
+                </div>
+              </div>
+            </div>
+          </a>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function Footer() {
+  return (
+    <footer className="relative border-t border-[var(--color-hairline)] bg-[var(--color-bg)] pt-20 pb-12 overflow-hidden">
+      <div className="mx-auto max-w-[1280px] px-6 md:px-10">
+        <div className="grid grid-cols-2 md:grid-cols-12 gap-10">
+          <div className="col-span-2 md:col-span-5">
+            <div className="font-display text-4xl md:text-5xl leading-none tracking-[-0.03em]">
+              field<span className="italic">machine</span>
+            </div>
+            <p className="mt-6 max-w-[36ch] text-sm text-[var(--color-text-muted)] leading-relaxed">
+              Conexão direta entre quem produz e quem opera. Sem atravessador.
+            </p>
+          </div>
+
+          <div className="md:col-span-2">
+            <h4 className="text-eyebrow mb-5">Plataforma</h4>
+            <ul className="space-y-3 text-sm">
+              <li><a href={APP_SIGNUP} className="text-[var(--color-text-muted)] hover:text-[var(--color-accent)] transition-colors">Criar conta</a></li>
+              <li><a href={APP_LOGIN} className="text-[var(--color-text-muted)] hover:text-[var(--color-accent)] transition-colors">Entrar</a></li>
+              <li><a href="#como-funciona" className="text-[var(--color-text-muted)] hover:text-[var(--color-accent)] transition-colors">Como funciona</a></li>
+              <li><a href="#faq" className="text-[var(--color-text-muted)] hover:text-[var(--color-accent)] transition-colors">FAQ</a></li>
+            </ul>
+          </div>
+
+          <div className="md:col-span-2">
+            <h4 className="text-eyebrow mb-5">Empresa</h4>
+            <ul className="space-y-3 text-sm">
+              <li><a href="https://app.fieldmachine.com.br/sobre" className="text-[var(--color-text-muted)] hover:text-[var(--color-accent)] transition-colors">Sobre</a></li>
+              <li><a href="https://app.fieldmachine.com.br/contato" className="text-[var(--color-text-muted)] hover:text-[var(--color-accent)] transition-colors">Contato</a></li>
+              <li><a href="https://app.fieldmachine.com.br/privacidade" className="text-[var(--color-text-muted)] hover:text-[var(--color-accent)] transition-colors">Privacidade</a></li>
+              <li><a href="https://app.fieldmachine.com.br/termos" className="text-[var(--color-text-muted)] hover:text-[var(--color-accent)] transition-colors">Termos</a></li>
+            </ul>
+          </div>
+
+          <div className="md:col-span-3">
+            <h4 className="text-eyebrow mb-5">Contato</h4>
+            <ul className="space-y-3 text-sm font-mono text-[var(--color-text-muted)]">
+              <li><a href="mailto:contato@fieldmachine.com.br" className="hover:text-[var(--color-accent)] transition-colors">contato@fieldmachine.com.br</a></li>
+              <li>(45) 99144-7004</li>
+              <li>Curitiba · PR · Brasil</li>
+            </ul>
           </div>
         </div>
-      </footer>
-    </div>
+
+        <div className="mt-16 pt-8 border-t border-[var(--color-hairline)] flex flex-col md:flex-row gap-4 items-start md:items-center justify-between text-xs text-[var(--color-text-muted)] font-mono tracking-wide">
+          <span>© {new Date().getFullYear()} Field Machine Rental — Todos os direitos reservados</span>
+          <span className="flex items-center gap-2">
+            <span className="pulse-dot inline-block" /> feito no brasil
+          </span>
+        </div>
+      </div>
+    </footer>
+  );
+}
+
+/* ───────────────────────── Page ───────────────────────── */
+export default function Home() {
+  return (
+    <>
+      <Nav />
+      <main>
+        <Hero />
+        <StatsBar />
+        <CityMarquee />
+        <CatalogBento />
+        <ComoFunciona />
+        <Differentiators />
+        <LiveActivity />
+        <Testimonials />
+        <FAQ />
+        <DualCloser />
+      </main>
+      <Footer />
+    </>
   );
 }
