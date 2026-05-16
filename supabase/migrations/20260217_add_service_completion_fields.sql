@@ -21,8 +21,11 @@ COMMENT ON COLUMN public.bookings.billing_quantity IS 'Quantity of billing units
 COMMENT ON COLUMN public.bookings.completed_at IS 'Timestamp when the service was marked as completed';
 
 -- 3. Create or replace view for financial summaries
-CREATE OR REPLACE VIEW public.service_transactions AS
-SELECT 
+-- security_invoker = true makes the view run with the caller's privileges,
+-- so the RLS policies on public.bookings are actually enforced.
+CREATE OR REPLACE VIEW public.service_transactions
+WITH (security_invoker = true) AS
+SELECT
     b.id AS booking_id,
     b.machine_id,
     b.renter_id,
@@ -53,8 +56,16 @@ CREATE INDEX IF NOT EXISTS idx_bookings_renter_completed
 ON public.bookings(renter_id, status, completed_at) 
 WHERE status = 'completed';
 
--- 5. Enable RLS on the view (views inherit table RLS)
--- No additional RLS needed — the bookings table already has RLS policies
+-- 5. Grant Data API access to the view.
+-- Starting May 30, 2026 (new projects) / Oct 30, 2026 (existing projects),
+-- objects in "public" are NOT exposed to the Data API (supabase-js, PostgREST,
+-- GraphQL) without an explicit GRANT. Required so this view stays reachable if
+-- migrations are reapplied on a new project/branch.
+-- RLS is enforced via security_invoker = true above + the existing policies on
+-- public.bookings, so the view does not need its own policies.
+GRANT SELECT ON public.service_transactions TO anon;
+GRANT SELECT ON public.service_transactions TO authenticated;
+GRANT SELECT ON public.service_transactions TO service_role;
 
 -- 6. Backfill: for existing completed bookings, set negotiated_price from total_amount or total_price
 UPDATE public.bookings 
