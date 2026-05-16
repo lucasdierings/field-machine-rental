@@ -133,6 +133,24 @@ npm run lint         # ESLint + Next.js lint
   - Evitar caracteres especiais (✓, →, etc.) que dependem de fontes externas — usar ASCII (`-`, `*`)
   - `<br />` não funciona bem; usar flex column com divs separados
 
+### supabase/ — migrations e Data API
+- A partir de **30/05/2026** (projetos novos) e **30/10/2026** (projetos existentes),
+  o Supabase **não expõe** objetos do schema `public` ao Data API
+  (supabase-js, PostgREST, GraphQL) sem `GRANT` explícito.
+- O app **usa o Data API** (`.from()` em ~16 tabelas), então toda migration que
+  criar **tabela ou view nova** em `public` DEVE incluir os grants:
+  ```sql
+  grant select on public.<obj> to anon;
+  grant select, insert, update, delete on public.<obj> to authenticated;
+  grant select, insert, update, delete on public.<obj> to service_role;
+  alter table public.<obj> enable row level security;  -- só para tabelas
+  -- + create policy ... conforme o caso
+  ```
+  (ajustar privilégios por papel — `anon` raramente precisa de `insert/update/delete`)
+- **Views**: criar sempre com `WITH (security_invoker = true)` para que a RLS das
+  tabelas-base seja aplicada. Sem isso a view roda como dono e **ignora a RLS**.
+- Se um `GRANT` faltar, o PostgREST retorna erro `42501` com o `GRANT` exato a aplicar.
+
 ### site/ — Next.js Link
 - Usar `<Link>` de `next/link` para navegação interna, nunca `<a href="/">`
 - `<a>` é aceitável apenas para links externos ou âncoras (`#section`)
