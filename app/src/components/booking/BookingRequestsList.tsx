@@ -69,6 +69,17 @@ export const BookingRequestsList = ({ bookings, onUpdate, currentUserId }: Booki
     const handleAction = useCallback(async (bookingId: string, action: 'confirm' | 'reject') => {
         setProcessingId(bookingId);
         try {
+            // Verify user is authorized to perform this action
+            const booking = bookings.find(b => b.id === bookingId);
+            if (!booking) {
+                throw new Error("Booking não encontrado");
+            }
+
+            // Only allow owner or renter to modify the booking
+            if (booking.owner_id !== currentUserId && booking.renter_id !== currentUserId) {
+                throw new Error("Você não tem permissão para modificar esta solicitação");
+            }
+
             const statusMap: Record<string, string> = {
                 confirm: 'confirmed',
                 reject: 'rejected',
@@ -76,7 +87,9 @@ export const BookingRequestsList = ({ bookings, onUpdate, currentUserId }: Booki
             const { error } = await supabase
                 .from('bookings')
                 .update({ status: statusMap[action] })
-                .eq('id', bookingId);
+                .eq('id', bookingId)
+                .eq('owner_id', currentUserId) // Add authorization check at DB level too
+                .or(`renter_id.eq.${currentUserId}`);
 
             if (error) throw error;
 
@@ -139,7 +152,7 @@ export const BookingRequestsList = ({ bookings, onUpdate, currentUserId }: Booki
                     metadata: {
                         billing_type: data.billingType,
                         billing_quantity: data.billingQuantity,
-                        unit_price: data.negotiatedPrice / data.billingQuantity,
+                        unit_price: data.billingQuantity > 0 ? data.negotiatedPrice / data.billingQuantity : 0,
                         machine_name: getMachineNameUtil(selectedBooking),
                         owner_id: selectedBooking.owner_id,
                         renter_id: selectedBooking.renter_id,
@@ -296,182 +309,182 @@ const statusLabelUtil = (status: string) => {
 
 const BookingCard = memo<BookingCardProps>(({ booking, processingId, profileName, onAction, onOpenCompleteModal, onNavigate }) => {
     return (
-                    <Card className="overflow-hidden">
-                        <CardHeader className="bg-muted/30 pb-3">
-                            <div className="flex justify-between items-start">
-                                <div>
-                                    <CardTitle className="text-base font-semibold flex items-center gap-2">
-                                        {getMachineNameUtil(booking)}
-                                        <Badge variant="outline" className={`font-normal text-xs ${statusBadgeClassUtil(booking.status)}`}>
-                                            {statusLabelUtil(booking.status)}
-                                        </Badge>
-                                    </CardTitle>
-                                    <CardDescription className="text-xs mt-1">
-                                        Solicitado em {format(new Date(booking.created_at), "d 'de' MMMM, HH:mm", { locale: ptBR })}
-                                    </CardDescription>
-                                </div>
-                                <div className="text-right">
-                                    <p className="font-bold text-lg text-primary">
-                                        R$ {getAmountUtil(booking).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                                    </p>
-                                    <p className="text-xs text-muted-foreground">
-                                        {booking.status === 'completed'
-                                            ? (booking.negotiated_price ? 'Valor Recebido' : 'Valor Estimado')
-                                            : 'Valor Estimado'}
-                                    </p>
-                                </div>
-                            </div>
-                        </CardHeader>
+        <Card className="overflow-hidden">
+            <CardHeader className="bg-muted/30 pb-3">
+                <div className="flex justify-between items-start">
+                    <div>
+                        <CardTitle className="text-base font-semibold flex items-center gap-2">
+                            {getMachineNameUtil(booking)}
+                            <Badge variant="outline" className={`font-normal text-xs ${statusBadgeClassUtil(booking.status)}`}>
+                                {statusLabelUtil(booking.status)}
+                            </Badge>
+                        </CardTitle>
+                        <CardDescription className="text-xs mt-1">
+                            Solicitado em {format(new Date(booking.created_at), "d 'de' MMMM, HH:mm", { locale: ptBR })}
+                        </CardDescription>
+                    </div>
+                    <div className="text-right">
+                        <p className="font-bold text-lg text-primary">
+                            R$ {getAmountUtil(booking).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                            {booking.status === 'completed'
+                                ? (booking.negotiated_price ? 'Valor Recebido' : 'Valor Estimado')
+                                : 'Valor Estimado'}
+                        </p>
+                    </div>
+                </div>
+            </CardHeader>
 
-                        <CardContent className="p-4 grid md:grid-cols-2 gap-4">
-                            <div className="space-y-3">
-                                <div className="flex items-start gap-3">
-                                    <User className="w-5 h-5 text-muted-foreground shrink-0 mt-0.5" />
-                                    <div>
-                                        <p className="text-sm font-medium">Solicitante</p>
-                                        <div className="flex items-center gap-2">
-                                            <p className="text-sm text-foreground">{booking.renter?.full_name || 'Usuário do FieldMachine'}</p>
-                                            {booking.renter?.verified ? (
-                                                <Badge variant="default" className="gap-1 bg-green-600 hover:bg-green-700 text-[10px] px-1.5 py-0 h-5">
-                                                    <ShieldCheck className="h-3 w-3" />
-                                                    Verificado
-                                                </Badge>
-                                            ) : (
-                                                <Badge variant="outline" className="gap-1 text-[10px] px-1.5 py-0 h-5 border-amber-300 text-amber-700 bg-amber-50">
-                                                    <ShieldAlert className="h-3 w-3" />
-                                                    Não Verificado
-                                                </Badge>
-                                            )}
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="flex items-start gap-3">
-                                    <Calendar className="w-5 h-5 text-muted-foreground shrink-0 mt-0.5" />
-                                    <div>
-                                        <p className="text-sm font-medium">Data do Serviço</p>
-                                        <p className="text-sm text-foreground">
-                                            {format(new Date(booking.start_date), "dd/MM/yyyy", { locale: ptBR })}
-                                            {booking.end_date && booking.start_date !== booking.end_date &&
-                                                ` até ${format(new Date(booking.end_date), "dd/MM/yyyy", { locale: ptBR })}`}
-                                        </p>
-                                    </div>
-                                </div>
-                                <div className="flex items-start gap-3">
-                                    <Truck className="w-5 h-5 text-muted-foreground shrink-0 mt-0.5" />
-                                    <div>
-                                        <p className="text-sm font-medium">Detalhes do Serviço</p>
-                                        {booking.status === 'completed' && booking.billing_type && booking.billing_quantity ? (
-                                            <p className="text-sm text-foreground">
-                                                {booking.billing_quantity} {BILLING_TYPE_LABELS[booking.billing_type] || booking.billing_type}
-                                                {booking.negotiated_price && booking.billing_quantity > 0 && (
-                                                    <span className="text-muted-foreground ml-1">
-                                                        (R$ {(booking.negotiated_price / booking.billing_quantity).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}/{booking.billing_type})
-                                                    </span>
-                                                )}
-                                            </p>
-                                        ) : (
-                                            <p className="text-sm text-foreground">{booking.quantity} (unid./ha/dias)</p>
-                                        )}
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="flex flex-col gap-2">
-                                {booking.notes && (
-                                    <div className="bg-muted/50 p-3 rounded-md text-sm italic text-muted-foreground">
-                                        "{booking.notes}"
-                                    </div>
-                                )}
-
-                                {/* Chat */}
-                                <Button
-                                    variant="outline"
-                                    className="w-full"
-                                    aria-label={`Chat com solicitante ${booking.renter?.full_name || 'desconhecido'}`}
-                                    onClick={() => onNavigate(`/chat/${booking.renter_id}?booking=${booking.id}`)}
-                                >
-                                    <MessageCircle className="w-4 h-4 mr-2" />
-                                    Chat com Solicitante
-                                </Button>
-
-                                {/* WhatsApp */}
-                                {booking.renter?.phone && (() => {
-                                    const machineName = booking.machines?.name || booking.machine?.name || 'a máquina';
-                                    const userName = profileName || 'o prestador';
-                                    const bookingDate = format(new Date(booking.created_at), "dd/MM/yyyy", { locale: ptBR });
-                                    const message = encodeURIComponent(
-                                        `Olá! Sou ${userName}, da plataforma FieldMachine. Estou entrando em contato sobre sua solicitação de serviço com ${machineName}, feita em ${bookingDate}. 🌾`
-                                    );
-                                    const phone = booking.renter!.phone!.replace(/\D/g, '');
-                                    return (
-                                        <Button
-                                            variant="outline"
-                                            className="w-full text-green-600 border-green-200 hover:bg-green-50"
-                                            onClick={() => window.open(`https://wa.me/55${phone}?text=${message}`, '_blank')}
-                                        >
-                                            <span className="mr-2">📱</span>
-                                            WhatsApp do Solicitante
-                                        </Button>
-                                    );
-                                })()}
-
-                                {/* Pending actions */}
-                                {booking.status === 'pending' && (
-                                    <div className="flex gap-2 mt-1">
-                                        <Button
-                                            variant="outline"
-                                            className="flex-1 border-red-200 text-red-700 hover:bg-red-50"
-                                            aria-label={`Rejeitar solicitação de ${booking.renter?.full_name || 'solicitante'}`}
-                                            onClick={() => onAction(booking.id, 'reject')}
-                                            disabled={!!processingId}
-                                        >
-                                            {processingId === booking.id
-                                                ? <Loader2 className="w-4 h-4 animate-spin" />
-                                                : <XCircle className="w-4 h-4 mr-1" />}
-                                            Rejeitar
-                                        </Button>
-                                        <Button
-                                            className="flex-1 bg-green-600 hover:bg-green-700 text-white"
-                                            aria-label={`Aceitar solicitação de ${booking.renter?.full_name || 'solicitante'}`}
-                                            onClick={() => onAction(booking.id, 'confirm')}
-                                            disabled={!!processingId}
-                                        >
-                                            {processingId === booking.id
-                                                ? <Loader2 className="w-4 h-4 animate-spin" />
-                                                : <CheckCircle className="w-4 h-4 mr-1" />}
-                                            Aceitar
-                                        </Button>
-                                    </div>
-                                )}
-
-                                {/* Confirmed: mark complete — now opens modal */}
-                                {booking.status === 'confirmed' && (
-                                    <Button
-                                        className="w-full bg-blue-600 hover:bg-blue-700 text-white mt-1"
-                                        aria-label={`Marcar serviço de ${getMachineNameUtil(booking)} como concluído`}
-                                        onClick={() => onOpenCompleteModal(booking)}
-                                        disabled={!!processingId}
-                                    >
-                                        <CheckCircle2 className="w-4 h-4 mr-2" />
-                                        Marcar como Concluído
-                                    </Button>
-                                )}
-
-                                {/* Completed: review */}
-                                {booking.status === 'completed' && (
-                                    <Button
-                                        variant="outline"
-                                        className="w-full border-yellow-300 text-yellow-700 hover:bg-yellow-50 mt-1"
-                                        aria-label={`Avaliar cliente ${booking.renter?.full_name || 'desconhecido'} após serviço`}
-                                        onClick={() => onNavigate(`/avaliar/${booking.id}`)}
-                                    >
-                                        <Star className="w-4 h-4 mr-2" />
-                                        Avaliar Cliente
-                                    </Button>
+            <CardContent className="p-4 grid md:grid-cols-2 gap-4">
+                <div className="space-y-3">
+                    <div className="flex items-start gap-3">
+                        <User className="w-5 h-5 text-muted-foreground shrink-0 mt-0.5" />
+                        <div>
+                            <p className="text-sm font-medium">Solicitante</p>
+                            <div className="flex items-center gap-2">
+                                <p className="text-sm text-foreground">{booking.renter?.full_name || 'Usuário do FieldMachine'}</p>
+                                {booking.renter?.verified ? (
+                                    <Badge variant="default" className="gap-1 bg-green-600 hover:bg-green-700 text-[10px] px-1.5 py-0 h-5">
+                                        <ShieldCheck className="h-3 w-3" />
+                                        Verificado
+                                    </Badge>
+                                ) : (
+                                    <Badge variant="outline" className="gap-1 text-[10px] px-1.5 py-0 h-5 border-amber-300 text-amber-700 bg-amber-50">
+                                        <ShieldAlert className="h-3 w-3" />
+                                        Não Verificado
+                                    </Badge>
                                 )}
                             </div>
-                        </CardContent>
-                    </Card>
+                        </div>
+                    </div>
+                    <div className="flex items-start gap-3">
+                        <Calendar className="w-5 h-5 text-muted-foreground shrink-0 mt-0.5" />
+                        <div>
+                            <p className="text-sm font-medium">Data do Serviço</p>
+                            <p className="text-sm text-foreground">
+                                {format(new Date(booking.start_date), "dd/MM/yyyy", { locale: ptBR })}
+                                {booking.end_date && booking.start_date !== booking.end_date &&
+                                    ` até ${format(new Date(booking.end_date), "dd/MM/yyyy", { locale: ptBR })}`}
+                            </p>
+                        </div>
+                    </div>
+                    <div className="flex items-start gap-3">
+                        <Truck className="w-5 h-5 text-muted-foreground shrink-0 mt-0.5" />
+                        <div>
+                            <p className="text-sm font-medium">Detalhes do Serviço</p>
+                            {booking.status === 'completed' && booking.billing_type && booking.billing_quantity ? (
+                                <p className="text-sm text-foreground">
+                                    {booking.billing_quantity} {BILLING_TYPE_LABELS[booking.billing_type] || booking.billing_type}
+                                    {booking.negotiated_price && booking.billing_quantity > 0 && (
+                                        <span className="text-muted-foreground ml-1">
+                                            (R$ {(booking.negotiated_price / booking.billing_quantity).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}/{booking.billing_type})
+                                        </span>
+                                    )}
+                                </p>
+                            ) : (
+                                <p className="text-sm text-foreground">{booking.quantity} (unid./ha/dias)</p>
+                            )}
+                        </div>
+                    </div>
+                </div>
+
+                <div className="flex flex-col gap-2">
+                    {booking.notes && (
+                        <div className="bg-muted/50 p-3 rounded-md text-sm italic text-muted-foreground">
+                            "{booking.notes}"
+                        </div>
+                    )}
+
+                    {/* Chat */}
+                    <Button
+                        variant="outline"
+                        className="w-full"
+                        aria-label={`Chat com solicitante ${booking.renter?.full_name || 'desconhecido'}`}
+                        onClick={() => onNavigate(`/chat/${booking.renter_id}?booking=${booking.id}`)}
+                    >
+                        <MessageCircle className="w-4 h-4 mr-2" />
+                        Chat com Solicitante
+                    </Button>
+
+                    {/* WhatsApp */}
+                    {booking.renter?.phone && (() => {
+                        const machineName = booking.machines?.name || booking.machine?.name || 'a máquina';
+                        const userName = profileName || 'o prestador';
+                        const bookingDate = format(new Date(booking.created_at), "dd/MM/yyyy", { locale: ptBR });
+                        const message = encodeURIComponent(
+                            `Olá! Sou ${userName}, da plataforma FieldMachine. Estou entrando em contato sobre sua solicitação de serviço com ${machineName}, feita em ${bookingDate}. 🌾`
+                        );
+                        const phone = booking.renter!.phone!.replace(/\D/g, '');
+                        return (
+                            <Button
+                                variant="outline"
+                                className="w-full text-green-600 border-green-200 hover:bg-green-50"
+                                onClick={() => window.open(`https://wa.me/55${phone}?text=${message}`, '_blank')}
+                            >
+                                <span className="mr-2">📱</span>
+                                WhatsApp do Solicitante
+                            </Button>
+                        );
+                    })()}
+
+                    {/* Pending actions */}
+                    {booking.status === 'pending' && (
+                        <div className="flex gap-2 mt-1">
+                            <Button
+                                variant="outline"
+                                className="flex-1 border-red-200 text-red-700 hover:bg-red-50"
+                                aria-label={`Rejeitar solicitação de ${booking.renter?.full_name || 'solicitante'}`}
+                                onClick={() => onAction(booking.id, 'reject')}
+                                disabled={!!processingId}
+                            >
+                                {processingId === booking.id
+                                    ? <Loader2 className="w-4 h-4 animate-spin" />
+                                    : <XCircle className="w-4 h-4 mr-1" />}
+                                Rejeitar
+                            </Button>
+                            <Button
+                                className="flex-1 bg-green-600 hover:bg-green-700 text-white"
+                                aria-label={`Aceitar solicitação de ${booking.renter?.full_name || 'solicitante'}`}
+                                onClick={() => onAction(booking.id, 'confirm')}
+                                disabled={!!processingId}
+                            >
+                                {processingId === booking.id
+                                    ? <Loader2 className="w-4 h-4 animate-spin" />
+                                    : <CheckCircle className="w-4 h-4 mr-1" />}
+                                Aceitar
+                            </Button>
+                        </div>
+                    )}
+
+                    {/* Confirmed: mark complete — now opens modal */}
+                    {booking.status === 'confirmed' && (
+                        <Button
+                            className="w-full bg-blue-600 hover:bg-blue-700 text-white mt-1"
+                            aria-label={`Marcar serviço de ${getMachineNameUtil(booking)} como concluído`}
+                            onClick={() => onOpenCompleteModal(booking)}
+                            disabled={!!processingId}
+                        >
+                            <CheckCircle2 className="w-4 h-4 mr-2" />
+                            Marcar como Concluído
+                        </Button>
+                    )}
+
+                    {/* Completed: review */}
+                    {booking.status === 'completed' && (
+                        <Button
+                            variant="outline"
+                            className="w-full border-yellow-300 text-yellow-700 hover:bg-yellow-50 mt-1"
+                            aria-label={`Avaliar cliente ${booking.renter?.full_name || 'desconhecido'} após serviço`}
+                            onClick={() => onNavigate(`/avaliar/${booking.id}`)}
+                        >
+                            <Star className="w-4 h-4 mr-2" />
+                            Avaliar Cliente
+                        </Button>
+                    )}
+                </div>
+            </CardContent>
+        </Card>
     );
 });
 BookingCard.displayName = 'BookingCard';

@@ -1,0 +1,12 @@
+{
+  "name": "field-machine-rental",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Brazilian agricultural services marketplace — monorepo",
+  "scripts": {
+    "prepare": "husky"
+  },
+  "devDependencies": {
+    "husky": "^9.1.7"
+  }
+}

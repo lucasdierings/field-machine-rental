@@ -1,7 +1,6 @@
 import { Link } from "react-router-dom";
-import { Facebook, Instagram, Twitter, Youtube, Mail, Phone, MapPin } from "lucide-react";
+import { Mail, Phone, MapPin, MessageCircle } from "lucide-react";
 const cidadesPrincipais = ["Curitiba", "Londrina", "Maringá", "Cascavel", "Ponta Grossa", "Foz do Iguaçu", "Guarapuava", "Toledo", "Apucarana", "Campo Largo"];
-const categoriasBlog = ["Tecnologia Agrícola", "Dicas de Plantio", "Manutenção de Máquinas", "Mercado Agrícola", "Sustentabilidade"];
 export const EnhancedFooter = () => {
   return <footer className="bg-card border-t border-border">
     <div className="container mx-auto px-4 py-12">
@@ -18,19 +17,13 @@ export const EnhancedFooter = () => {
             Conectamos produtores e prestadores de serviço de forma segura e confiável.
           </p>
 
-          {/* Social Media */}
+          {/* Contact Icons */}
           <div className="flex space-x-3">
-            <a href="#" className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center hover:bg-primary/20 transition-colors">
-              <Facebook className="h-5 w-5 text-primary" />
+            <a href="https://wa.me/5545991447004" target="_blank" rel="noopener noreferrer" className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center hover:bg-primary/20 transition-colors">
+              <MessageCircle className="h-5 w-5 text-primary" />
             </a>
-            <a href="#" className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center hover:bg-primary/20 transition-colors">
-              <Instagram className="h-5 w-5 text-primary" />
-            </a>
-            <a href="#" className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center hover:bg-primary/20 transition-colors">
-              <Twitter className="h-5 w-5 text-primary" />
-            </a>
-            <a href="#" className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center hover:bg-primary/20 transition-colors">
-              <Youtube className="h-5 w-5 text-primary" />
+            <a href="mailto:contato@fieldmachine.com.br" className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center hover:bg-primary/20 transition-colors">
+              <Mail className="h-5 w-5 text-primary" />
             </a>
           </div>
         </div>
@@ -45,38 +38,18 @@ export const EnhancedFooter = () => {
           </div>
         </div>
 
-        {/* Blog Categories */}
+        {/* Institutional Links */}
         <div className="space-y-4">
-          <h4 className="font-semibold text-lg">Blog</h4>
+          <h4 className="font-semibold text-lg">Institucional</h4>
           <div className="space-y-2">
-            {categoriasBlog.map(categoria => <Link key={categoria} to={`/blog/${categoria.toLowerCase().replace(/\s+/g, '-')}`} className="block text-muted-foreground hover:text-primary transition-colors text-sm">
-              {categoria}
-            </Link>)}
-          </div>
-        </div>
-
-        {/* Contact & Links */}
-        <div className="space-y-4">
-          <h4 className="font-semibold text-lg">Contato</h4>
-          <div className="space-y-3">
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Mail className="h-4 w-4" />
-              <span>fieldmachinebrasil@gmail.com
-              </span>
-            </div>
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Phone className="h-4 w-4" />
-              <span>(45)99144-7004</span>
-            </div>
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <MapPin className="h-4 w-4" />
-              <span>Curitiba, Paraná</span>
-            </div>
-          </div>
-
-          <div className="space-y-2 pt-4">
             <Link to="/sobre" className="block text-muted-foreground hover:text-primary transition-colors text-sm">
-              Sobre
+              Sobre nós
+            </Link>
+            <Link to="/como-funciona" className="block text-muted-foreground hover:text-primary transition-colors text-sm">
+              Como funciona
+            </Link>
+            <Link to="/ajuda" className="block text-muted-foreground hover:text-primary transition-colors text-sm">
+              Central de ajuda
             </Link>
             <Link to="/contato" className="block text-muted-foreground hover:text-primary transition-colors text-sm">
               Contato
@@ -89,6 +62,25 @@ export const EnhancedFooter = () => {
             </Link>
           </div>
         </div>
+
+        {/* Contact */}
+        <div className="space-y-4">
+          <h4 className="font-semibold text-lg">Contato</h4>
+          <div className="space-y-3">
+            <a href="mailto:contato@fieldmachine.com.br" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors">
+              <Mail className="h-4 w-4" />
+              <span>contato@fieldmachine.com.br</span>
+            </a>
+            <a href="tel:+5545991447004" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors">
+              <Phone className="h-4 w-4" />
+              <span>(45) 99144-7004</span>
+            </a>
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <MapPin className="h-4 w-4" />
+              <span>Curitiba, Paraná</span>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Bottom Bar */}
@@ -97,11 +89,9 @@ export const EnhancedFooter = () => {
           <p className="text-sm text-muted-foreground">
             © 2024 FieldMachine. Todos os direitos reservados.
           </p>
-          <div className="flex items-center gap-4 text-sm text-muted-foreground">
-            <span>CNPJ: 00.000.000/0001-00</span>
-            <span>|</span>
-            <span>Registro ANVISA: 12345678</span>
-          </div>
+          <p className="text-sm text-muted-foreground">
+            Desenvolvido para o agronegócio brasileiro
+          </p>
         </div>
       </div>
     </div>

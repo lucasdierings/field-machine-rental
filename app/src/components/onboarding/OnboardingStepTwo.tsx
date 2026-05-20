@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Eye, EyeOff, CheckCircle2, XCircle, User, Phone, Mail, Lock } from 'lucide-react';
+import { Eye, EyeOff, CheckCircle2, XCircle, User, Phone, Mail, Lock, Loader2 } from 'lucide-react';
 import { useState } from 'react';
 import { StepIndicator } from './StepIndicator';
 import { fadeIn } from '@/animations/onboarding';
@@ -17,6 +17,7 @@ interface OnboardingStepTwoProps {
     onUpdate: (updates: Partial<RegisterFormData>) => void;
     onNext: () => void;
     onPrev: () => void;
+    isLoading?: boolean;
 }
 
 export const OnboardingStepTwo = ({
@@ -24,7 +25,8 @@ export const OnboardingStepTwo = ({
     errors,
     onUpdate,
     onNext,
-    onPrev
+    onPrev,
+    isLoading = false,
 }: OnboardingStepTwoProps) => {
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -280,14 +282,23 @@ export const OnboardingStepTwo = ({
                                 variant="outline"
                                 onClick={onPrev}
                                 className="flex-1"
+                                disabled={isLoading}
                             >
                                 Voltar
                             </Button>
                             <Button
                                 onClick={onNext}
                                 className="flex-1 bg-primary hover:bg-primary/90"
+                                disabled={isLoading}
                             >
-                                Continuar
+                                {isLoading ? (
+                                    <>
+                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                        Criando conta...
+                                    </>
+                                ) : (
+                                    'Continuar'
+                                )}
                             </Button>
                         </div>
                     </CardContent>

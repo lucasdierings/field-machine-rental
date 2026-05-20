@@ -397,6 +397,139 @@ export type Database = {
         }
         Relationships: []
       }
+      cities: {
+        Row: {
+          id: string
+          name: string
+          state_id: string
+          ibge_code: string | null
+          latitude: number | null
+          longitude: number | null
+        }
+        Insert: {
+          id?: string
+          name: string
+          state_id: string
+          ibge_code?: string | null
+          latitude?: number | null
+          longitude?: number | null
+        }
+        Update: {
+          id?: string
+          name?: string
+          state_id?: string
+          ibge_code?: string | null
+          latitude?: number | null
+          longitude?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cities_state_id_fkey"
+            columns: ["state_id"]
+            isOneToOne: false
+            referencedRelation: "states"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      countries: {
+        Row: {
+          id: string
+          name: string
+        }
+        Insert: {
+          id?: string
+          name: string
+        }
+        Update: {
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
+      health_checks: {
+        Row: {
+          id: string
+          service_name: string
+          status: string
+          response_time_ms: number | null
+          error_message: string | null
+          checked_at: string
+        }
+        Insert: {
+          id?: string
+          service_name: string
+          status: string
+          response_time_ms?: number | null
+          error_message?: string | null
+          checked_at?: string
+        }
+        Update: {
+          id?: string
+          service_name?: string
+          status?: string
+          response_time_ms?: number | null
+          error_message?: string | null
+          checked_at?: string
+        }
+        Relationships: []
+      }
+      incident_updates: {
+        Row: {
+          id: string
+          incident_id: string
+          status: string
+          message: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          incident_id: string
+          status: string
+          message: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          incident_id?: string
+          status?: string
+          message?: string
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "incident_updates_incident_id_fkey"
+            columns: ["incident_id"]
+            isOneToOne: false
+            referencedRelation: "incidents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      incidents: {
+        Row: {
+          id: string
+          title: string
+          status: string
+          created_at: string
+          resolved_at: string | null
+        }
+        Insert: {
+          id?: string
+          title: string
+          status: string
+          created_at?: string
+          resolved_at?: string | null
+        }
+        Update: {
+          id?: string
+          title?: string
+          status?: string
+          created_at?: string
+          resolved_at?: string | null
+        }
+        Relationships: []
+      }
       leads: {
         Row: {
           categoria: string | null
@@ -793,6 +926,110 @@ export type Database = {
           },
         ]
       }
+      search_alerts: {
+        Row: {
+          id: string
+          user_id: string | null
+          email: string | null
+          category: string | null
+          location: string | null
+          radius_km: number | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id?: string | null
+          email?: string | null
+          category?: string | null
+          location?: string | null
+          radius_km?: number | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string | null
+          email?: string | null
+          category?: string | null
+          location?: string | null
+          radius_km?: number | null
+          created_at?: string
+        }
+        Relationships: []
+      }
+      states: {
+        Row: {
+          id: string
+          name: string
+          country_id: string | null
+        }
+        Insert: {
+          id?: string
+          name: string
+          country_id?: string | null
+        }
+        Update: {
+          id?: string
+          name?: string
+          country_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "states_country_id_fkey"
+            columns: ["country_id"]
+            isOneToOne: false
+            referencedRelation: "countries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      support_tickets: {
+        Row: {
+          id: string
+          user_id: string
+          user_name: string | null
+          user_email: string | null
+          subject: string
+          message: string
+          category: string
+          status: string
+          priority: string
+          admin_notes: string | null
+          created_at: string
+          updated_at: string
+          closed_at: string | null
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          user_name?: string | null
+          user_email?: string | null
+          subject: string
+          message: string
+          category?: string
+          status?: string
+          priority?: string
+          admin_notes?: string | null
+          created_at?: string
+          updated_at?: string
+          closed_at?: string | null
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          user_name?: string | null
+          user_email?: string | null
+          subject?: string
+          message?: string
+          category?: string
+          status?: string
+          priority?: string
+          admin_notes?: string | null
+          created_at?: string
+          updated_at?: string
+          closed_at?: string | null
+        }
+        Relationships: []
+      }
       transactions: {
         Row: {
           amount: number
@@ -897,12 +1134,15 @@ export type Database = {
           full_name: string | null
           id: string
           phone: string | null
+          profile_completed: boolean | null
+          profile_completion_step: number | null
           profile_image: string | null
           rating: number | null
           total_rentals: number | null
           total_services: number | null
           total_transactions: number | null
           updated_at: string
+          user_type: string | null
           user_types: string[] | null
           verified: boolean | null
         }
@@ -915,12 +1155,15 @@ export type Database = {
           full_name?: string | null
           id?: string
           phone?: string | null
+          profile_completed?: boolean | null
+          profile_completion_step?: number | null
           profile_image?: string | null
           rating?: number | null
           total_rentals?: number | null
           total_services?: number | null
           total_transactions?: number | null
           updated_at?: string
+          user_type?: string | null
           user_types?: string[] | null
           verified?: boolean | null
         }
@@ -933,12 +1176,15 @@ export type Database = {
           full_name?: string | null
           id?: string
           phone?: string | null
+          profile_completed?: boolean | null
+          profile_completion_step?: number | null
           profile_image?: string | null
           rating?: number | null
           total_rentals?: number | null
           total_services?: number | null
           total_transactions?: number | null
           updated_at?: string
+          user_type?: string | null
           user_types?: string[] | null
           verified?: boolean | null
         }

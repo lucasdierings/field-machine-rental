@@ -32,9 +32,18 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    if (import.meta.env.DEV) {
-      console.error('Error caught by boundary:', error, errorInfo);
+    console.error('Error caught by boundary:', error, errorInfo);
+
+    // Store error for admin debug overlay
+    if (window.__APP_ERRORS) {
+      window.__APP_ERRORS.push({
+        type: 'react',
+        message: error.message,
+        file: errorInfo.componentStack?.split('\n')[1]?.trim(),
+        time: new Date().toISOString(),
+      });
     }
+
     this.props.onError?.(error, errorInfo);
   }
 
@@ -85,22 +94,59 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
 
       return (
         <section
-          className="flex flex-col items-center justify-center p-8 text-center"
+          style={{
+            minHeight: '100vh',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '32px',
+            textAlign: 'center',
+            backgroundColor: '#ffffff',
+          }}
           role="alert"
           aria-live="polite"
           aria-atomic="true"
         >
-          <h2 className="text-lg font-semibold text-destructive mb-2">Algo deu errado</h2>
-          <p className="text-sm text-muted-foreground mb-4">
-            {this.state.error?.message || 'Ocorreu um erro inesperado.'}
+          <h2 style={{ fontSize: '24px', fontWeight: '600', color: '#ef4444', marginBottom: '16px' }}>
+            ⚠️ Algo deu errado
+          </h2>
+          <p style={{ fontSize: '14px', color: '#666', marginBottom: '24px', maxWidth: '400px' }}>
+            Estamos com um problema temporario. Nossa equipe ja foi notificada e estamos trabalhando para resolver.
           </p>
           <button
-            className="px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm hover:bg-primary/90 transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
-            onClick={() => this.setState({ hasError: false, error: null })}
+            style={{
+              padding: '12px 24px',
+              backgroundColor: '#16a34a',
+              color: '#ffffff',
+              border: 'none',
+              borderRadius: '8px',
+              fontSize: '16px',
+              fontWeight: '500',
+              cursor: 'pointer',
+            }}
+            onClick={() => window.location.reload()}
             aria-label="Recarregar página após erro"
           >
-            Tentar novamente
+            Recarregar App
           </button>
+          <a
+            href="/status"
+            style={{
+              display: 'inline-block',
+              marginTop: '16px',
+              padding: '8px 16px',
+              backgroundColor: 'transparent',
+              color: '#666',
+              border: '1px solid #ddd',
+              borderRadius: '8px',
+              fontSize: '14px',
+              textDecoration: 'none',
+              cursor: 'pointer',
+            }}
+          >
+            Verificar status dos sistemas
+          </a>
         </section>
       );
     }

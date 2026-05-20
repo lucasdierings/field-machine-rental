@@ -188,8 +188,12 @@ export const useRegisterForm = () => {
         // About You - Optional fields, no strict validation blocks
       } else if (step === 4) {
         if (!formData.emailVerified) {
-          // Verification happens via button interaction, not next step
-          // But if they try to finish...
+          setErrors({ emailVerified: 'Verifique seu email para continuar' });
+          return false;
+        }
+        if (!formData.termsAccepted) {
+          setErrors({ termsAccepted: 'Aceite os termos para continuar' });
+          return false;
         }
       }
 

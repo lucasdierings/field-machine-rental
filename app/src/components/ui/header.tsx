@@ -33,6 +33,9 @@ export const Header = () => {
             <Link to="/oferecer-servicos" className="text-foreground hover:text-primary transition-colors">
               Prestar Serviços
             </Link>
+            <Link to="/suporte" className="text-foreground hover:text-primary transition-colors">
+              Suporte
+            </Link>
           </nav>
 
           {/* User Actions */}

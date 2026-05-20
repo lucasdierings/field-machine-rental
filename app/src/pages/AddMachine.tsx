@@ -18,6 +18,22 @@ import { validateMachineForm } from "@/lib/schemas/machineSchema";
 const normalizeOperatorType = (operatorType?: string | null) =>
   operatorType === "hired" || operatorType === "employee" ? "hired" : "owner";
 
+// Safe file extension mapping based on MIME type
+const MIME_TO_EXT: Record<string, string> = {
+  'image/jpeg': 'jpg',
+  'image/jpg': 'jpg',
+  'image/png': 'png',
+  'image/webp': 'webp',
+  'image/gif': 'gif',
+};
+
+const getImageExtension = (file: File): string => {
+  const ext = MIME_TO_EXT[file.type.toLowerCase()];
+  if (ext) return ext;
+  // Fallback to jpg if type is unknown
+  return 'jpg';
+};
+
 export default function AddMachine() {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -54,7 +70,7 @@ export default function AddMachine() {
       address: ""
     },
     radius_km: 50,
-    operator_type: "owner", // owner (próprio) or hired (contratado)
+    operator_type: "owner", // owner | employee
     specifications: {},
     service_cities: [] as string[]
   });
@@ -222,6 +238,7 @@ export default function AddMachine() {
         model: formData.model || null,
         description: formData.description.trim() || null,
         year: formData.year,
+        description: formData.description?.trim() || null,
         location: formData.location,
         radius_km: formData.radius_km,
         specifications: formData.specifications,
@@ -270,53 +287,73 @@ export default function AddMachine() {
           .from('machine_images')
           .delete()
           .in('id', deletedImageIds);
-        // Note: We are not deleting from storage here to keep it simple, but we could if we tracked file paths.
       }
 
       // 2. Process all current images (Upload new ones, update order for all)
+      const uploadErrors: string[] = [];
+
       for (let i = 0; i < machineImages.length; i++) {
         const img = machineImages[i];
 
-        if (img.isNew && img.file) {
-          // Upload new image
-          const fileName = `${machineId}/${Date.now()}_${i}.${img.file.name.split('.').pop()}`;
+        try {
+          if (img.isNew && img.file) {
+            // Upload new image (using safe MIME-based extension)
+            const ext = getImageExtension(img.file);
+            const fileName = `${machineId}/${Date.now()}_${i}.${ext}`;
 
-          const { error: uploadError } = await supabase.storage
-            .from('machine-images')
-            .upload(fileName, img.file);
+            const { error: uploadError } = await supabase.storage
+              .from('machine-images')
+              .upload(fileName, img.file);
 
-          if (uploadError) {
-            if (import.meta.env.DEV) {
-              console.error('Error uploading:', uploadError);
+            if (uploadError) {
+              uploadErrors.push(`Imagem ${i + 1}: ${uploadError.message}`);
+              continue;
             }
-            continue;
+
+            const { data: { publicUrl } } = supabase.storage
+              .from('machine-images')
+              .getPublicUrl(fileName);
+
+            // Insert new image record
+            const { error: insertError } = await supabase
+              .from('machine_images')
+              .insert({
+                machine_id: machineId,
+                image_url: publicUrl,
+                is_primary: i === 0,
+                order_index: i
+              });
+
+            if (insertError) {
+              uploadErrors.push(`Imagem ${i + 1} (BD): ${insertError.message}`);
+            }
+
+          } else if (!img.isNew && img.id) {
+            // Update existing image order/primary status if needed
+            const { error: updateError } = await supabase
+              .from('machine_images')
+              .update({
+                is_primary: i === 0,
+                order_index: i
+              })
+              .eq('id', img.id);
+
+            if (updateError) {
+              uploadErrors.push(`Atualizar imagem ${i + 1}: ${updateError.message}`);
+            }
           }
-
-          const { data: { publicUrl } } = supabase.storage
-            .from('machine-images')
-            .getPublicUrl(fileName);
-
-          // Insert new image record
-          await supabase
-            .from('machine_images')
-            .insert({
-              machine_id: machineId,
-              image_url: publicUrl,
-              is_primary: i === 0,
-              order_index: i
-            });
-
-        } else if (!img.isNew && img.id) {
-          // Update existing image order/primary status if needed
-          // We always update to ensure order is correct
-          await supabase
-            .from('machine_images')
-            .update({
-              is_primary: i === 0,
-              order_index: i
-            })
-            .eq('id', img.id);
+        } catch (error) {
+          uploadErrors.push(`Imagem ${i + 1}: Erro inesperado`);
         }
+      }
+
+      // Notify user if there were any errors
+      if (uploadErrors.length > 0) {
+        toast({
+          title: "Aviso: Alguns problemas com imagens",
+          description: uploadErrors.join('\n'),
+          variant: "destructive",
+        });
       }
 
       setUploadingImages(false);

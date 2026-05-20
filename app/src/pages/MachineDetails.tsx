@@ -204,6 +204,16 @@ const MachineDetails = () => {
             return;
         }
 
+        // Proprietário não pode contratar a própria máquina
+        if (machine.owner_id === userId) {
+            toast({
+                title: "Operação não permitida",
+                description: "Você não pode solicitar serviço da sua própria máquina.",
+                variant: "destructive"
+            });
+            return;
+        }
+
         try {
             setBookingLoading(true);
 
@@ -428,7 +438,7 @@ const MachineDetails = () => {
                         {/* Specifications */}
                         <div className="pb-6 border-b">
                             <h2 className="text-lg md:text-xl font-semibold mb-4">Especificações Técnicas</h2>
-                            <div className="grid grid-cols-2 gap-3 md:gap-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
                                 <div className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg">
                                     <Settings className="h-5 w-5 text-primary shrink-0" />
                                     <div className="min-w-0">
@@ -471,6 +481,7 @@ const MachineDetails = () => {
                         quantity={quantity}
                         notes={notes}
                         bookingLoading={bookingLoading}
+                        isOwnMachine={!!userId && machine.owner_id === userId}
                         onStartDateChange={setStartDate}
                         onQuantityChange={setQuantity}
                         onNotesChange={setNotes}

@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 import { SplashScreen } from '@/components/onboarding/SplashScreen';
@@ -23,6 +23,8 @@ export const Onboarding = () => {
     const navigate = useNavigate();
     const { toast } = useToast();
     const { state, nextStep, prevStep, updateFormData, setEmailVerified } = useOnboarding();
+    const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+    const [isSigningUp, setIsSigningUp] = useState(false);
 
     // Validate Step 2 (Registration)
     const validateRegistration = (): { valid: boolean; errors: Record<string, string> } => {
@@ -66,6 +68,7 @@ export const Onboarding = () => {
     // Handle Step 2 Next (Create Account)
     const handleRegisterNext = async () => {
         const validation = validateRegistration();
+        setValidationErrors(validation.errors);
 
         if (!validation.valid) {
             const firstError = Object.values(validation.errors)[0];
@@ -77,6 +80,7 @@ export const Onboarding = () => {
             return;
         }
 
+        setIsSigningUp(true);
         try {
             // Create user with Supabase Auth (this sets the password)
             const { data, error } = await supabase.auth.signUp({
@@ -123,33 +127,48 @@ export const Onboarding = () => {
                 description: error.message,
                 variant: 'destructive',
             });
+        } finally {
+            setIsSigningUp(false);
         }
     };
 
-    // Verify Email Code
-    const handleVerifyEmail = async (code: string) => {
+    // Check if email was verified (user clicked magic link)
+    const handleVerifyEmail = async () => {
         try {
-            const { data, error } = await supabase.auth.verifyOtp({
-                email: state.formData.email,
-                token: code,
-                type: 'signup'
-            });
+            const { data: { session }, error } = await supabase.auth.getSession();
 
             if (error) throw error;
 
-            if (data.session) {
+            if (session?.user?.email_confirmed_at) {
                 setEmailVerified(true);
                 toast({
                     title: 'Email verificado!',
                     description: 'Bem-vindo ao FieldMachine!',
                 });
+            } else {
+                // Try refreshing the session in case user just clicked the link
+                const { data: refreshed } = await supabase.auth.refreshSession();
+                if (refreshed.session?.user?.email_confirmed_at) {
+                    setEmailVerified(true);
+                    toast({
+                        title: 'Email verificado!',
+                        description: 'Bem-vindo ao FieldMachine!',
+                    });
+                } else {
+                    throw new Error('Email ainda nao verificado. Clique no link enviado para seu email.');
+                }
             }
         } catch (error: any) {
-            throw new Error(error.message || 'Código inválido');
+            toast({
+                title: 'Email nao verificado',
+                description: error.message || 'Clique no link enviado para seu email.',
+                variant: 'destructive',
+            });
+            throw error;
         }
     };
 
-    // Resend Email
+    // Resend verification email
     const handleResendEmail = async () => {
         try {
             const { error } = await supabase.auth.resend({
@@ -160,13 +179,13 @@ export const Onboarding = () => {
             if (error) throw error;
 
             toast({
-                title: 'Email reenviado!',
+                title: 'Link reenviado!',
                 description: 'Verifique sua caixa de entrada.',
             });
         } catch (error: any) {
             log('Resend error:', error);
             toast({
-                title: 'Erro ao reenviar email',
+                title: 'Erro ao reenviar',
                 description: error.message,
                 variant: 'destructive',
             });
@@ -174,33 +193,24 @@ export const Onboarding = () => {
         }
     };
 
-    // Send SMS (placeholder for future Twilio integration)
-    const handleSendSMS = async () => {
-        toast({
-            title: 'SMS não disponível',
-            description: 'Em breve você poderá receber o código por SMS.',
-            variant: 'default',
-        });
-    };
-
     // Change Email
     const handleChangeEmail = async (newEmail: string) => {
         try {
-            // In a real scenario, you'd need to:
-            // 1. Delete the old auth user
-            // 2. Create a new one with the new email
-            // For now, just update form data and resend
+            // Update auth user email via Supabase
+            const { error: updateError } = await supabase.auth.updateUser({
+                email: newEmail,
+            });
+
+            if (updateError) throw updateError;
 
             updateFormData({ email: newEmail });
 
-            // Resend verification to new email
-            await handleResendEmail();
-
             toast({
                 title: 'Email atualizado!',
-                description: `Novo código enviado para ${newEmail}`,
+                description: `Novo código enviado para ${newEmail}. Verifique sua caixa de entrada.`,
             });
         } catch (error: any) {
+            log('Change email error:', error);
             throw new Error(error.message || 'Erro ao atualizar email');
         }
     };
@@ -292,10 +302,11 @@ export const Onboarding = () => {
                     <OnboardingStepTwo
                         key="register"
                         formData={state.formData}
-                        errors={{}} // Will implement validation feedback
+                        errors={validationErrors}
                         onUpdate={updateFormData}
                         onNext={handleRegisterNext}
                         onPrev={prevStep}
+                        isLoading={isSigningUp}
                     />
                 )}
 
@@ -306,7 +317,6 @@ export const Onboarding = () => {
                         onUpdate={updateFormData}
                         onVerifyEmail={handleVerifyEmail}
                         onResendEmail={handleResendEmail}
-                        onSendSMS={handleSendSMS}
                         onChangeEmail={handleChangeEmail}
                         onFinalize={handleFinalize}
                         onPrev={prevStep}

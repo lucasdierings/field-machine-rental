@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -34,6 +35,7 @@ interface OnboardingCarouselProps {
 }
 
 export const OnboardingCarousel = ({ onComplete }: OnboardingCarouselProps) => {
+    const navigate = useNavigate();
     const [currentSlide, setCurrentSlide] = useState(0);
     const [direction, setDirection] = useState(0);
 
@@ -140,30 +142,39 @@ export const OnboardingCarousel = ({ onComplete }: OnboardingCarouselProps) => {
             </div>
 
             {/* Navigation Buttons */}
-            <div className="flex w-full max-w-md items-center justify-between gap-4">
-                <Button
-                    variant="outline"
-                    onClick={prevSlide}
-                    disabled={currentSlide === 0}
-                    className="flex items-center gap-2"
-                >
-                    <ChevronLeft className="h-4 w-4" />
-                    Anterior
-                </Button>
+            <div className="flex w-full max-w-md flex-col items-center gap-4">
+                <div className="flex w-full items-center justify-between gap-4">
+                    <Button
+                        variant="outline"
+                        onClick={prevSlide}
+                        disabled={currentSlide === 0}
+                        className="flex items-center gap-2"
+                    >
+                        <ChevronLeft className="h-4 w-4" />
+                        Anterior
+                    </Button>
 
-                <Button
-                    onClick={nextSlide}
-                    className="flex items-center gap-2 bg-primary hover:bg-primary/90"
+                    <Button
+                        onClick={nextSlide}
+                        className="flex items-center gap-2 bg-primary hover:bg-primary/90"
+                    >
+                        {currentSlide === slides.length - 1 ? (
+                            'Começar'
+                        ) : (
+                            <>
+                                Próximo
+                                <ChevronRight className="h-4 w-4" />
+                            </>
+                        )}
+                    </Button>
+                </div>
+
+                <button
+                    onClick={() => navigate('/login')}
+                    className="text-sm text-muted-foreground hover:text-primary transition-colors"
                 >
-                    {currentSlide === slides.length - 1 ? (
-                        'Começar'
-                    ) : (
-                        <>
-                            Próximo
-                            <ChevronRight className="h-4 w-4" />
-                        </>
-                    )}
-                </Button>
+                    Ja tenho uma conta
+                </button>
             </div>
         </div>
     );

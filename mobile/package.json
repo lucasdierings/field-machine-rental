@@ -1,0 +1,29 @@
+{
+  "name": "field-machine-mobile",
+  "version": "1.0.0",
+  "description": "Field Machine - Mobile App (iOS/Android)",
+  "scripts": {
+    "build:web": "cd ../app && npm run build",
+    "sync": "npm run build:web && npx cap sync",
+    "sync:ios": "npm run build:web && npx cap sync ios",
+    "sync:android": "npm run build:web && npx cap sync android",
+    "open:ios": "npx cap open ios",
+    "open:android": "npx cap open android",
+    "run:ios": "npm run sync:ios && npm run open:ios",
+    "run:android": "npm run sync:android && npm run open:android"
+  },
+  "keywords": ["capacitor", "mobile", "ios", "android", "field-machine"],
+  "author": "Field Machine Brasil",
+  "license": "ISC",
+  "dependencies": {
+    "@capacitor/android": "^8.3.0",
+    "@capacitor/cli": "^8.3.0",
+    "@capacitor/core": "^8.3.0",
+    "@capacitor/ios": "^8.3.0",
+    "@capacitor/splash-screen": "^8.0.1",
+    "@capacitor/status-bar": "^8.0.2"
+  },
+  "devDependencies": {
+    "typescript": "^6.0.2"
+  }
+}

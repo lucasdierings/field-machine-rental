@@ -39,7 +39,6 @@ interface TransactionRow {
 }
 interface UserGrowthRow { month: string; users: number; }
 
-
 const AdminDashboard = () => {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [categoryData, setCategoryData] = useState<CategoryData[]>([]);

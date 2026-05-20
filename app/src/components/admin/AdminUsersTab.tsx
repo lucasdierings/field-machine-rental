@@ -49,6 +49,11 @@ const AdminUsersTab = () => {
     loadUsers();
   }, [currentPage, searchTerm, filterType, filterVerified]);
 
+  // Reset to first page whenever filters change so the user doesn't end up on an empty page
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, filterType, filterVerified]);
+
   const loadUsers = async () => {
     try {
       setLoading(true);

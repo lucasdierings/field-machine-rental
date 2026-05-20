@@ -13,6 +13,18 @@ import {
   AlertCircle
 } from "lucide-react";
 
+// Safe MIME to extension mapping for KYC documents
+const getKYCExtension = (mimeType: string): string => {
+  const mimeMap: Record<string, string> = {
+    'application/pdf': 'pdf',
+    'image/jpeg': 'jpg',
+    'image/jpg': 'jpg',
+    'image/png': 'png',
+    'image/webp': 'webp',
+  };
+  return mimeMap[mimeType.toLowerCase()] || 'pdf';
+};
+
 interface KYCDocument {
   id: string;
   fileName: string;
@@ -81,7 +93,7 @@ export const KYCUpload = ({ userId, documents, onDocumentsChange }: KYCUploadPro
 
     try {
       const documentId = crypto.randomUUID();
-      const fileExtension = file.name.split('.').pop();
+      const fileExtension = getKYCExtension(file.type);
       const fileName = `${documentId}.${fileExtension}`;
       const filePath = `${userId}/${fileName}`;
 
